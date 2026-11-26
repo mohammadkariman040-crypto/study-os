@@ -13,7 +13,7 @@
 <link rel="manifest" href="manifest.webmanifest"/>
 <link rel="icon" href="icon-192.png" type="image/png"/>
 <link rel="apple-touch-icon" href="icon-192.png"/>
-<title>Study OS — نسخه ۸۵ · انتخاب دستی دستگاه</title>
+<title>Study OS — نسخهٔ ۹۱ · اصلاح انتخاب‌گر دستگاه</title>
 <style>
 
 :root{--bg:#f4f7fb;--card:#fff;--ink:#1d2a3a;--muted:#64748b;--line:#dce5ef;--accent:#3769d6;--accent2:#eaf0ff;--good:#18845b;--bad:#c44545;--gold:#b7791f}
@@ -236,9 +236,545 @@ background:radial-gradient(ellipse at 13% 0%,rgba(91,74,204,.24),transparent 35%
 @media(prefers-reduced-motion:reduce){.device-profile-option-v85{transition:none!important}}
 /* The selector is local to this browser. It never enters the Supabase sync payload. */
 </style>
+<style id="study-os-v87-device-layouts">
+/* ================================================================
+   v87 DEVICE LAYOUTS
+   Desktop retains the original base design. Phone keeps its existing
+   breakpoints; tablet gets a dedicated portrait/landscape system.
+   ================================================================ */
+
+/* Touch-only behavior: no desktop keyboard selection/highlight on phone/tablet. */
+html.sos-device-phone #questions .question.kbd-current-v58,
+html.sos-device-tablet #questions .question.kbd-current-v58,
+html.sos-device-phone #answerKey .question.key-current-v70,
+html.sos-device-tablet #answerKey .question.key-current-v70 {
+  outline:none!important;outline-offset:0!important;box-shadow:none!important;
+}
+html.sos-device-phone #questions .question.kbd-current-v58 .q-number,
+html.sos-device-tablet #questions .question.kbd-current-v58 .q-number { color:inherit!important; }
+
+/* ---------------- Tablet common foundation ---------------- */
+html.sos-device-tablet,
+html.sos-device-tablet body {
+  width:100%!important;max-width:100%!important;min-width:0!important;
+  overflow-x:hidden!important;-webkit-text-size-adjust:100%!important;text-size-adjust:100%!important;
+}
+html.sos-device-tablet body { margin:0!important;overscroll-behavior-x:none!important; }
+html.sos-device-tablet body *,
+html.sos-device-tablet body *::before,
+html.sos-device-tablet body *::after { box-sizing:border-box!important; }
+html.sos-device-tablet button,
+html.sos-device-tablet input,
+html.sos-device-tablet select,
+html.sos-device-tablet textarea { max-width:100%; }
+
+/* Top header: compact, wrapping without collisions. */
+html.sos-device-tablet body>header.answer-app-header-v63 {
+  width:100%!important;min-width:0!important;padding:12px 16px!important;
+}
+html.sos-device-tablet .answer-app-header-wrap-v63 {
+  display:flex!important;align-items:center!important;justify-content:space-between!important;
+  flex-wrap:wrap!important;gap:8px 14px!important;width:100%!important;max-width:1600px!important;
+  min-width:0!important;margin:0 auto!important;
+}
+html.sos-device-tablet .answer-app-header-wrap-v63>h1 {
+  flex:1 1 220px!important;min-width:0!important;margin:0!important;
+  font-size:clamp(1.05rem,1.7vw,1.4rem)!important;line-height:1.4!important;overflow-wrap:anywhere!important;
+}
+html.sos-device-tablet .answer-app-actions-v63 {
+  display:flex!important;align-items:center!important;justify-content:flex-end!important;
+  flex:0 1 auto!important;flex-wrap:wrap!important;gap:7px!important;min-width:0!important;max-width:100%!important;
+}
+html.sos-device-tablet .answer-app-actions-v63>button,
+html.sos-device-tablet .answer-app-actions-v63>.study-launch-inline-v63,
+html.sos-device-tablet .answer-app-actions-v63>.device-profile-picker-v85 {
+  flex:0 0 auto!important;min-width:38px!important;max-width:100%!important;
+}
+html.sos-device-tablet .device-profile-menu-v85 { z-index:100300!important; }
+
+/* Test area: portrait is a vertical stack; landscape is a true two-column workspace. */
+html.sos-device-tablet body>main {
+  display:grid!important;grid-template-columns:minmax(0,1fr)!important;align-items:start!important;
+  width:100%!important;max-width:1600px!important;min-width:0!important;margin:0 auto!important;
+  padding:12px 14px 28px!important;gap:12px!important;transition:none!important;
+}
+html.sos-device-tablet body>main>#sidebarPanel,
+html.sos-device-tablet body>main>section.card {
+  display:block!important;width:100%!important;min-width:0!important;max-width:100%!important;
+  margin:0!important;justify-self:stretch!important;align-self:start!important;
+  box-sizing:border-box!important;opacity:1!important;isolation:isolate!important;
+  color:var(--ink,#202b3a)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+}
+html.sos-device-tablet body>main>#sidebarPanel {
+  position:relative!important;top:auto!important;z-index:4!important;
+  max-height:36vh!important;max-height:36dvh!important;min-height:0!important;
+  padding:13px!important;overflow-x:hidden!important;overflow-y:auto!important;
+  overscroll-behavior:contain!important;-webkit-overflow-scrolling:touch!important;
+  border-radius:18px!important;border:1px solid var(--line,#dce5ef)!important;
+  background-color:var(--card,#fff)!important;background-image:none!important;
+  box-shadow:0 6px 22px rgba(20,35,70,.08)!important;
+}
+html.sos-device-tablet body>main>section.card {
+  min-height:0!important;padding:14px!important;border-radius:18px!important;
+  border:1px solid var(--line,#dce5ef)!important;background:var(--card,#fff)!important;
+  color:var(--ink,#202b3a)!important;box-shadow:0 6px 22px rgba(20,35,70,.06)!important;
+  overflow:visible!important;
+}
+html.sos-device-tablet #sidebarPanel .sidebar-head {
+  display:flex!important;align-items:center!important;justify-content:space-between!important;gap:9px!important;min-width:0!important;
+}
+html.sos-device-tablet #sidebarPanel .sidebar-head h2 { min-width:0!important;margin:0!important;font-size:1rem!important; }
+html.sos-device-tablet #collapseSidebar {
+  display:inline-grid!important;place-items:center!important;flex:0 0 42px!important;
+  width:42px!important;min-width:42px!important;height:40px!important;min-height:40px!important;padding:0!important;
+}
+html.sos-device-tablet #showSidebar:not(.hidden) {
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  min-height:42px!important;margin:0 0 11px!important;max-width:100%!important;
+}
+html.sos-device-tablet #sidebarPanel .row {
+  display:flex!important;align-items:center!important;flex-wrap:wrap!important;gap:7px!important;min-width:0!important;
+}
+html.sos-device-tablet #sidebarPanel .row>* { flex:1 1 145px!important;min-width:0!important;max-width:100%!important; }
+html.sos-device-tablet #sidebarPanel .row>button { flex:0 0 auto!important;white-space:normal!important; }
+html.sos-device-tablet #sidebarPanel input,
+html.sos-device-tablet #sidebarPanel select,
+html.sos-device-tablet #sidebarPanel textarea { min-height:42px!important;width:100%!important;min-width:0!important;font-size:.9rem!important; }
+html.sos-device-tablet #sidebarPanel button { min-height:39px!important; }
+html.sos-device-tablet #sidebarPanel .tree-list {
+  display:flex!important;flex-direction:column!important;gap:7px!important;
+  min-width:0!important;max-width:100%!important;max-height:190px!important;
+  overflow-x:hidden!important;overflow-y:auto!important;overscroll-behavior:contain!important;
+  -webkit-overflow-scrolling:touch!important;
+}
+html.sos-device-tablet #sidebarPanel .tree-item {
+  display:flex!important;align-items:center!important;flex-wrap:nowrap!important;gap:7px!important;
+  min-width:0!important;max-width:100%!important;overflow:hidden!important;
+  background:var(--bg,#f4f7fb)!important;color:var(--ink,#202b3a)!important;
+}
+html.sos-device-tablet #sidebarPanel .tree-item [data-open] {
+  flex:1 1 0!important;min-width:0!important;overflow-wrap:anywhere!important;white-space:normal!important;
+}
+html.sos-device-tablet #sidebarPanel .daily-test-panel,
+html.sos-device-tablet #sidebarPanel details.daily-test-history {
+  min-width:0!important;max-width:100%!important;background:var(--bg,#f4f7fb)!important;color:var(--ink,#202b3a)!important;
+}
+html.sos-device-tablet body>main.sidebar-collapsed {
+  display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:10px!important;
+}
+html.sos-device-tablet body>main.sidebar-collapsed>#sidebarPanel { display:none!important; }
+html.sos-device-tablet body>main.sidebar-collapsed>section.card {
+  display:block!important;grid-column:1/-1!important;width:100%!important;min-width:0!important;max-width:100%!important;
+}
+
+/* Test title, stats and toolbars. */
+html.sos-device-tablet #examArea,
+html.sos-device-tablet #answerWorkspace,
+html.sos-device-tablet #subtestManager,
+html.sos-device-tablet #historyPanel { width:100%!important;max-width:100%!important;min-width:0!important; }
+html.sos-device-tablet #examArea>.row {
+  display:flex!important;align-items:flex-start!important;justify-content:space-between!important;
+  flex-wrap:wrap!important;gap:9px!important;width:100%!important;min-width:0!important;
+}
+html.sos-device-tablet #examArea>.row>* { flex:0 1 auto!important;min-width:0!important;max-width:100%!important; }
+html.sos-device-tablet #examArea>.row>div:first-child { flex:1 1 240px!important; }
+html.sos-device-tablet .stats {
+  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  width:100%!important;min-width:0!important;gap:9px!important;margin:10px 0 14px!important;
+}
+html.sos-device-tablet .stat { min-width:0!important;padding:10px 8px!important;overflow-wrap:anywhere!important; }
+html.sos-device-tablet .stat strong { font-size:clamp(1.05rem,2vw,1.35rem)!important; }
+html.sos-device-tablet .stat span { font-size:.73rem!important;line-height:1.35!important; }
+html.sos-device-tablet #examArea .toolbar,
+html.sos-device-tablet #answerWorkspace .toolbar,
+html.sos-device-tablet #answerToolbar {
+  display:flex!important;align-items:center!important;flex-wrap:wrap!important;gap:7px!important;
+  width:100%!important;max-width:100%!important;min-width:0!important;overflow:visible!important;
+}
+html.sos-device-tablet #examArea .toolbar>*,
+html.sos-device-tablet #answerWorkspace .toolbar>* { flex:0 1 auto!important;min-width:0!important;max-width:100%!important; }
+html.sos-device-tablet #examArea .toolbar button,
+html.sos-device-tablet #answerWorkspace .toolbar button,
+html.sos-device-tablet #answerToolbar button {
+  min-height:40px!important;max-width:100%!important;padding:7px 10px!important;
+  font-size:.78rem!important;line-height:1.4!important;white-space:normal!important;
+}
+
+/* Question/answer grids: touch-sized options, stable card geometry. */
+html.sos-device-tablet #questions,
+html.sos-device-tablet #answerKey,
+html.sos-device-tablet .question-grid,
+html.sos-device-tablet .key-grid {
+  display:grid!important;grid-template-columns:repeat(auto-fill,minmax(116px,1fr))!important;
+  align-items:stretch!important;gap:9px!important;width:100%!important;max-width:100%!important;
+  min-width:0!important;overflow:visible!important;padding:2px 1px 12px!important;
+}
+html.sos-device-tablet #questions .question,
+html.sos-device-tablet #answerKey .question {
+  display:flex!important;flex-direction:column!important;justify-content:flex-start!important;
+  width:100%!important;min-width:0!important;max-width:100%!important;min-height:90px!important;
+  padding:9px!important;overflow:hidden!important;border-radius:13px!important;
+  background-color:var(--card,#fff)!important;color:var(--ink,#202b3a)!important;
+}
+html.sos-device-tablet #questions .q-head,
+html.sos-device-tablet #answerKey .q-head {
+  display:flex!important;align-items:center!important;justify-content:flex-start!important;
+  min-width:0!important;min-height:30px!important;gap:6px!important;margin:0 0 7px!important;
+}
+html.sos-device-tablet #questions .q-head .q-number,
+html.sos-device-tablet #answerKey .q-head .q-number { margin-inline-end:auto!important;flex:0 0 auto!important; }
+html.sos-device-tablet #questions .daily-test-mark {
+  appearance:none!important;-webkit-appearance:none!important;display:inline-grid!important;place-items:center!important;
+  flex:0 0 28px!important;width:28px!important;min-width:28px!important;height:28px!important;min-height:28px!important;
+  margin:0!important;padding:0!important;border:1px solid var(--line,#dce5ef)!important;border-radius:8px!important;
+  background:var(--bg,#f4f7fb)!important;background-image:none!important;color:var(--muted,#64748b)!important;
+  box-shadow:none!important;font-size:13px!important;opacity:1!important;
+}
+html.sos-device-tablet #questions .daily-test-mark.active {
+  border-color:var(--good,#18845b)!important;background:var(--card,#fff)!important;color:var(--good,#18845b)!important;
+}
+html.sos-device-tablet #questions .options,
+html.sos-device-tablet #answerKey .options {
+  display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  align-items:stretch!important;gap:5px!important;width:100%!important;min-width:0!important;
+}
+html.sos-device-tablet #questions .opt,
+html.sos-device-tablet #answerKey .opt {
+  display:grid!important;place-items:center!important;min-width:0!important;min-height:40px!important;
+  padding:4px 0!important;border-radius:9px!important;font-size:.92rem!important;line-height:1.1!important;
+}
+html.sos-device-tablet #questions .question.kbd-current-v58,
+html.sos-device-tablet #answerKey .question.key-current-v70 { outline:none!important;box-shadow:none!important; }
+
+/* Fullscreen answer workspace remains opaque and independently scrollable. */
+html.sos-device-tablet #answerWorkspace.answer-fullscreen {
+  position:fixed!important;inset:0!important;z-index:99999!important;width:100%!important;max-width:none!important;
+  min-width:0!important;height:100vh!important;height:100dvh!important;max-height:none!important;margin:0!important;
+  padding:12px!important;overflow-x:hidden!important;overflow-y:auto!important;overscroll-behavior:contain!important;
+  -webkit-overflow-scrolling:touch!important;background:var(--card,#fff)!important;color:var(--ink,#202b3a)!important;
+}
+html.sos-device-tablet #answerWorkspace.answer-fullscreen .answer-fullscreen-topbar-v75 {
+  position:sticky!important;top:-12px!important;z-index:40!important;width:calc(100% + 24px)!important;
+  margin:-12px -12px 12px!important;padding:10px 12px!important;
+  background:var(--card,#fff)!important;background-image:none!important;border-bottom:1px solid var(--line,#dce5ef)!important;
+}
+html.sos-device-tablet #answerWorkspace.answer-fullscreen .answer-workspace-head {
+  display:flex!important;align-items:center!important;justify-content:space-between!important;flex-wrap:wrap!important;
+  gap:8px!important;min-height:42px!important;padding-inline:0!important;background:var(--card,#fff)!important;
+}
+html.sos-device-tablet #answerWorkspace.answer-fullscreen .fullscreen-timer {
+  position:relative!important;top:auto!important;left:auto!important;right:auto!important;max-width:100%!important;
+  display:flex!important;align-items:center!important;gap:8px!important;margin:4px 0!important;
+  background:var(--bg,#f4f7fb)!important;color:var(--ink,#202b3a)!important;border:1px solid var(--line,#dce5ef)!important;
+}
+html.sos-device-tablet #answerWorkspace.answer-fullscreen #answerToolbar {
+  position:relative!important;top:auto!important;z-index:2!important;background:var(--card,#fff)!important;
+  border-top:1px solid var(--line,#dce5ef)!important;padding:8px 0!important;
+}
+html.sos-device-tablet #answerWorkspace.answer-fullscreen #questions { grid-template-columns:repeat(auto-fill,minmax(112px,1fr))!important; }
+
+/* ---------------- Study OS content: tablet-specific card and form rhythm ---------------- */
+html.sos-device-tablet #studyOS {
+  width:100%!important;max-width:100%!important;min-width:0!important;overflow-x:hidden!important;
+}
+html.sos-device-tablet #studyOS .os-topbar {
+  position:sticky!important;top:0!important;z-index:55!important;width:100%!important;min-width:0!important;
+  display:flex!important;align-items:center!important;flex-wrap:wrap!important;gap:8px 12px!important;
+  padding:10px 14px!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+}
+html.sos-device-tablet #studyOS .os-brand { min-width:0!important;flex:1 1 160px!important; }
+html.sos-device-tablet #studyOS .os-top-actions { display:flex!important;align-items:center!important;flex-wrap:wrap!important;gap:6px!important;max-width:100%!important; }
+html.sos-device-tablet #studyOS .os-top-actions>* { min-width:0!important;max-width:100%!important; }
+html.sos-device-tablet #studyOS main.os-main { display:block!important;width:100%!important;max-width:none!important;min-width:0!important;margin:0!important;padding:0!important; }
+html.sos-device-tablet #studyOS #sPanel.scontent {
+  display:block!important;width:100%!important;max-width:1500px!important;min-width:0!important;
+  margin:0 auto!important;padding:16px 14px 28px!important;box-sizing:border-box!important;animation:none!important;
+}
+html.sos-device-tablet #studyOS .page-head {
+  display:flex!important;align-items:flex-start!important;justify-content:space-between!important;flex-wrap:wrap!important;
+  gap:9px 13px!important;min-width:0!important;margin:0 0 14px!important;
+}
+html.sos-device-tablet #studyOS .page-head>* { min-width:0!important;max-width:100%!important; }
+html.sos-device-tablet #studyOS .os-card,
+html.sos-device-tablet #studyOS .review-stat-v53,
+html.sos-device-tablet #studyOS .review-subject-v53,
+html.sos-device-tablet #studyOS .review-book-v53,
+html.sos-device-tablet #studyOS .review-chapter-v53,
+html.sos-device-tablet #studyOS .review-question-v53,
+html.sos-device-tablet #studyOS .planner-day,
+html.sos-device-tablet #studyOS .planner-entry,
+html.sos-device-tablet #studyOS .task-row,
+html.sos-device-tablet #studyOS .plan-item {
+  min-width:0!important;max-width:100%!important;overflow-wrap:anywhere!important;
+}
+html.sos-device-tablet #studyOS .home-grid-main,
+html.sos-device-tablet #studyOS .home-layout-grid,
+html.sos-device-tablet #studyOS .split-grid,
+html.sos-device-tablet #studyOS .planner-week-grid,
+html.sos-device-tablet #studyOS .metric-grid,
+html.sos-device-tablet #studyOS .cards,
+html.sos-device-tablet #studyOS .report-grid,
+html.sos-device-tablet #studyOS .review-select-grid-v53 {
+  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  align-items:stretch!important;gap:10px!important;width:100%!important;min-width:0!important;
+}
+html.sos-device-tablet #studyOS .home-focus-card { grid-column:1/-1!important; }
+html.sos-device-tablet #studyOS .plan-form,
+html.sos-device-tablet #studyOS .planner-form-grid {
+  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;align-items:end!important;gap:9px!important;
+}
+html.sos-device-tablet #studyOS .form-actions { grid-column:1/-1!important;display:flex!important;flex-wrap:wrap!important;gap:7px!important; }
+html.sos-device-tablet #studyOS .stopwatch-layout { display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:12px!important; }
+html.sos-device-tablet #studyOS .review-item { display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:9px!important;min-width:0!important; }
+html.sos-device-tablet #studyOS .review-actions { display:flex!important;flex-wrap:wrap!important;gap:6px!important; }
+html.sos-device-tablet #studyOS .plan-item { display:grid!important;grid-template-columns:72px minmax(0,1fr)!important;gap:8px!important; }
+html.sos-device-tablet #studyOS .plan-actions { display:flex!important;flex-wrap:wrap!important;justify-content:flex-end!important;gap:5px!important; }
+html.sos-device-tablet #studyOS input,
+html.sos-device-tablet #studyOS select,
+html.sos-device-tablet #studyOS textarea { min-height:42px!important;max-width:100%!important;font-size:.9rem!important; }
+html.sos-device-tablet #studyOS button { min-height:40px!important;max-width:100%!important;touch-action:manipulation!important; }
+html.sos-device-tablet #studyOS .report-table-wrap {
+  width:100%!important;max-width:100%!important;overflow-x:auto!important;overflow-y:hidden!important;
+  -webkit-overflow-scrolling:touch!important;overscroll-behavior-x:contain!important;
+}
+html.sos-device-tablet #studyOS .report-table-wrap table { min-width:640px!important; }
+html.sos-device-tablet #studyOS .week-days { display:grid!important;grid-template-columns:repeat(7,minmax(0,1fr))!important;gap:4px!important;min-width:0!important; }
+html.sos-device-tablet #studyOS .week-day { min-width:0!important;padding:8px 2px!important;overflow-wrap:anywhere!important; }
+html.sos-device-tablet #studyOS .week-day .day-name { font-size:.65rem!important; }
+
+/* Safe RGB borders for older Android browsers: no mask-composite layers over card contents. */
+html.sos-device-tablet .rgb-test-surface-v63 {
+  border:1.5px solid transparent!important;
+  background-image:linear-gradient(var(--card,#fff),var(--card,#fff)),
+    linear-gradient(115deg,var(--prism-c1-v63,#50d5df),var(--prism-c2-v63,#638df0),var(--prism-c3-v63,#a17ce7),var(--prism-c4-v63,#e28abe),var(--prism-c5-v63,#e6bc78),var(--prism-c1-v63,#50d5df))!important;
+  background-origin:border-box!important;background-clip:padding-box,border-box!important;
+  background-size:100% 100%,260% 260%!important;background-position:0 0,0% 50%!important;
+}
+html.sos-device-tablet .rgb-test-surface-v63::before { display:none!important;content:none!important;mask:none!important;-webkit-mask:none!important; }
+/* Higher-specificity surface rules keep the sidebar opaque while retaining a safe RGB border. */
+html.sos-device-tablet body>main>#sidebarPanel.rgb-test-surface-v63,
+html.sos-device-tablet body>main>section.card.rgb-test-surface-v63,
+html.sos-device-tablet #sidebarPanel .daily-test-panel.rgb-test-surface-v63,
+html.sos-device-tablet #subtestManager.rgb-test-surface-v63 {
+  background:linear-gradient(var(--card,#fff),var(--card,#fff)) padding-box,
+    linear-gradient(115deg,var(--prism-c1-v63,#50d5df),var(--prism-c2-v63,#638df0),var(--prism-c3-v63,#a17ce7),var(--prism-c4-v63,#e28abe),var(--prism-c5-v63,#e6bc78),var(--prism-c1-v63,#50d5df)) border-box!important;
+  background-origin:border-box!important;background-clip:padding-box,border-box!important;
+}
+html.sos-device-tablet.prism-power-off-v65 body>main>#sidebarPanel.rgb-test-surface-v63,
+html.sos-device-tablet.prism-power-off-v65 body>main>section.card.rgb-test-surface-v63,
+html.sos-device-tablet.prism-power-off-v65 #sidebarPanel .daily-test-panel.rgb-test-surface-v63,
+html.sos-device-tablet.prism-power-off-v65 #subtestManager.rgb-test-surface-v63 {
+  border-color:var(--line,#dce5ef)!important;background:var(--card,#fff)!important;background-image:none!important;
+}
+html.sos-device-tablet #sidebarPanel>* { position:relative!important;z-index:1!important; }
+html.sos-device-tablet.ambient-motion-enabled:not(.ambient-motion-off):not(.prism-power-off-v65) .rgb-test-surface-v63 {
+  animation:tabletSurfaceFlowV87 var(--prism-speed-v63,18s) linear infinite!important;
+}
+html.sos-device-tablet.ambient-motion-off .rgb-test-surface-v63,
+html.sos-device-tablet[data-prism-mode-v60="static"] .rgb-test-surface-v63 { animation:none!important; }
+html.sos-device-tablet.prism-power-off-v65 .rgb-test-surface-v63 {
+  border:1px solid var(--line,#dce5ef)!important;background:var(--card,#fff)!important;background-image:none!important;animation:none!important;
+}
+@keyframes tabletSurfaceFlowV87 { 0%{background-position:0 0,0% 50%} 100%{background-position:0 0,100% 50%} }
+
+/* Study OS cards use a two-layer background for the same reason: no CSS masks on tablet. */
+html.sos-device-tablet #studyOS .os-card:not(.metric),
+html.sos-device-tablet #studyOS .review-stat-v53,
+html.sos-device-tablet #studyOS .review-subject-v53,
+html.sos-device-tablet #studyOS .review-book-v53,
+html.sos-device-tablet #studyOS .review-chapter-v53,
+html.sos-device-tablet #studyOS .review-question-v53 {
+  border:1.5px solid transparent!important;
+  background-image:linear-gradient(var(--os-panel,#fff),var(--os-panel,#fff)),
+    linear-gradient(115deg,var(--prism-c1-v61,#50d5df),var(--prism-c2-v61,#638df0),var(--prism-c3-v61,#a17ce7),var(--prism-c4-v61,#e28abe),var(--prism-c5-v61,#e6bc78),var(--prism-c1-v61,#50d5df))!important;
+  background-origin:border-box!important;background-clip:padding-box,border-box!important;
+  background-size:100% 100%,260% 260%!important;background-position:0 0,0% 50%!important;
+}
+html.sos-device-tablet #studyOS .os-card:not(.metric)::before,
+html.sos-device-tablet #studyOS .review-stat-v53::before,
+html.sos-device-tablet #studyOS .review-subject-v53::before,
+html.sos-device-tablet #studyOS .review-book-v53::before,
+html.sos-device-tablet #studyOS .review-chapter-v53::before,
+html.sos-device-tablet #studyOS .review-question-v53::before,
+html.sos-device-tablet #studyOS .os-card.metric::after { display:none!important;content:none!important;mask:none!important;-webkit-mask:none!important; }
+html.sos-device-tablet.ambient-motion-enabled:not(.ambient-motion-off):not(.prism-power-off-v65) #studyOS .os-card:not(.metric),
+html.sos-device-tablet.ambient-motion-enabled:not(.ambient-motion-off):not(.prism-power-off-v65) #studyOS .review-stat-v53,
+html.sos-device-tablet.ambient-motion-enabled:not(.ambient-motion-off):not(.prism-power-off-v65) #studyOS .review-subject-v53,
+html.sos-device-tablet.ambient-motion-enabled:not(.ambient-motion-off):not(.prism-power-off-v65) #studyOS .review-book-v53,
+html.sos-device-tablet.ambient-motion-enabled:not(.ambient-motion-off):not(.prism-power-off-v65) #studyOS .review-chapter-v53,
+html.sos-device-tablet.ambient-motion-enabled:not(.ambient-motion-off):not(.prism-power-off-v65) #studyOS .review-question-v53 {
+  animation:tabletSurfaceFlowV87 var(--prism-speed-v60,18s) linear infinite!important;
+}
+html.sos-device-tablet.ambient-motion-off #studyOS .os-card:not(.metric),
+html.sos-device-tablet.ambient-motion-off #studyOS .review-stat-v53,
+html.sos-device-tablet.ambient-motion-off #studyOS .review-subject-v53,
+html.sos-device-tablet.ambient-motion-off #studyOS .review-book-v53,
+html.sos-device-tablet.ambient-motion-off #studyOS .review-chapter-v53,
+html.sos-device-tablet.ambient-motion-off #studyOS .review-question-v53 { animation:none!important; }
+html.sos-device-tablet.prism-power-off-v65 #studyOS .os-card:not(.metric),
+html.sos-device-tablet.prism-power-off-v65 #studyOS .review-stat-v53,
+html.sos-device-tablet.prism-power-off-v65 #studyOS .review-subject-v53,
+html.sos-device-tablet.prism-power-off-v65 #studyOS .review-book-v53,
+html.sos-device-tablet.prism-power-off-v65 #studyOS .review-chapter-v53,
+html.sos-device-tablet.prism-power-off-v65 #studyOS .review-question-v53 {
+  border:1px solid var(--os-line,#dce5ef)!important;background:var(--os-panel,#fff)!important;background-image:none!important;animation:none!important;
+}
+html.sos-device-tablet #studyOS .os-card::after { pointer-events:none!important; }
+
+/* Portalled Study OS navigation lives outside #studyOS; give it a solid theme surface. */
+html.sos-device-tablet #studyNavPortalV67 { z-index:100005!important; }
+html.sos-device-tablet #studyNavPortalV67 #osNavBackdrop,
+html.sos-device-tablet #studyNavPortalV67 #osNavToggle { display:none!important;pointer-events:none!important; }
+html.sos-device-tablet #studyNavPortalV67 #sTabs {
+  position:fixed!important;z-index:100006!important;display:flex!important;align-items:center!important;justify-content:space-around!important;
+  gap:5px!important;box-sizing:border-box!important;margin:0!important;padding:7px!important;
+  background:var(--card,#fff)!important;background-image:none!important;color:var(--ink,#202b3a)!important;
+  border:1px solid var(--line,#dce5ef)!important;border-radius:17px!important;
+  box-shadow:0 7px 22px rgba(15,25,45,.14)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+  opacity:1!important;visibility:visible!important;transform:none!important;pointer-events:auto!important;
+  overflow:auto!important;overscroll-behavior:contain!important;
+}
+html.sos-device-tablet #studyNavPortalV67 #sTabs .rail-head,
+html.sos-device-tablet #studyNavPortalV67 #sTabs .rail-caption,
+html.sos-device-tablet #studyNavPortalV67 #sTabs .rail-bottom { display:none!important; }
+html.sos-device-tablet #studyNavPortalV67 #sTabs button[data-tab] {
+  display:flex!important;align-items:center!important;justify-content:center!important;gap:4px!important;
+  min-width:0!important;min-height:0!important;margin:0!important;padding:6px 4px!important;
+  border:1px solid transparent!important;border-radius:11px!important;background:transparent!important;
+  background-image:none!important;color:var(--muted,#64748b)!important;box-shadow:none!important;transform:none!important;
+}
+html.sos-device-tablet #studyNavPortalV67 #sTabs button[data-tab].activeTab {
+  background:var(--accent2,#eaf0ff)!important;color:var(--accent,#3769d6)!important;border-color:var(--line,#dce5ef)!important;
+}
+html.sos-device-tablet #studyNavPortalV67 #sTabs .rail-svg { display:block!important;width:21px!important;height:21px!important;min-width:21px!important;flex:0 0 21px!important;fill:none!important;stroke:currentColor!important;stroke-width:1.8!important; }
+html.sos-device-tablet #studyNavPortalV67 #sTabs .rail-label { display:block!important;max-width:100%!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;font-size:.62rem!important;line-height:1.2!important;color:inherit!important; }
+
+/* Tablet portrait: content first, fixed bottom dock, readable cards. */
+html.sos-device-tablet.sos-tablet-portrait body>main { grid-template-columns:minmax(0,1fr)!important; }
+html.sos-device-tablet.sos-tablet-portrait body>main:not(.sidebar-collapsed)>#sidebarPanel {
+  position:relative!important;top:auto!important;max-height:34vh!important;max-height:34dvh!important;
+}
+html.sos-device-tablet.sos-tablet-portrait #studyOS #sPanel.scontent { padding:14px 12px calc(94px + env(safe-area-inset-bottom,0px))!important; }
+html.sos-device-tablet.sos-tablet-portrait #studyOS .home-grid-main,
+html.sos-device-tablet.sos-tablet-portrait #studyOS .home-layout-grid,
+html.sos-device-tablet.sos-tablet-portrait #studyOS .split-grid,
+html.sos-device-tablet.sos-tablet-portrait #studyOS .planner-week-grid,
+html.sos-device-tablet.sos-tablet-portrait #studyOS .metric-grid,
+html.sos-device-tablet.sos-tablet-portrait #studyOS .cards,
+html.sos-device-tablet.sos-tablet-portrait #studyOS .report-grid,
+html.sos-device-tablet.sos-tablet-portrait #studyOS .review-select-grid-v53 { grid-template-columns:repeat(2,minmax(0,1fr))!important; }
+html.sos-device-tablet.sos-tablet-portrait #studyOS .plan-form,
+html.sos-device-tablet.sos-tablet-portrait #studyOS .planner-form-grid { grid-template-columns:repeat(2,minmax(0,1fr))!important; }
+html.sos-device-tablet.sos-tablet-portrait #studyOS .stopwatch-layout { grid-template-columns:minmax(0,1fr)!important; }
+html.sos-device-tablet.sos-tablet-portrait #studyNavPortalV67 #sTabs {
+  top:auto!important;right:10px!important;left:10px!important;bottom:calc(7px + env(safe-area-inset-bottom,0px))!important;
+  width:auto!important;max-width:none!important;height:72px!important;min-height:72px!important;max-height:72px!important;
+  flex-direction:row!important;overflow-x:auto!important;overflow-y:hidden!important;
+}
+html.sos-device-tablet.sos-tablet-portrait #studyNavPortalV67 #sTabs button[data-tab] {
+  flex:1 0 70px!important;width:auto!important;max-width:140px!important;height:58px!important;flex-direction:column!important;gap:4px!important;
+}
+
+/* Tablet landscape: wider working area with an independent right-side nav rail. */
+html.sos-device-tablet.sos-tablet-landscape body>main:not(.sidebar-collapsed) {
+  grid-template-columns:minmax(225px,27vw) minmax(0,1fr)!important;gap:12px!important;
+}
+html.sos-device-tablet.sos-tablet-landscape body>main:not(.sidebar-collapsed)>#sidebarPanel {
+  position:sticky!important;top:10px!important;max-height:calc(100vh - 20px)!important;max-height:calc(100dvh - 20px)!important;
+}
+html.sos-device-tablet.sos-tablet-landscape #studyOS #sPanel.scontent { padding:14px 94px 24px 14px!important; }
+html.sos-device-tablet.sos-tablet-landscape #studyOS .home-grid-main,
+html.sos-device-tablet.sos-tablet-landscape #studyOS .home-layout-grid,
+html.sos-device-tablet.sos-tablet-landscape #studyOS .split-grid,
+html.sos-device-tablet.sos-tablet-landscape #studyOS .planner-week-grid { grid-template-columns:repeat(2,minmax(0,1fr))!important; }
+html.sos-device-tablet.sos-tablet-landscape #studyOS .metric-grid,
+html.sos-device-tablet.sos-tablet-landscape #studyOS .cards,
+html.sos-device-tablet.sos-tablet-landscape #studyOS .report-grid,
+html.sos-device-tablet.sos-tablet-landscape #studyOS .review-select-grid-v53 { grid-template-columns:repeat(3,minmax(0,1fr))!important; }
+html.sos-device-tablet.sos-tablet-landscape #studyOS .plan-form,
+html.sos-device-tablet.sos-tablet-landscape #studyOS .planner-form-grid { grid-template-columns:repeat(2,minmax(0,1fr))!important; }
+html.sos-device-tablet.sos-tablet-landscape #studyOS .stopwatch-layout { grid-template-columns:repeat(2,minmax(0,1fr))!important; }
+html.sos-device-tablet.sos-tablet-landscape #studyNavPortalV67 #sTabs {
+  top:78px!important;right:10px!important;left:auto!important;bottom:10px!important;
+  width:80px!important;min-width:80px!important;max-width:80px!important;height:auto!important;min-height:0!important;
+  max-height:calc(100vh - 90px)!important;max-height:calc(100dvh - 90px)!important;
+  flex-direction:column!important;justify-content:flex-start!important;overflow-x:hidden!important;overflow-y:auto!important;
+}
+html.sos-device-tablet.sos-tablet-landscape #studyNavPortalV67 #sTabs button[data-tab] {
+  flex:0 0 60px!important;width:100%!important;max-width:none!important;height:60px!important;flex-direction:column!important;gap:4px!important;
+}
+html.sos-device-tablet.sos-tablet-landscape #studyNavPortalV67 #sTabs .rail-label { font-size:.57rem!important; }
+
+/* Very narrow tablet viewport: avoid squeezed two-column controls. */
+@media(max-width:680px){
+ html.sos-device-tablet.sos-tablet-portrait #studyOS .home-grid-main,
+ html.sos-device-tablet.sos-tablet-portrait #studyOS .home-layout-grid,
+ html.sos-device-tablet.sos-tablet-portrait #studyOS .split-grid,
+ html.sos-device-tablet.sos-tablet-portrait #studyOS .planner-week-grid,
+ html.sos-device-tablet.sos-tablet-portrait #studyOS .metric-grid,
+ html.sos-device-tablet.sos-tablet-portrait #studyOS .cards,
+ html.sos-device-tablet.sos-tablet-portrait #studyOS .report-grid,
+ html.sos-device-tablet.sos-tablet-portrait #studyOS .review-select-grid-v53,
+ html.sos-device-tablet.sos-tablet-portrait #studyOS .plan-form,
+ html.sos-device-tablet.sos-tablet-portrait #studyOS .planner-form-grid { grid-template-columns:minmax(0,1fr)!important; }
+}
+@media(max-width:780px) and (orientation:landscape){
+ html.sos-device-tablet.sos-tablet-landscape body>main:not(.sidebar-collapsed){grid-template-columns:minmax(205px,34vw) minmax(0,1fr)!important}
+}
+
+/* Touch hardware: reduce expensive hover and blur work, without removing RGB or motion controls. */
+@media(hover:none) and (pointer:coarse){
+ html.sos-device-tablet #studyOS .os-card:hover,
+ html.sos-device-tablet #studyOS .review-question-v53:hover,
+ html.sos-device-tablet #studyOS .planner-day:hover,
+ html.sos-device-tablet #studyOS .planner-entry:hover,
+ html.sos-device-tablet button:hover { transform:none!important;filter:none!important; }
+ html.sos-device-tablet #studyOS .os-topbar,
+ html.sos-device-tablet #studyNavPortalV67 #sTabs { backdrop-filter:none!important;-webkit-backdrop-filter:none!important; }
+ html.sos-device-tablet #studyOS .os-card,
+ html.sos-device-tablet #studyOS .review-question-v53,
+ html.sos-device-tablet #studyOS .planner-day,
+ html.sos-device-tablet #studyOS .planner-entry { transition-duration:.14s!important; }
+}
+@media(prefers-reduced-motion:reduce){
+ html.sos-device-tablet #studyOS *,html.sos-device-tablet #studyOS *::before,html.sos-device-tablet #studyNavPortalV67 #sTabs,
+ html.sos-device-phone * { scroll-behavior:auto!important;transition-duration:.01ms!important; }
+}
+
+/* Existing phone-landscape refinements are retained; no new phone geometry is imposed here. */
+@media (orientation:landscape) {
+  html.sos-device-phone body > main { display:grid!important;grid-template-columns:minmax(0,1fr)!important;width:100%!important;max-width:100%!important;padding:8px!important;gap:8px!important; }
+  html.sos-device-phone body > main.sidebar-collapsed { grid-template-columns:minmax(0,1fr)!important; }
+  html.sos-device-phone body > main.sidebar-collapsed > #sidebarPanel { display:none!important; }
+  html.sos-device-phone #sidebarPanel { max-height:30vh!important;overflow:auto!important; }
+  html.sos-device-phone .answer-app-header-wrap-v63 { flex-wrap:wrap!important;gap:6px!important; }
+  html.sos-device-phone .answer-app-actions-v63 { flex-wrap:nowrap!important;gap:4px!important; }
+  html.sos-device-phone #questions,html.sos-device-phone #answerKey,html.sos-device-phone .question-grid,html.sos-device-phone .key-grid { grid-template-columns:repeat(auto-fill,minmax(66px,1fr))!important; }
+  html.sos-device-phone #studyOS .scontent { width:100%!important;margin:0!important;padding:12px 10px 90px!important; }
+  html.sos-device-phone #studyNavPortalV67 #sTabs { top:auto!important;right:7px!important;left:7px!important;bottom:calc(5px + env(safe-area-inset-bottom,0px))!important;width:auto!important;height:58px!important;min-height:58px!important;max-height:58px!important;flex-direction:row!important;overflow-x:auto!important;overflow-y:hidden!important; }
+  html.sos-device-phone #studyNavPortalV67 #sTabs .rail-head,html.sos-device-phone #studyNavPortalV67 #sTabs .rail-bottom { display:none!important; }
+  html.sos-device-phone #studyNavPortalV67 #sTabs button[data-tab] { flex:1 0 52px!important;width:auto!important;height:48px!important;flex-direction:column!important;gap:2px!important; }
+  html.sos-device-phone #studyNavPortalV67 #sTabs .rail-label { font-size:.52rem!important; }
+}
+
+/* v88: keep the manual device selector visible in both application top bars. */
+#studyOS .os-top-actions .device-profile-picker-v85{display:inline-flex!important;align-items:center!important;justify-content:center!important;flex:0 0 auto!important;position:relative!important;z-index:100400!important}
+#studyOS .os-top-actions .device-profile-toggle-v85{display:inline-grid!important;place-items:center!important;flex:0 0 36px!important;width:36px!important;height:36px!important;min-width:36px!important;min-height:36px!important;padding:0!important}
+#studyOS .os-top-actions .device-profile-menu-v85{top:calc(100% + 8px)!important;inset-inline-end:0!important;z-index:100500!important}
+.answer-app-actions-v63 .device-profile-picker-v85{display:inline-flex!important;visibility:visible!important;opacity:1!important}
+</style>
+
+<style id="study-os-v90-device-and-timer-polish">
+/* A selected device profile is remembered locally; hide the one-time picker. */
+html body .device-profile-picker-v85[data-device-profile-locked="true"]{display:none!important}
+#osPrismSettings .device-profile-reselect-v90{width:100%;min-height:34px;padding:7px 10px;border:1px solid var(--prism-ui-line,#43506a);border-radius:9px;background:var(--prism-ui-panel2,#202a42)!important;color:var(--prism-ui-text,#edf2ff)!important;font:inherit;font-size:.68rem;font-weight:700;cursor:pointer}
+#osPrismSettings .device-profile-reselect-v90:focus-visible{outline:2px solid #74c8ee;outline-offset:2px}
+.answer-rgb-icon-v63.power-svg-v90 svg,#studyOS .os-icon-btn.power-svg-v90 svg{display:block;width:18px;height:18px;overflow:visible;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#timerDisplay,#fullscreenTimerDisplay,#swElapsed,#swRemaining{direction:ltr;font-variant-numeric:tabular-nums;unicode-bidi:isolate}
+</style>
 </head>
 <body>
-<header class="answer-app-header-v63"><div class="wrap answer-app-header-wrap-v63"><h1>پاسخ‌برگ دیجیتال کنکور</h1><div class="answer-app-actions-v63"><button aria-label="نورپردازی: روشن" aria-pressed="true" class="answer-rgb-icon-v63 answer-prism-power-v65" id="answerPrismPowerToggle" title="خاموش کردن نورپردازی" type="button">⏻</button><button aria-label="حرکت نور رنگی" aria-pressed="true" class="answer-rgb-icon-v63" id="answerPrismMotionToggle" title="حرکت نور" type="button">≈</button><button aria-label="تنظیم نورپردازی" aria-expanded="false" class="answer-rgb-icon-v63" id="answerPrismSettingsToggle" title="تنظیم نور" type="button">◉</button><div class="device-profile-picker-v85" id="deviceProfilePickerV85">
+<header class="answer-app-header-v63"><div class="wrap answer-app-header-wrap-v63"><h1>پاسخ‌برگ دیجیتال کنکور</h1><div class="answer-app-actions-v63"><button aria-label="نورپردازی: روشن" aria-pressed="true" class="answer-rgb-icon-v63 answer-prism-power-v65" id="answerPrismPowerToggle" title="خاموش کردن نورپردازی" type="button"> <svg data-power-icon-v90 aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3v8"></path><path d="M6.3 6.8a8 8 0 1 0 11.4 0"></path></svg></button><button aria-label="حرکت نور رنگی" aria-pressed="true" class="answer-rgb-icon-v63" id="answerPrismMotionToggle" title="حرکت نور" type="button">≈</button><button aria-label="تنظیم نورپردازی" aria-expanded="false" class="answer-rgb-icon-v63" id="answerPrismSettingsToggle" title="تنظیم نور" type="button">◉</button><div class="device-profile-picker-v85" id="deviceProfilePickerV85">
 <button aria-label="انتخاب چیدمان دستگاه" aria-controls="deviceProfileMenuV85" aria-expanded="false" class="answer-rgb-icon-v63 device-profile-toggle-v85" id="deviceProfileToggleV85" title="انتخاب چیدمان دستگاه" type="button">
 <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.7" y="4" width="13.5" height="10" rx="1.7"></rect><path d="M7 18.8h5.2M9.6 14v4.8"></path><rect x="17.3" y="8" width="4.2" height="9.2" rx="1.1"></rect></svg>
 </button>
@@ -300,14 +836,14 @@ background:radial-gradient(ellipse at 13% 0%,rgba(91,74,204,.24),transparent 35%
 <div class="stat"><strong id="percentStat">—</strong><span>درصد (با کلید)</span></div>
 </div>
 <div class="card" style="background:#fbfcff;box-shadow:none;margin-bottom:14px">
-<div class="row"><div><h3 style="margin:0">⏱ زمان آزمون</h3><div class="muted" id="timerMode">مدت پیشنهادی براساس تعداد سؤال‌ها</div></div><div class="timer" id="timerDisplay">00:00</div></div>
+<div class="row"><div><h3 style="margin:0">⏱ زمان آزمون</h3><div class="muted" id="timerMode">مدت پیشنهادی براساس تعداد سؤال‌ها</div></div><div class="timer" id="timerDisplay">۰۰:۰۰</div></div>
 <div class="toolbar"><button id="timerStart">شروع / ادامه</button><button class="secondary" id="timerPause">توقف</button><button class="secondary" id="timerReset">بازنشانی</button><button class="secondary" id="toggleAuto">شروع خودکار: خاموش</button><div class="timer-adjust-controls"><button class="secondary" id="addMinute" title="افزودن یک دقیقه به زمان آزمون" type="button">＋۱</button><button class="secondary" id="subtractMinute" title="کم کردن یک دقیقه از زمان آزمون" type="button">−۱</button></div></div>
 <div class="toolbar"><button class="secondary" id="toggleHistory" type="button">📊 تاریخچهٔ جلسات</button><button class="secondary" id="shuffleQuestions" type="button">🔀 ترتیب تصادفی: خاموش</button></div><div class="card hidden" id="historyPanel" style="box-shadow:none;background:var(--accent2);margin-bottom:12px"><h3 style="margin-top:0">جلسات ثبت‌شده</h3><div class="muted" id="historyContent"></div></div>
 </div>
 <div id="answerWorkspace">
 <div class="answer-fullscreen-topbar-v75">
 <div class="answer-workspace-head"><h3>پاسخ‌برگ</h3><button aria-label="بازگرداندن پنل" class="secondary" id="restoreAnswerDock" style="display:none" title="بازگرداندن پنل" type="button">↗</button></div>
-<div aria-label="برای شروع یا توقف زمان یک بار کلیک کن؛ برای بازنشانی دابل‌کلیک کن" aria-live="off" class="fullscreen-timer" id="fullscreenTimer" role="button" tabindex="0" title="کلیک: شروع/توقف • دابل‌کلیک: بازنشانی"><strong id="fullscreenTimerDisplay">00:00</strong></div>
+<div aria-label="برای شروع یا توقف زمان یک بار کلیک کن؛ برای بازنشانی دابل‌کلیک کن" aria-live="off" class="fullscreen-timer" id="fullscreenTimer" role="button" tabindex="0" title="کلیک: شروع/توقف • دابل‌کلیک: بازنشانی"><strong id="fullscreenTimerDisplay">۰۰:۰۰</strong></div>
 <div class="toolbar" id="answerToolbar">
 <button class="secondary" id="showAll">همهٔ سؤال‌ها</button><button class="secondary" id="showWrong">غلط‌ها</button><button class="secondary" id="showBlank">نزده‌ها</button><button class="secondary" id="showImportant">مهم‌ها ⭐</button>
 <button class="danger" id="clearAnswers">پاک‌کردن پاسخ‌ها</button><button aria-label="تمام‌صفحه" aria-pressed="false" class="secondary fullscreen-toggle-toolbar" id="toggleAnswerFullscreen" title="تمام‌صفحه" type="button">⛶</button><button aria-label="کوچک‌کردن پنل" aria-pressed="false" class="secondary dock-toggle-toolbar" id="toggleAnswerDock" title="کوچک‌کردن پنل" type="button">▁</button>
@@ -475,8 +1011,10 @@ function updateCurrentQuestionV58(n,focus=false,doc=document){
  let active=cards.find(c=>Number(c.dataset.qCard)===Number(n));
  if(!active)active=cards[0];
  currentQuestionNumberV58=Number(active.dataset.qCard);
- cards.forEach(c=>{const on=c===active;c.classList.toggle('kbd-current-v58',on);if(on)c.setAttribute('aria-current','true');else c.removeAttribute('aria-current')});
- if(focus){try{active.focus();active.scrollIntoView({behavior:'smooth',block:'nearest',inline:'nearest'})}catch(e){active.focus()}}
+ // The keyboard-current outline is meaningful on a computer, not on touch-only layouts.
+ const showKeyboardMarker=document.documentElement.dataset.sosDevice==='desktop';
+ cards.forEach(c=>{const on=showKeyboardMarker&&c===active;c.classList.toggle('kbd-current-v58',on);if(on)c.setAttribute('aria-current','true');else c.removeAttribute('aria-current')});
+ if(focus){try{active.focus({preventScroll:true});active.scrollIntoView({behavior:showKeyboardMarker?'smooth':'auto',block:'nearest',inline:'nearest'})}catch(e){active.focus()}}
 }
 function moveCurrentQuestionV58(step,focus=true,doc=document){
  const box=(doc&&doc.getElementById?doc.getElementById('questions'):null)||$('questions');if(!box)return;
@@ -487,10 +1025,11 @@ function moveCurrentQuestionV58(step,focus=true,doc=document){
 function updateCurrentKeyQuestionV70(n,focus=false,doc=document){
  const grid=(doc&&doc.getElementById?doc.getElementById('answerKey'):null)||$('answerKey');if(!grid)return;
  const cards=[...grid.querySelectorAll('[data-key-card]')];if(!cards.length){currentKeyQuestionNumberV70=null;return;}
- let active=cards.find(c=>Number(c.dataset.keyCard)===Number(n));if(!active)active=cards[0];
+ let active=cards.find(card=>Number(card.dataset.keyCard)===Number(n));if(!active)active=cards[0];
  currentKeyQuestionNumberV70=Number(active.dataset.keyCard);
- cards.forEach(card=>{const on=card===active;card.classList.toggle('key-current-v70',on);if(on)card.setAttribute('aria-current','true');else card.removeAttribute('aria-current')});
- if(focus){const q=getQ(currentKeyQuestionNumberV70);const chosen=q?.key||1;const btn=active.querySelector(`[data-key-a="${chosen}"]`)||active.querySelector('[data-key-a]');try{btn?.focus({preventScroll:true});active.scrollIntoView({behavior:'smooth',block:'nearest',inline:'nearest'});}catch(e){btn?.focus();}}
+ const showKeyboardMarker=document.documentElement.dataset.sosDevice==='desktop';
+ cards.forEach(card=>{const on=showKeyboardMarker&&card===active;card.classList.toggle('key-current-v70',on);if(on)card.setAttribute('aria-current','true');else card.removeAttribute('aria-current')});
+ if(focus){const q=getQ(currentKeyQuestionNumberV70);const chosen=q?.key||1;const btn=active.querySelector(`[data-key-a="${chosen}"]`)||active.querySelector('[data-key-a]');try{btn?.focus({preventScroll:true});active.scrollIntoView({behavior:showKeyboardMarker?'smooth':'auto',block:'nearest',inline:'nearest'});}catch(e){btn?.focus();}}
 }
 function moveCurrentKeyQuestionV70(step,focus=true,doc=document){
  const grid=(doc&&doc.getElementById?doc.getElementById('answerKey'):null)||$('answerKey');if(!grid)return;
@@ -532,6 +1071,8 @@ function handleAnswerKeyShortcutsV70(ev,eventDoc,target){
  return true;
 }
 function handleTestShortcutsV58(ev){
+ // Keyboard navigation is reserved for the desktop profile. Touch layouts use direct, visible controls.
+ if(document.documentElement.dataset.sosDevice!=='desktop')return;
  const eventDoc=(ev.currentTarget&&ev.currentTarget.nodeType===9)?ev.currentTarget:document;
  const x=activeExam();
  if(!x||$('examArea')?.classList.contains('hidden')||$('studyOS')?.style.display==='block')return;
@@ -593,13 +1134,15 @@ function toggleQuestionFlagV74(questionNumber,flag,source='exam',doc=document){
  q[flag]=!q[flag];
  persist();
  renderExam();renderKey();renderStats();
- if(source==='key')updateCurrentKeyQuestionV70(Number(questionNumber),true,doc);
- else updateCurrentQuestionV58(Number(questionNumber),true,doc);
+ const desktopFocus=document.documentElement.dataset.sosDevice==='desktop';
+ if(source==='key')updateCurrentKeyQuestionV70(Number(questionNumber),desktopFocus,doc);
+ else updateCurrentQuestionV58(Number(questionNumber),desktopFocus,doc);
 }
 function clearQuestionAnswerV74(questionNumber,doc=document){
  const x=activeExam();if(!x)return false;
  const q=(x.exam.questions||[]).find(item=>Number(item.n)===Number(questionNumber));
- if(!q||q.answer==null){updateCurrentQuestionV58(Number(questionNumber),true,doc);return false;}
+ const desktopFocus=document.documentElement.dataset.sosDevice==='desktop';
+ if(!q||q.answer==null){updateCurrentQuestionV58(Number(questionNumber),desktopFocus,doc);return false;}
  q.answer=null;
  const row=dailyTestRow(),key=`${x.exam.id}:${q.n}`;
  row.autoAnswerKeys=Array.isArray(row.autoAnswerKeys)?row.autoAnswerKeys:[];
@@ -607,7 +1150,7 @@ function clearQuestionAnswerV74(questionNumber,doc=document){
  row.excludedKeys=Array.isArray(row.excludedKeys)?row.excludedKeys.filter(k=>k!==key):[];
  syncDailyTestAutoMarks();captureDailyTestSnapshots();persist();
  renderExam();renderKey();renderStats();renderDailyTests();
- updateCurrentQuestionV58(Number(questionNumber),true,doc);
+ updateCurrentQuestionV58(Number(questionNumber),desktopFocus,doc);
  return true;
 }
 function renderExam(){
@@ -631,7 +1174,7 @@ function renderExam(){
   card.addEventListener('focusin',activate);card.addEventListener('pointerdown',activate);
  });
  updateCurrentQuestionV58(currentQuestionNumberV58,false);
- box.setAttribute('aria-keyshortcuts','1 2 3 4 Space ArrowLeft ArrowRight ArrowUp ArrowDown Delete Backspace I O');
+ if(document.documentElement.dataset.sosDevice==='desktop')box.setAttribute('aria-keyshortcuts','1 2 3 4 Space ArrowLeft ArrowRight ArrowUp ArrowDown Delete Backspace I O');else box.removeAttribute('aria-keyshortcuts');
  box.removeAttribute('title');
  box.querySelectorAll('[data-a]').forEach(btn=>btn.onclick=()=>{
   const questionNumber=+btn.dataset.q;
@@ -656,7 +1199,7 @@ function renderExam(){
     const sameStillVisible=afterCards.some(card=>Number(card.dataset.qCard)===questionNumber);
     target=sameStillVisible?questionNumber:Number(afterCards[Math.min(Math.max(beforeIndex,0),afterCards.length-1)].dataset.qCard);
    }
-   if(target!=null)updateCurrentQuestionV58(target,true);
+   if(target!=null)updateCurrentQuestionV58(target,document.documentElement.dataset.sosDevice==='desktop');
   }
   if(autoStart&&!running&&remaining>0)startTimer();
  });
@@ -680,7 +1223,7 @@ function renderKey(){
   const state=questionVisualStateV74(q,e);
   return `<article class="question answer-key-question-v70 ${q.important?'important':''} ${state.isWrong?'wrong':''} ${state.unanswered?'unanswered':''} ${state.answeredUngraded?'answered-ungraded':''} ${state.correctState?'answer-correct-state':''} ${q.marked?'marked-for-review':''}" data-key-card="${q.n}" tabindex="0"><div class="q-head"><span class="q-number">${fa(q.n)}</span></div><div class="options">${[1,2,3,4].map(n=>`<button type="button" class="opt key-opt ${q.key===n?'selected':''}" data-key-q="${q.n}" data-key-a="${n}" aria-label="ثبت کلید سؤال ${q.n} گزینه ${n}">${n}</button>`).join('')}</div></article>`;
  }).join('');
- grid.setAttribute('aria-keyshortcuts','1 2 3 4 Space ArrowLeft ArrowRight ArrowUp ArrowDown Delete Backspace I O');
+ if(document.documentElement.dataset.sosDevice==='desktop')grid.setAttribute('aria-keyshortcuts','1 2 3 4 Space ArrowLeft ArrowRight ArrowUp ArrowDown Delete Backspace I O');else grid.removeAttribute('aria-keyshortcuts');
  grid.querySelectorAll('[data-key-card]').forEach(card=>{
   const activate=()=>updateCurrentKeyQuestionV70(Number(card.dataset.keyCard),false);
   card.addEventListener('focusin',activate);card.addEventListener('pointerdown',activate);
@@ -690,19 +1233,24 @@ function renderKey(){
   currentKeyQuestionNumberV70=Number(card.dataset.keyCard);
   toggleQuestionFlagV74(currentKeyQuestionNumberV70,'marked','key');
  }));
+ grid.querySelectorAll('[data-key-card]').forEach(card=>card.addEventListener('dblclick',ev=>{
+  if(ev.target.closest('button, input, select, textarea, summary, a'))return;
+  currentKeyQuestionNumberV70=Number(card.dataset.keyCard);
+  toggleQuestionFlagV74(currentKeyQuestionNumberV70,'important','key');
+ }));
  grid.querySelectorAll('[data-key-q]').forEach(btn=>btn.onclick=()=>{
   const n=Number(btn.dataset.keyQ),q=getQ(n);if(!q)return;
   currentKeyQuestionNumberV70=n;q.key=q.key===Number(btn.dataset.keyA)?null:Number(btn.dataset.keyA);
   persist();renderKey();
   if(e.resultsApplied||liveCorrectMode){renderExam();renderStats();captureDailyTestSnapshots(localDateKey(),e.id);}
-  updateCurrentKeyQuestionV70(n,true);
+  updateCurrentKeyQuestionV70(n,document.documentElement.dataset.sosDevice==='desktop');
  });
  if(currentKeyQuestionNumberV70==null||!scopedQuestions(e).some(q=>q.n===Number(currentKeyQuestionNumberV70)))currentKeyQuestionNumberV70=scopedQuestions(e)[0]?.n??null;
  if(currentKeyQuestionNumberV70!=null)updateCurrentKeyQuestionV70(currentKeyQuestionNumberV70,false);
 }
 
 function renderTimer(){const e=activeExam()?.exam;if(!e)return;remaining=Math.max(0,remaining);$('timerDisplay').textContent=fmt(remaining);const ft=$('fullscreenTimerDisplay');if(ft)ft.textContent=fmt(remaining);const total=activeSubtestId?scopedDuration(e):e.duration;$('timerMode').textContent=`زمان پیشنهادی: ${fmt(total)} • ${running?'در حال اجرا':remaining===0?'پایان‌یافته':'متوقف'}`}
-function fmt(sec){sec=Math.max(0,Math.floor(sec||0));return String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0')}
+function fmt(sec){sec=Math.max(0,Math.floor(sec||0));return fa(Math.floor(sec/60)).padStart(2,'۰')+':'+fa(sec%60).padStart(2,'۰')}
 function playTimerEndChime(){
  try{
   const AudioCtx=window.AudioContext||window.webkitAudioContext;if(!AudioCtx)return;
@@ -979,6 +1527,30 @@ $('exportAll').onclick=()=>download(JSON.stringify(db,null,2),'pasokh-barg-backu
 $('importBtn').onclick=()=>$('importFile').click();
 $('importFile').onchange=async ev=>{const f=ev.target.files[0];if(!f)return;try{const parsed=JSON.parse(await f.text());if(!parsed||!Array.isArray(parsed.books))throw Error();if(!confirm('پشتیبان فعلی جایگزین همهٔ داده‌های این مرورگر شود؟'))return;db=normalizeDB(parsed);activeId=null;stopTimer();persist();renderSelectors();$('examArea').classList.add('hidden');$('welcome').classList.remove('hidden');alert('پشتیبان بازیابی شد.')}catch(e){alert('فایل پشتیبان معتبر نیست.')}finally{ev.target.value=''}};
 window.addEventListener('beforeunload',()=>{const e=activeExam()?.exam;if(e){e.remaining=remaining;persist()}});
+// V89 live-cloud bridge: merge incoming exam data into the current in-memory DB without leaving the active screen.
+let cloudExamRefreshQueuedV89=false;
+function refreshExamAfterCloudV89(){
+ if(cloudExamRefreshQueuedV89)return;
+ const active=document.activeElement;
+ if(active&&active.matches&&active.matches('input,textarea,select,[contenteditable="true"]')){cloudExamRefreshQueuedV89=true;return;}
+ const isExamVisible=!document.body.classList.contains('study-os-active-v63')&&!$('examArea').classList.contains('hidden')&&getComputedStyle($('examArea')).display!=='none';
+ const qScroll=$('questions')?.scrollTop||0,keyScroll=$('answerKey')?.scrollTop||0,wsScroll=$('answerWorkspace')?.scrollTop||0;
+ const keepQ=currentQuestionNumberV58,keepK=currentKeyQuestionNumberV70;
+ if(isExamVisible&&activeId&&activeExam()){
+  renderExam();renderKey();renderStats();renderDailyTests();if(historyVisible)renderHistory();
+  currentQuestionNumberV58=keepQ;currentKeyQuestionNumberV70=keepK;
+  requestAnimationFrame(()=>{if($('questions'))$('questions').scrollTop=qScroll;if($('answerKey'))$('answerKey').scrollTop=keyScroll;if($('answerWorkspace'))$('answerWorkspace').scrollTop=wsScroll;});
+ }else if(!isExamVisible){renderSelectors();renderDailyTests();}
+ cloudExamRefreshQueuedV89=false;
+}
+window.__refreshExamAfterCloudV89=refreshExamAfterCloudV89;
+window.addEventListener('studyos:cloud-data-updated',ev=>{
+ const keys=ev.detail?.changedKeys||[];if(!keys.includes(STORE))return;
+ try{const raw=localStorage.getItem(STORE);if(raw)db=normalizeDB(JSON.parse(raw));else db=normalizeDB({books:[],dailyTestLog:[]});}catch(err){console.warn('Cloud exam data could not be parsed:',err);return;}
+ refreshExamAfterCloudV89();
+});
+document.addEventListener('focusout',()=>{if(cloudExamRefreshQueuedV89)requestAnimationFrame(refreshExamAfterCloudV89)},true);
+
 // Sidebar controls: keep the panel toggle independent from exam data and answer storage.
 const mainLayout=document.querySelector('main');
 const collapseSidebar=$('collapseSidebar');
@@ -1288,7 +1860,7 @@ label{color:#c7d0e1!important;font-size:.82rem!important}
 <header class="os-topbar">
 <div class="os-brand"><span class="os-brand-mark">◈</span><span>محیط مطالعه</span><span class="os-save" id="osSaveStatus"><i></i> ذخیره شد</span></div>
 <div class="os-top-actions">
-<button aria-label="نورپردازی: روشن" aria-pressed="true" class="os-icon-btn os-prism-power-v65" id="osPrismPowerToggle" title="خاموش کردن نورپردازی" type="button">⏻</button><button aria-label="حرکت رنگ‌ها: روشن" aria-pressed="true" class="os-icon-btn os-motion-toggle" id="osMotionToggle" title="حرکت رنگ‌ها: روشن" type="button">≈</button>
+<button aria-label="نورپردازی: روشن" aria-pressed="true" class="os-icon-btn os-prism-power-v65" id="osPrismPowerToggle" title="خاموش کردن نورپردازی" type="button"> <svg data-power-icon-v90 aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3v8"></path><path d="M6.3 6.8a8 8 0 1 0 11.4 0"></path></svg></button><button aria-label="حرکت رنگ‌ها: روشن" aria-pressed="true" class="os-icon-btn os-motion-toggle" id="osMotionToggle" title="حرکت رنگ‌ها: روشن" type="button">≈</button>
 <button aria-label="تنظیم نور رنگی" aria-expanded="false" class="os-icon-btn" id="osPrismSettingsToggle" title="تنظیم نور" type="button">◉</button>
 <div class="prism-settings" id="osPrismSettings" hidden>
   <div class="prism-settings-head-v61"><span>نورپردازی</span><div class="prism-presets-v61" role="group" aria-label="پیش‌تنظیم نور"><button type="button" data-prism-preset-v61="calm">آرام</button><button type="button" data-prism-preset-v61="balanced">متعادل</button><button type="button" data-prism-preset-v61="vivid">زنده</button></div></div>
@@ -1302,6 +1874,8 @@ label{color:#c7d0e1!important;font-size:.82rem!important}
   <div class="prism-settings-divider-v61"></div>
   <div class="prism-setting-row"><label for="osPrismHoverV61">واکنش</label><select id="osPrismHoverV61"><option value="off">خاموش</option><option value="soft">نرم</option><option value="vivid">درخشان</option></select></div>
   <div class="prism-setting-row"><label for="osPrismLiftV61">بالاآمدن</label><input id="osPrismLiftV61" type="range" min="0" max="6" step="0.5" value="3"><output id="osPrismLiftValueV61">۳</output></div>
+  <div class="prism-settings-divider-v61"></div>
+  <button type="button" class="device-profile-reselect-v90" id="deviceProfileReselectV90">تغییر چیدمان این دستگاه</button>
 </div>
 <button aria-label="تغییر پوسته" class="os-icon-btn" id="themeMode" title="تغییر حالت روشن و تاریک" type="button">◐</button>
 <button aria-label="پشتیبان کامل" class="os-icon-btn" id="sExport" title="پشتیبان کامل" type="button">↓</button>
@@ -1346,7 +1920,7 @@ const weekStart=s=>{const d=dateObj(s);d.setDate(d.getDate()-((d.getDay()+1)%7))
 const dayName=s=>DAYS[(dateObj(s).getDay()+1)%7];
 const dateLabel=s=>dateObj(s).toLocaleDateString('fa-IR',{day:'numeric',month:'short'});
 const dateFull=s=>dateObj(s).toLocaleDateString('fa-IR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-const fmt=sec=>{sec=Math.max(0,Math.floor(Number(sec)||0));const h=Math.floor(sec/3600),m=Math.floor(sec%3600/60),s=sec%60;return h?`${fa(h)}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`:`${fa(m)}:${String(s).padStart(2,'0')}`};
+const fmt=sec=>{sec=Math.max(0,Math.floor(Number(sec)||0));const h=Math.floor(sec/3600),m=Math.floor(sec%3600/60),s=sec%60,two=n=>fa(n).padStart(2,'۰');return h?`${fa(h)}:${two(m)}:${two(s)}`:`${two(m)}:${two(s)}`};
 const minuteText=m=>m>=60?`${fa(Math.floor(m/60))} ساعت${m%60?` و ${fa(m%60)} دقیقه`:''}`:`${fa(m)} دقیقه`;
 const startOfWeekDates=s=>Array.from({length:7},(_,i)=>addDays(weekStart(s),i));
 const timeOptions=()=>Array.from({length:35},(_,i)=>{let mins=6*60+i*30;return `${String(Math.floor(mins/60)).padStart(2,'0')}:${String(mins%60).padStart(2,'0')}`});
@@ -1562,7 +2136,7 @@ $('osNavClose').onclick=()=>setNavOpen(false);
 $('osNavBackdrop').onclick=()=>setNavOpen(false);
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&osRoot.classList.contains('nav-open')){setNavOpen(false);$('osNavToggle').focus();}});
 function enterStudyOSV63(){clearTimeout(osRoot._transitionTimerV63);osRoot.classList.remove('study-transition-out-v63','study-transition-in-v63');osRoot.classList.add('study-transition-pre-v63');osRoot.style.display='block';document.body.classList.add('study-os-active-v63');setNavOpen(false);render();requestAnimationFrame(()=>requestAnimationFrame(()=>{osRoot.classList.remove('study-transition-pre-v63');osRoot.classList.add('study-transition-in-v63');clearTimeout(osRoot._transitionInFinishV66);osRoot._transitionInFinishV66=setTimeout(()=>osRoot.classList.remove('study-transition-in-v63'),380)}));}
-function leaveStudyOSV63(){clearTimeout(osRoot._transitionTimerV63);setNavOpen(false);osRoot.classList.remove('study-transition-in-v63','study-transition-pre-v63');osRoot.classList.add('study-transition-out-v63');document.body.classList.remove('study-os-active-v63');osRoot._transitionTimerV63=setTimeout(()=>{if(osRoot.classList.contains('study-transition-out-v63')){osRoot.style.display='none';osRoot.classList.remove('study-transition-out-v63')}},300);}
+function leaveStudyOSV63(){clearTimeout(osRoot._transitionTimerV63);setNavOpen(false);osRoot.classList.remove('study-transition-in-v63','study-transition-pre-v63');osRoot.classList.add('study-transition-out-v63');document.body.classList.remove('study-os-active-v63');osRoot._transitionTimerV63=setTimeout(()=>{if(osRoot.classList.contains('study-transition-out-v63')){osRoot.style.display='none';osRoot.classList.remove('study-transition-out-v63')}if(window.__refreshExamAfterCloudV89)window.__refreshExamAfterCloudV89();},320);}
 $('studyOSBtn').onclick=enterStudyOSV63; $('sClose').onclick=leaveStudyOSV63;
 document.querySelectorAll('#sTabs [data-tab]').forEach(b=>b.onclick=()=>{setNavOpen(false);setTab(b.dataset.tab)});$('sExport').onclick=fullBackup;$('sRestore').onclick=()=>$('sRestoreFile').click();$('sRestoreFile').onchange=e=>{const f=e.target.files?.[0];if(f)restoreBackup(f)};
 $('themeMode').onclick=()=>applyTheme(!document.documentElement.classList.contains('dark'));
@@ -2336,6 +2910,28 @@ renderDash=function(){
 };
 const checkClockBeforeFocusV68=checkClock;
 checkClock=function(){checkClockBeforeFocusV68();if(activeTab==='dash')updateFocusNumbersV68();};
+// V89 live-cloud bridge: refresh study data in place, preserving the active tab and scroll position.
+let cloudStudyRefreshQueuedV89=false;
+function refreshStudyAfterCloudV89(){
+ if(cloudStudyRefreshQueuedV89)return;
+ const active=document.activeElement;
+ if(active&&active.matches&&active.matches('input,textarea,select,[contenteditable="true"]')){cloudStudyRefreshQueuedV89=true;return;}
+ const root=$('studyOS');
+ const visible=!!root&&getComputedStyle(root).display!=='none'&&document.body.classList.contains('study-os-active-v63');
+ const panelScroll=panel?panel.scrollTop:0;
+ if(visible&&activeTab!=='stopwatch'){
+  render();
+  requestAnimationFrame(()=>{if(panel)panel.scrollTop=panelScroll;});
+ }
+ cloudStudyRefreshQueuedV89=false;
+}
+window.addEventListener('studyos:cloud-data-updated',ev=>{
+ const keys=ev.detail?.changedKeys||[];if(!keys.includes(STORAGE))return;
+ try{const raw=localStorage.getItem(STORAGE);data=normalizeData(raw?JSON.parse(raw):defaultData());}catch(err){console.warn('Cloud study data could not be parsed:',err);return;}
+ refreshStudyAfterCloudV89();
+});
+document.addEventListener('focusout',()=>{if(cloudStudyRefreshQueuedV89)requestAnimationFrame(refreshStudyAfterCloudV89)},true);
+
 
 })();
 </script>
@@ -4272,15 +4868,24 @@ html.prism-power-off-v65 #studyOS .review-question-v53{box-shadow:0 5px 18px rgb
 @media(prefers-reduced-motion:reduce){
  #studyOS .os-topbar,#studyOS #osTopbarPeekV65,#studyOS #osNavToggle{transition-duration:.01ms!important;will-change:auto!important}
 }
+/* v91: locked selector visibility must win in both the answer and Study OS headers. */
+html body .device-profile-picker-v85[data-device-profile-locked="true"],
+#studyOS .os-top-actions .device-profile-picker-v85[data-device-profile-locked="true"]{
+  display:none!important;visibility:hidden!important;pointer-events:none!important;
+}
 </style>
 <script id="study-os-v85-device-profile">
 (()=>{
   const root=document.documentElement;
   const MODE_KEY='studyOSDeviceModeManualV85';
+  const CONFIRM_KEY='studyOSDeviceModeConfirmedV90';
   const validModes=['auto','desktop','tablet','phone'];
   const labels={auto:'تشخیص خودکار',desktop:'سیستم',tablet:'تبلت',phone:'گوشی'};
   const readMode=()=>{try{const v=localStorage.getItem(MODE_KEY);return validModes.includes(v)?v:'auto'}catch(e){return 'auto'}};
+  const readConfirmed=()=>{try{return localStorage.getItem(CONFIRM_KEY)==='1'}catch(e){return false}};
   let selectedMode=readMode();
+  let confirmed=readConfirmed()||selectedMode!=='auto';
+  if(confirmed){try{localStorage.setItem(CONFIRM_KEY,'1')}catch(e){}}
   const ua=navigator.userAgent||'';
   const touch=(Number(navigator.maxTouchPoints||0)>0)||('ontouchstart' in window);
   const tabletModel=/(?:TB-[A-Z0-9]+|Lenovo\s*TB|iPad|Tablet)/i.test(ua);
@@ -4298,7 +4903,10 @@ html.prism-power-off-v65 #studyOS .review-question-v53{box-shadow:0 5px 18px rgb
   }
   function applyProfile(mode, persist){
     if(validModes.includes(mode))selectedMode=mode;
-    if(persist){try{if(selectedMode==='auto')localStorage.removeItem(MODE_KEY);else localStorage.setItem(MODE_KEY,selectedMode)}catch(e){}}
+    if(persist){
+      try{if(selectedMode==='auto')localStorage.removeItem(MODE_KEY);else localStorage.setItem(MODE_KEY,selectedMode);localStorage.setItem(CONFIRM_KEY,'1')}catch(e){}
+      confirmed=true;
+    }
     const actual=selectedMode==='auto'?detectedMode():selectedMode;
     const isTablet=actual==='tablet',isPhone=actual==='phone',isDesktop=actual==='desktop';
     const portrait=window.matchMedia?window.matchMedia('(orientation: portrait)').matches:innerHeight>=innerWidth;
@@ -4315,20 +4923,36 @@ html.prism-power-off-v65 #studyOS .review-question-v53{box-shadow:0 5px 18px rgb
     root.dataset.sosOrientation=orientation;
     root.dataset.sosMode=selectedMode;
     root.dataset.sosManual=selectedMode==='auto'?'false':'true';
+    const picker=document.getElementById('deviceProfilePickerV85');
+    if(picker){
+      picker.dataset.deviceProfileLocked=confirmed?'true':'false';
+      // Apply visibility directly to the single picker node so stronger
+      // header-specific rules cannot keep it visible after it moves to Study OS.
+      picker.style.setProperty('display',confirmed?'none':'inline-flex','important');
+      picker.style.setProperty('visibility',confirmed?'hidden':'visible','important');
+      picker.style.setProperty('pointer-events',confirmed?'none':'auto','important');
+    }
     if(document.body){classes.forEach(c=>document.body.classList.toggle(c,root.classList.contains(c)));}
-    const menu=document.getElementById('deviceProfileMenuV85');
-    if(menu){menu.querySelectorAll('[data-device-profile-v85]').forEach(btn=>btn.setAttribute('aria-pressed',String(btn.dataset.deviceProfileV85===selectedMode)));}
-    const toggle=document.getElementById('deviceProfileToggleV85');
-    if(toggle){
-      const current=labels[selectedMode]||labels.auto;
+    document.querySelectorAll('.device-profile-menu-v85').forEach(menu=>{
+      menu.querySelectorAll('[data-device-profile-v85]').forEach(btn=>btn.setAttribute('aria-pressed',String(btn.dataset.deviceProfileV85===selectedMode)));
+    });
+    const current=labels[selectedMode]||labels.auto;
+    document.querySelectorAll('.device-profile-toggle-v85').forEach(toggle=>{
       toggle.title='چیدمان: '+current;
       toggle.setAttribute('aria-label','انتخاب چیدمان؛ وضعیت فعلی: '+current);
       toggle.dataset.currentMode=selectedMode;
-    }
+    });
     try{document.dispatchEvent(new CustomEvent('studyos:deviceprofilechange',{detail:{mode:selectedMode,device:actual,orientation,manual:selectedMode!=='auto'}}));}catch(e){}
     return actual;
   }
-  window.StudyOSDeviceProfileV85={getMode:()=>selectedMode,getDevice:()=>root.dataset.sosDevice,setMode:mode=>applyProfile(mode,true),refresh:()=>applyProfile(selectedMode,false)};
+  window.StudyOSDeviceProfileV85={
+    getMode:()=>selectedMode,
+    getDevice:()=>root.dataset.sosDevice,
+    isConfirmed:()=>confirmed,
+    setMode:mode=>applyProfile(mode,true),
+    refresh:()=>applyProfile(selectedMode,false),
+    reopenPicker:()=>{confirmed=false;try{localStorage.removeItem(CONFIRM_KEY)}catch(e){};applyProfile(selectedMode,false);}
+  };
   applyProfile(selectedMode,false);
   let resizeQueued=false;
   const refreshSoon=()=>{if(resizeQueued)return;resizeQueued=true;requestAnimationFrame(()=>{resizeQueued=false;applyProfile(selectedMode,false)});};
@@ -4345,15 +4969,14 @@ html.prism-power-off-v65 #studyOS .review-question-v53{box-shadow:0 5px 18px rgb
  const topPeek=$('osTopbarPeekV65'),navToggle=$('osNavToggle'),panel=$('osPrismSettings');
  const powerButtons=[$('osPrismPowerToggle'),$('answerPrismPowerToggle')].filter(Boolean);
  const POWER_KEY='pasokhBargPrismPowerV65';
- const POWER_ICON_SVG='<svg data-power-icon-v84 aria-hidden=\"true\" viewBox=\"0 0 24 24\"><path d=\"M12 2.5v8.7\"/><path d=\"M6.35 6.7a8 8 0 1 0 11.3 0\"/></svg>';
+ const POWER_ICON_SVG='<svg data-power-icon-v90 aria-hidden=\"true\" viewBox=\"0 0 24 24\"><path d=\"M12 3v8\"/><path d=\"M6.3 6.8a8 8 0 1 0 11.4 0\"/></svg>';
  const read=(key,fallback)=>{try{return localStorage.getItem(key)??fallback}catch(e){return fallback}};
  const write=(key,value)=>{try{localStorage.setItem(key,value)}catch(e){}};
  let rgbOn=read(POWER_KEY,'on')!=='off';
  function renderPowerGlyph(btn){
   if(!btn)return;
-  const tablet=document.documentElement.classList.contains('sos-device-tablet');
-  if(tablet){if(!btn.querySelector('[data-power-icon-v84]'))btn.innerHTML=POWER_ICON_SVG;btn.classList.add('power-svg-v84');}
-  else{if(btn.querySelector('[data-power-icon-v84]'))btn.textContent='⏻';btn.classList.remove('power-svg-v84');}
+  if(!btn.querySelector('[data-power-icon-v90]'))btn.innerHTML=POWER_ICON_SVG;
+  btn.classList.add('power-svg-v90');
  }
  function setPower(on,persist=true){
   rgbOn=!!on;document.documentElement.classList.toggle('prism-power-off-v65',!rgbOn);
@@ -4658,319 +5281,12 @@ html.ui-is-scrolling #studyOS .review-chapter-v53:hover,html.ui-is-scrolling #st
 </style>
 
 <script>
-(()=>{if(!('serviceWorker' in navigator)||!/^https?:$/.test(location.protocol))return;window.addEventListener('load',()=>{navigator.serviceWorker.register('./sw.js?v=85',{scope:'./'}).catch(err=>console.warn('Study OS offline setup:',err));});})();
+(()=>{if(!('serviceWorker' in navigator)||!/^https?:$/.test(location.protocol))return;window.addEventListener('load',()=>{navigator.serviceWorker.register('./sw.js?v=90',{scope:'./'}).catch(err=>console.warn('Study OS offline setup:',err));});})();
 </script>
 
-<script src="./cloud-sync.js?v=85"></script>
+<script src="./cloud-sync.js?v=90"></script>
 
-<style id="study-os-v84-responsive-profiles">
-/* Three isolated device profiles:
-   desktop = untouched base layout; phone = existing mobile rules; tablet = rules below.
-   The tablet profile is selected by device type, not just CSS viewport width. */
-html.sos-device-tablet, html.sos-device-tablet body {
-  width:100%; max-width:100%; min-width:0; overflow-x:hidden;
-  -webkit-text-size-adjust:100%; text-size-adjust:100%;
-}
-html.sos-device-tablet *, html.sos-device-tablet *::before, html.sos-device-tablet *::after { box-sizing:border-box; }
 
-/* ---------------- Test-taking shell: shared tablet base ---------------- */
-html.sos-device-tablet body > header { padding:clamp(12px,1.7vw,18px) clamp(12px,2vw,20px) !important; }
-html.sos-device-tablet body > header .wrap {
-  width:100% !important; max-width:1480px !important; min-width:0 !important;
-  margin:0 auto !important; display:flex !important; align-items:center !important;
-  justify-content:space-between !important; flex-wrap:wrap !important; gap:10px !important;
-}
-html.sos-device-tablet .answer-app-header-wrap-v63 { align-items:center !important; min-width:0 !important; }
-html.sos-device-tablet .answer-app-header-wrap-v63 h1 {
-  flex:1 1 220px !important; min-width:0 !important;
-  font-size:clamp(1.05rem,1.9vw,1.42rem) !important; line-height:1.4 !important;
-}
-html.sos-device-tablet .answer-app-actions-v63 {
-  display:flex !important; flex:0 1 auto !important; min-width:0 !important;
-  align-items:center !important; justify-content:flex-end !important;
-  flex-wrap:wrap !important; gap:7px !important;
-}
-html.sos-device-tablet .answer-app-actions-v63 > button,
-html.sos-device-tablet .answer-app-actions-v63 > .study-launch-inline-v63 {
-  flex:0 0 auto !important; min-width:38px !important; max-width:100% !important;
-}
-html.sos-device-tablet body > main {
-  display:grid !important; width:100% !important; max-width:1480px !important;
-  min-width:0 !important; margin:0 auto !important;
-  padding:clamp(10px,1.5vw,16px) !important; gap:clamp(10px,1.4vw,14px) !important;
-  align-items:start !important; grid-template-columns:minmax(0,1fr) !important;
-}
-html.sos-device-tablet body > main > aside.card,
-html.sos-device-tablet body > main > section.card {
-  width:100% !important; min-width:0 !important; max-width:100% !important;
-}
-html.sos-device-tablet #sidebarPanel { min-width:0 !important; max-width:100% !important; }
-html.sos-device-tablet .sidebar-head { display:flex !important; align-items:center !important; justify-content:space-between !important; flex-wrap:nowrap !important; gap:8px !important; }
-html.sos-device-tablet .sidebar-head h2 { min-width:0 !important; font-size:1rem !important; }
-html.sos-device-tablet #collapseSidebar { flex:0 0 40px !important; width:40px !important; min-width:40px !important; height:38px !important; padding:0 !important; }
-html.sos-device-tablet #showSidebar:not(.hidden) { display:inline-flex !important; max-width:100% !important; margin:0 0 12px !important; }
-html.sos-device-tablet #sidebarPanel .tree-list {
-  max-height:clamp(190px,34vh,310px) !important; overflow:auto !important;
-  overscroll-behavior:contain; -webkit-overflow-scrolling:touch;
-}
-html.sos-device-tablet #sidebarPanel .tree-item { min-width:0 !important; flex-wrap:wrap !important; gap:6px !important; }
-html.sos-device-tablet #sidebarPanel .tree-item [data-open] { flex:1 1 110px !important; min-width:0 !important; overflow-wrap:anywhere; }
-html.sos-device-tablet #sidebarPanel .row { display:flex !important; flex-wrap:wrap !important; align-items:center !important; gap:7px !important; }
-html.sos-device-tablet #sidebarPanel .row > * { min-width:0 !important; max-width:100% !important; }
-html.sos-device-tablet #sidebarPanel input,
-html.sos-device-tablet #sidebarPanel select,
-html.sos-device-tablet #sidebarPanel textarea { min-width:0 !important; max-width:100% !important; }
-html.sos-device-tablet .stats { display:grid !important; grid-template-columns:repeat(2,minmax(0,1fr)) !important; gap:8px !important; }
-html.sos-device-tablet .stat { min-width:0 !important; padding:9px 7px !important; }
-html.sos-device-tablet .stat strong { font-size:clamp(1rem,2vw,1.3rem) !important; }
-html.sos-device-tablet #examArea,
-html.sos-device-tablet #answerWorkspace,
-html.sos-device-tablet #subtestManager { min-width:0 !important; max-width:100% !important; }
-html.sos-device-tablet #examArea > .row { min-width:0 !important; flex-wrap:wrap !important; align-items:flex-start !important; gap:8px !important; }
-html.sos-device-tablet #examArea .toolbar,
-html.sos-device-tablet #answerWorkspace .toolbar,
-html.sos-device-tablet #answerWorkspace #answerToolbar {
-  display:flex !important; flex-wrap:wrap !important; align-items:center !important;
-  gap:7px !important; min-width:0 !important; max-width:100% !important;
-}
-html.sos-device-tablet #examArea .toolbar > *,
-html.sos-device-tablet #answerWorkspace .toolbar > * { min-width:0 !important; max-width:100% !important; }
-html.sos-device-tablet #answerWorkspace .toolbar button {
-  flex:0 1 auto !important; min-height:38px !important;
-  padding:7px 9px !important; white-space:normal !important; line-height:1.35 !important;
-}
-html.sos-device-tablet #questions,
-html.sos-device-tablet #answerKey,
-html.sos-device-tablet .question-grid,
-html.sos-device-tablet .key-grid {
-  width:100% !important; max-width:100% !important; min-width:0 !important;
-  grid-template-columns:repeat(auto-fill,minmax(72px,1fr)) !important;
-  gap:7px !important; align-items:start !important;
-}
-html.sos-device-tablet #questions .question,
-html.sos-device-tablet #answerKey .question { min-width:0 !important; max-width:100% !important; }
-html.sos-device-tablet #answerWorkspace.answer-fullscreen {
-  position:fixed !important; inset:0 !important; z-index:99999 !important;
-  width:100vw !important; max-width:100vw !important; min-width:0 !important;
-  height:100vh !important; height:100dvh !important; max-height:none !important;
-  padding:12px !important; overflow-x:hidden !important; overflow-y:auto !important;
-  overscroll-behavior-y:contain; -webkit-overflow-scrolling:touch;
-}
-html.sos-device-tablet #answerWorkspace.answer-fullscreen .answer-fullscreen-topbar-v75 {
-  position:sticky !important; top:-12px !important; z-index:50 !important;
-  width:calc(100% + 24px) !important; margin:-12px -12px 12px !important;
-  padding:10px 12px 8px !important; border-radius:0 !important;
-}
-html.sos-device-tablet #answerWorkspace.answer-fullscreen .answer-fullscreen-topbar-v75 .answer-workspace-head {
-  padding:2px 120px 8px 0 !important; min-height:38px !important; flex-wrap:wrap !important;
-}
-html.sos-device-tablet #answerWorkspace.answer-fullscreen .fullscreen-timer {
-  position:absolute !important; top:10px !important; left:12px !important; right:auto !important;
-  max-width:108px !important; padding:6px 8px !important; gap:6px !important;
-}
-html.sos-device-tablet #answerWorkspace.answer-fullscreen #questions {
-  grid-template-columns:repeat(auto-fill,minmax(70px,1fr)) !important; gap:7px !important;
-}
-
-/* The collapse state must win over the orientation grid. Closing the right panel
-   removes its column completely and gives the answer area the full available width. */
-html.sos-device-tablet body > main.sidebar-collapsed {
-  grid-template-columns:minmax(0,1fr) !important;
-}
-html.sos-device-tablet body > main.sidebar-collapsed > #sidebarPanel { display:none !important; }
-html.sos-device-tablet body > main.sidebar-collapsed > section.card {
-  grid-column:1 / -1 !important; width:100% !important; min-width:0 !important;
-}
-
-/* ---------------- Tablet portrait profile ---------------- */
-@media (orientation:portrait) {
-  html.sos-device-tablet body > main:not(.sidebar-collapsed) {
-    grid-template-columns:minmax(0,1fr) !important;
-  }
-  html.sos-device-tablet #sidebarPanel { position:static !important; max-height:none !important; overflow:visible !important; }
-  html.sos-device-tablet #studyOS .home-grid-main,
-  html.sos-device-tablet #studyOS .split-grid,
-  html.sos-device-tablet #studyOS .home-layout-grid,
-  html.sos-device-tablet #studyOS .planner-week-grid { grid-template-columns:minmax(0,1fr) !important; }
-  html.sos-device-tablet #studyOS .metric-grid,
-  html.sos-device-tablet #studyOS .cards,
-  html.sos-device-tablet #studyOS .report-grid,
-  html.sos-device-tablet #studyOS .review-select-grid-v53 { grid-template-columns:repeat(2,minmax(0,1fr)) !important; }
-  html.sos-device-tablet #studyOS .plan-form,
-  html.sos-device-tablet #studyOS .planner-form-grid { grid-template-columns:repeat(2,minmax(0,1fr)) !important; }
-}
-
-/* ---------------- Tablet landscape profile ---------------- */
-@media (orientation:landscape) {
-  html.sos-device-tablet body > main:not(.sidebar-collapsed) {
-    grid-template-columns:minmax(245px,.4fr) minmax(0,1fr) !important;
-  }
-  html.sos-device-tablet #sidebarPanel { position:sticky !important; top:10px !important; max-height:calc(100vh - 20px) !important; overflow:auto !important; }
-  html.sos-device-tablet .stats { grid-template-columns:repeat(4,minmax(0,1fr)) !important; }
-  html.sos-device-tablet #studyOS .home-grid-main,
-  html.sos-device-tablet #studyOS .split-grid,
-  html.sos-device-tablet #studyOS .home-layout-grid,
-  html.sos-device-tablet #studyOS .planner-week-grid { grid-template-columns:repeat(2,minmax(0,1fr)) !important; gap:12px !important; }
-  html.sos-device-tablet #studyOS .metric-grid,
-  html.sos-device-tablet #studyOS .cards,
-  html.sos-device-tablet #studyOS .report-grid,
-  html.sos-device-tablet #studyOS .review-select-grid-v53 { grid-template-columns:repeat(3,minmax(0,1fr)) !important; }
-  html.sos-device-tablet #studyOS .plan-form,
-  html.sos-device-tablet #studyOS .planner-form-grid { grid-template-columns:repeat(2,minmax(0,1fr)) !important; }
-  html.sos-device-tablet #studyOS .home-focus-card { grid-column:1 / -1; }
-}
-
-/* ---------------- Study workspace: responsive sizing, original colors intact ---------------- */
-html.sos-device-tablet #studyOS {
-  width:100% !important; max-width:100% !important; min-width:0 !important;
-  overflow-x:hidden !important; box-sizing:border-box !important;
-}
-html.sos-device-tablet #studyOS .os-main {
-  width:100% !important; max-width:100% !important; min-width:0 !important;
-  margin:0 !important; padding:0 0 calc(88px + env(safe-area-inset-bottom,0px)) !important;
-  box-sizing:border-box !important;
-}
-html.sos-device-tablet #studyOS .os-topbar {
-  position:sticky !important; top:0 !important; z-index:100 !important;
-  display:flex !important; align-items:center !important; justify-content:space-between !important;
-  flex-wrap:wrap !important; gap:8px !important; width:100% !important; min-width:0 !important;
-  height:auto !important; min-height:56px !important; padding:8px 14px !important; transform:none !important;
-}
-html.sos-device-tablet #studyOS .os-brand { flex:1 1 165px !important; min-width:0 !important; gap:7px !important; }
-html.sos-device-tablet #studyOS .os-top-actions {
-  display:flex !important; flex:0 1 auto !important; min-width:0 !important;
-  align-items:center !important; justify-content:flex-end !important; flex-wrap:nowrap !important; gap:6px !important;
-}
-html.sos-device-tablet #studyOS .os-top-actions > button {
-  flex:0 0 40px !important; width:40px !important; min-width:40px !important;
-  max-width:40px !important; height:40px !important; min-height:40px !important;
-  padding:0 !important; display:inline-grid !important; place-items:center !important;
-}
-html.sos-device-tablet #studyOS .scontent {
-  width:100% !important; max-width:none !important; min-width:0 !important;
-  margin:0 !important; padding:16px clamp(12px,2vw,22px) calc(98px + env(safe-area-inset-bottom,0px)) !important;
-  box-sizing:border-box !important;
-}
-html.sos-device-tablet #studyOS .scontent > *,
-html.sos-device-tablet #studyOS .scontent .os-card,
-html.sos-device-tablet #studyOS .scontent .card,
-html.sos-device-tablet #studyOS .scontent .metric,
-html.sos-device-tablet #studyOS .scontent .review-question-v53,
-html.sos-device-tablet #studyOS .scontent .planner-day,
-html.sos-device-tablet #studyOS .scontent .planner-entry { min-width:0 !important; max-width:100% !important; }
-html.sos-device-tablet #studyOS .page-head,
-html.sos-device-tablet #studyOS .home-head,
-html.sos-device-tablet #studyOS .planner-head { display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:9px; min-width:0; }
-html.sos-device-tablet #studyOS .home-focus-content,
-html.sos-device-tablet #studyOS .planner-actions { display:flex; flex-wrap:wrap; gap:10px; min-width:0; }
-html.sos-device-tablet #studyOS .review-question-v53 { grid-template-columns:38px minmax(0,1fr) !important; min-width:0 !important; }
-html.sos-device-tablet #studyOS .review-q-actions { grid-column:1 / -1 !important; display:flex !important; flex-direction:row !important; flex-wrap:wrap !important; align-items:center !important; gap:6px !important; padding:0 !important; }
-html.sos-device-tablet #studyOS .review-search-v53 { grid-column:1 / -1 !important; }
-html.sos-device-tablet #studyOS .week-days { display:grid !important; grid-template-columns:repeat(7,minmax(0,1fr)) !important; gap:4px !important; }
-html.sos-device-tablet #studyOS .week-day { min-width:0 !important; padding-inline:2px !important; }
-html.sos-device-tablet #studyOS .report-table-wrap { max-width:100% !important; overflow-x:auto !important; -webkit-overflow-scrolling:touch !important; }
-html.sos-device-tablet #studyOS table { min-width:600px; }
-html.sos-device-tablet #studyOS input,
-html.sos-device-tablet #studyOS select,
-html.sos-device-tablet #studyOS textarea { min-width:0 !important; max-width:100% !important; }
-
-/* The navigation is portalled to body. Theme tokens are copied in the small JS helper below. */
-html.sos-device-tablet body.study-os-active-v63 #studyNavPortalV67 { display:block !important; pointer-events:none !important; }
-html.sos-device-tablet #studyNavPortalV67 #sTabs {
-  position:fixed !important; top:auto !important; right:9px !important; left:9px !important;
-  bottom:calc(7px + env(safe-area-inset-bottom,0px)) !important;
-  width:auto !important; max-width:none !important; height:70px !important; min-height:70px !important; max-height:70px !important;
-  margin:0 !important; padding:5px 6px !important; box-sizing:border-box !important;
-  display:flex !important; flex-direction:row !important; align-items:center !important; justify-content:space-between !important;
-  gap:3px !important; overflow-x:auto !important; overflow-y:hidden !important;
-  -webkit-overflow-scrolling:touch !important; overscroll-behavior-x:contain !important;
-  background:var(--shell-card,var(--os-panel,#17243a)) !important;
-  color:var(--shell-ink,var(--os-text,#edf2ff)) !important;
-  border:1px solid var(--shell-line,var(--os-line,#34435c)) !important; border-radius:17px !important;
-  box-shadow:0 8px 24px rgba(0,0,0,.18) !important;
-  transform:none !important; opacity:1 !important; visibility:visible !important;
-  pointer-events:auto !important; z-index:100006 !important;
-  backdrop-filter:none !important; -webkit-backdrop-filter:none !important;
-}
-html.sos-device-tablet #studyNavPortalV67 #sTabs .rail-head,
-html.sos-device-tablet #studyNavPortalV67 #sTabs .rail-caption,
-html.sos-device-tablet #studyNavPortalV67 #sTabs .rail-bottom { display:none !important; }
-html.sos-device-tablet #studyNavPortalV67 #sTabs button[data-tab] {
-  display:flex !important; flex:1 0 62px !important; width:auto !important; min-width:62px !important; max-width:140px !important;
-  height:55px !important; min-height:52px !important; margin:0 !important; padding:4px 3px !important;
-  flex-direction:column !important; align-items:center !important; justify-content:center !important; gap:3px !important;
-  border:1px solid transparent !important; border-radius:12px !important; background:transparent !important;
-  color:var(--shell-muted,var(--os-muted,#aab6cc)) !important; font-size:.62rem !important;
-  line-height:1.15 !important; white-space:nowrap !important; transform:none !important; box-shadow:none !important;
-}
-html.sos-device-tablet #studyNavPortalV67 #sTabs button[data-tab].activeTab {
-  background:var(--shell-accent-soft,#302d50) !important; color:var(--shell-ink,#edf2ff) !important;
-  border-color:var(--shell-line,#34435c) !important;
-}
-html.sos-device-tablet #studyNavPortalV67 #sTabs .rail-svg { width:19px !important; height:19px !important; min-width:19px !important; flex:0 0 19px !important; }
-html.sos-device-tablet #studyNavPortalV67 #sTabs .rail-label { display:block !important; max-width:100% !important; overflow:hidden !important; text-overflow:ellipsis !important; white-space:nowrap !important; font-size:.59rem !important; line-height:1.1 !important; }
-html.sos-device-tablet #studyNavPortalV67 #osNavToggle,
-html.sos-device-tablet #studyNavPortalV67 #osNavBackdrop,
-html.sos-device-tablet #studyNavPortalV67 #osTopbarPeekV65 { display:none !important; pointer-events:none !important; }
-
-/* Keep RGB behavior and power logic. Only remove expensive backdrop blur on older tablet GPUs. */
-html.sos-device-tablet #studyOS .os-topbar,
-html.sos-device-tablet #studyOS .sbar,
-html.sos-device-tablet #studyOS .prism-settings,
-html.sos-device-tablet #studyNavPortalV67 #sTabs {
-  backdrop-filter:none !important; -webkit-backdrop-filter:none !important;
-}
-html.sos-device-tablet #studyOS .os-card,
-html.sos-device-tablet #studyOS .review-stat-v53,
-html.sos-device-tablet #studyOS .review-subject-v53,
-html.sos-device-tablet #studyOS .review-book-v53,
-html.sos-device-tablet #studyOS .review-chapter-v53,
-html.sos-device-tablet #studyOS .review-question-v53,
-html.sos-device-tablet #studyOS .planner-day,
-html.sos-device-tablet #studyOS .planner-entry {
-  transition:background-color .16s ease,border-color .16s ease,box-shadow .16s ease !important;
-}
-html.sos-device-tablet #studyOS .os-card:hover,
-html.sos-device-tablet #studyOS .review-stat-v53:hover,
-html.sos-device-tablet #studyOS .review-subject-v53:hover,
-html.sos-device-tablet #studyOS .review-book-v53:hover,
-html.sos-device-tablet #studyOS .review-chapter-v53:hover,
-html.sos-device-tablet #studyOS .review-question-v53:hover,
-html.sos-device-tablet #studyOS .planner-day:hover,
-html.sos-device-tablet #studyOS .planner-entry:hover { transform:none !important; filter:none !important; }
-
-/* Consistent power glyph rendering on Android 8.1; the existing click handler/state is unchanged. */
-html.sos-device-tablet .os-prism-power-v65,
-html.sos-device-tablet body > header .answer-prism-power-v65 {
-  display:inline-grid !important; place-items:center !important; flex:0 0 40px !important;
-  width:40px !important; min-width:40px !important; max-width:40px !important;
-  height:40px !important; min-height:40px !important; padding:0 !important; line-height:1 !important;
-}
-html.sos-device-tablet .os-prism-power-v65 svg,
-html.sos-device-tablet .answer-prism-power-v65 svg {
-  display:block !important; width:21px !important; height:21px !important; overflow:visible !important;
-  fill:none !important; stroke:currentColor !important; stroke-width:2.1 !important;
-  stroke-linecap:round !important; stroke-linejoin:round !important;
-}
-html.sos-device-tablet.prism-power-off-v65 #studyOS .os-card::before,
-html.sos-device-tablet.prism-power-off-v65 #studyOS .os-card::after,
-html.sos-device-tablet.prism-power-off-v65 #studyOS .review-stat-v53::before,
-html.sos-device-tablet.prism-power-off-v65 #studyOS .review-stat-v53::after,
-html.sos-device-tablet.prism-power-off-v65 #studyOS .review-subject-v53::before,
-html.sos-device-tablet.prism-power-off-v65 #studyOS .review-book-v53::before,
-html.sos-device-tablet.prism-power-off-v65 #studyOS .review-chapter-v53::before,
-html.sos-device-tablet.prism-power-off-v65 #studyOS .review-question-v53::before,
-html.sos-device-tablet.prism-power-off-v65 .rgb-test-surface-v63::before,
-html.sos-device-tablet.prism-power-off-v65 .rgb-test-surface-v63::after,
-html.sos-device-tablet.prism-power-off-v65 #sidebarPanel::before,
-html.sos-device-tablet.prism-power-off-v65 #subtestManager::before {
-  opacity:0 !important; animation:none !important; visibility:hidden !important; filter:none !important;
-}
-@media(prefers-reduced-motion:reduce) {
-  html.sos-device-tablet #studyNavPortalV67 #sTabs,
-  html.sos-device-tablet #studyOS .os-topbar { transition-duration:.01ms !important; }
-}
-</style>
 <script id="study-os-v84-theme-portal-sync">
 (()=>{
   const study=document.getElementById('studyOS');
@@ -4989,32 +5305,53 @@ html.sos-device-tablet.prism-power-off-v65 #subtestManager::before {
 </script>
 
 
-<script id="study-os-v85-device-profile-picker">
+<script id="study-os-v89-device-profile-picker-move">
 (()=>{
- const picker=document.getElementById('deviceProfilePickerV85');
- const toggle=document.getElementById('deviceProfileToggleV85');
- const menu=document.getElementById('deviceProfileMenuV85');
- if(!picker||!toggle||!menu)return;
  const profile=window.StudyOSDeviceProfileV85;
+ const picker=document.getElementById('deviceProfilePickerV85');
+ if(!picker)return;
+ const toggle=picker.querySelector('.device-profile-toggle-v85');
+ const menu=picker.querySelector('.device-profile-menu-v85');
+ if(!toggle||!menu)return;
  const setExpanded=value=>toggle.setAttribute('aria-expanded',String(!!value));
  const close=()=>{menu.hidden=true;setExpanded(false)};
- const open=()=>{
-   menu.hidden=false;setExpanded(true);
-   const active=menu.querySelector('[aria-pressed="true"]');
-   if(active)active.focus();
- };
+ const open=()=>{menu.hidden=false;setExpanded(true)};
  toggle.addEventListener('click',ev=>{ev.preventDefault();ev.stopPropagation();menu.hidden?open():close();});
  menu.addEventListener('click',ev=>{
-   const option=ev.target.closest('[data-device-profile-v85]');
-   if(!option)return;
-   const mode=option.getAttribute('data-device-profile-v85');
-   if(profile&&typeof profile.setMode==='function')profile.setMode(mode);
-   close();
-   try{window.dispatchEvent(new Event('resize'));}catch(e){}
+  const option=ev.target.closest('[data-device-profile-v85]');
+  if(!option)return;
+  const mode=option.getAttribute('data-device-profile-v85');
+  if(profile&&typeof profile.setMode==='function')profile.setMode(mode);
+  close();
+  try{window.dispatchEvent(new Event('resize'));}catch(e){}
  });
  document.addEventListener('click',ev=>{if(!picker.contains(ev.target))close();});
  document.addEventListener('keydown',ev=>{if(ev.key==='Escape'&&!menu.hidden){close();toggle.focus();}});
  window.addEventListener('orientationchange',close,{passive:true});
+ document.getElementById('deviceProfileReselectV90')?.addEventListener('click',ev=>{
+  ev.preventDefault();
+  if(profile&&typeof profile.reopenPicker==='function')profile.reopenPicker();
+  close();
+  requestAnimationFrame(()=>toggle.click());
+ });
+ const answerActions=document.querySelector('.answer-app-actions-v63');
+ const studyActions=document.querySelector('#studyOS .os-top-actions');
+ const answerAnchor=document.getElementById('themeToggle');
+ const studyAnchor=document.getElementById('osPrismSettings');
+ let lastInStudy=null;
+ function placeInActiveHeader(){
+  const inStudy=document.body.classList.contains('study-os-active-v63');
+  const target=inStudy?studyActions:answerActions;
+  const anchor=inStudy?studyAnchor:answerAnchor;
+  if(!target)return;
+  if(lastInStudy!==inStudy || picker.parentElement!==target){
+   close();
+   target.insertBefore(picker,anchor&&anchor.parentElement===target?anchor:null);
+   lastInStudy=inStudy;
+  }
+ }
+ placeInActiveHeader();
+ try{new MutationObserver(placeInActiveHeader).observe(document.body,{attributes:true,attributeFilter:['class']});}catch(e){}
  if(profile&&typeof profile.refresh==='function')profile.refresh();
 })();
 </script>
