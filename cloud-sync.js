@@ -17,14 +17,14 @@
     'pasokhBargPrismLiftV61', 'pasokhBargPrismPaletteV63', 'pasokhBargPrismCustomV63',
     'pasokhBargPrismThicknessV63', 'pasokhBargPrismGlowV63', 'pasokhBargPrismPowerV65'
   ];
-  var state = { session: null, syncing: false, dirty: false, applying: false, panelOpen: false, installPrompt: null, remoteChoice: null, poll: null, localRevision: 0, lastInteractionAt: Date.now(), pendingRemote: null, pendingRemoteCheck: null };
+  var state = { session: null, syncing: false, dirty: false, applying: false, panelOpen: false, installPrompt: null, poll: null, localRevision: 0, lastLocalChangeAt: 0, queuedRemote: null, realtime: null, realtimeReady: false, realtimeTopic: null, joinRef: null, heartbeat: null, reconnectTimer: null, reconnectAttempt: 0, stopRealtime: false };
 
   function byId(id) { return document.getElementById(id); }
   function readJSON(key, fallback) { try { return JSON.parse(localStorage.getItem(key) || 'null') || fallback; } catch (e) { return fallback; } }
   function writeJSON(key, value) { localStorage.setItem(key, JSON.stringify(value)); }
   function getConfig() { var saved = readJSON(CONFIG_KEY, null); return saved && saved.url && saved.key ? saved : DEFAULT_CONFIG; }
   function getSession() { return readJSON(SESSION_KEY, null); }
-  function getMeta() { return readJSON(META_KEY, { lastRemoteUpdatedAt: null, initialized: false, dirty: false }); }
+  function getMeta() { return readJSON(META_KEY, { lastRemoteUpdatedAt: null, initialized: false, dirty: false, basePayload: null, lastLocalChangeAt: 0 }); }
   function setMeta(patch) { var m = getMeta(); Object.keys(patch).forEach(function (k) { m[k] = patch[k]; }); writeJSON(META_KEY, m); }
   function snapshot() {
     var obj = {};
@@ -122,7 +122,11 @@
       token_type: data.token_type || 'bearer', expires_at: Date.now() + (Number(data.expires_in) || 3600) * 1000,
       user: data.user || (getSession() || {}).user || null
     };
-    writeJSON(SESSION_KEY, s); state.session = s; return s;
+    writeJSON(SESSION_KEY, s); state.session = s;
+    if (state.realtime && state.realtime.readyState === 1 && state.realtimeTopic) {
+      try { state.realtime.send(JSON.stringify({ topic: state.realtimeTopic, event: 'access_token', payload: { access_token: s.access_token }, ref: String(Date.now()), join_ref: state.joinRef || null })); } catch (e) {}
+    }
+    return s;
   }
   function signup() {
     var c = getConfig(), email = (byId('sosCloudEmail').value || '').trim(), password = byId('sosCloudPassword').value;
@@ -156,165 +160,282 @@
     });
   }
   function backupLocalBeforeRestore() {
-    try { localStorage.setItem('studyOSLocalBackupBeforeCloudV79', JSON.stringify(snapshot())); } catch (e) { note('فضای مرورگر برای تهیهٔ نسخهٔ پشتیبان کافی نیست؛ همگام‌سازی متوقف شد.', true); throw e; }
+    var backupKey = 'studyOSLocalBackupBeforeCloudV89';
+    if (localStorage.getItem(backupKey)) return;
+    try { localStorage.setItem(backupKey, JSON.stringify(snapshot())); }
+    catch (e) { note('فضای مرورگر برای تهیهٔ نسخهٔ پشتیبان کافی نیست؛ همگام‌سازی متوقف شد.', true); throw e; }
   }
-  function applyRemote(payload, updatedAt) {
-    if (!payload || typeof payload !== 'object') throw new Error('دادهٔ ابری معتبر نیست.');
+  function canonical(value) {
+    if (value === undefined) return 'undefined';
+    if (value === null || typeof value !== 'object') return JSON.stringify(value);
+    if (Array.isArray(value)) return '[' + value.map(canonical).join(',') + ']';
+    return '{' + Object.keys(value).sort().map(function (k) { return JSON.stringify(k) + ':' + canonical(value[k]); }).join(',') + '}';
+  }
+  function equalValue(a, b) { return canonical(a) === canonical(b); }
+  function isObject(value) { return !!value && typeof value === 'object' && !Array.isArray(value); }
+  function arrayKey(item) {
+    if (!item || typeof item !== 'object') return null;
+    var keys = ['id', 'date', 'n', 'key', 'questionNumber', 'planId', 'sessionId', 'taskId'];
+    for (var i = 0; i < keys.length; i++) if (item[keys[i]] !== undefined && item[keys[i]] !== null) return keys[i] + ':' + String(item[keys[i]]);
+    return null;
+  }
+  function mergeArray(base, local, remote, localTime, remoteTime) {
+    var sample = (local || []).concat(remote || [], base || []).filter(function (x) { return x !== undefined; });
+    var keyed = sample.length && sample.every(function (x) { return arrayKey(x) !== null; });
+    if (keyed) {
+      var bm = new Map(), lm = new Map(), rm = new Map(), order = [];
+      (base || []).forEach(function (x) { var k = arrayKey(x); bm.set(k, x); if (order.indexOf(k) < 0) order.push(k); });
+      (local || []).forEach(function (x) { var k = arrayKey(x); lm.set(k, x); if (order.indexOf(k) < 0) order.push(k); });
+      (remote || []).forEach(function (x) { var k = arrayKey(x); rm.set(k, x); if (order.indexOf(k) < 0) order.push(k); });
+      var out = [];
+      order.forEach(function (k) {
+        var b = bm.has(k) ? bm.get(k) : undefined, l = lm.has(k) ? lm.get(k) : undefined, r = rm.has(k) ? rm.get(k) : undefined;
+        var v = mergeNode(b, l, r, localTime, remoteTime);
+        if (v !== undefined) out.push(v);
+      });
+      return out;
+    }
+    var primitive = sample.every(function (x) { return x === null || ['string','number','boolean'].indexOf(typeof x) >= 0; });
+    if (primitive) {
+      var bset = new Set(base || []), lset = new Set(local || []), rset = new Set(remote || []), additions = [];
+      (local || []).concat(remote || []).forEach(function (x) { if (!bset.has(x) && additions.indexOf(x) < 0) additions.push(x); });
+      var kept = [];
+      (base || []).forEach(function (x) { if (lset.has(x) && rset.has(x)) kept.push(x); });
+      return kept.concat(additions);
+    }
+    if (Array.isArray(base) && base.length === (local || []).length && base.length === (remote || []).length) {
+      return base.map(function (x, i) { return mergeNode(x, local[i], remote[i], localTime, remoteTime); });
+    }
+    return (localTime || 0) >= (remoteTime || 0) ? (local || []) : (remote || []);
+  }
+  function mergeNode(base, local, remote, localTime, remoteTime) {
+    if (equalValue(local, remote)) return local;
+    if (equalValue(local, base)) return remote;
+    if (equalValue(remote, base)) return local;
+    if (isObject(local) && isObject(remote)) {
+      var result = {}, keys = new Set(Object.keys(base || {}).concat(Object.keys(local), Object.keys(remote)));
+      keys.forEach(function (key) {
+        var bHas = isObject(base) && Object.prototype.hasOwnProperty.call(base, key);
+        var lHas = Object.prototype.hasOwnProperty.call(local, key);
+        var rHas = Object.prototype.hasOwnProperty.call(remote, key);
+        var b = bHas ? base[key] : undefined, l = lHas ? local[key] : undefined, r = rHas ? remote[key] : undefined;
+        var v = mergeNode(b, l, r, localTime, remoteTime);
+        if (v !== undefined) result[key] = v;
+      });
+      return result;
+    }
+    if (Array.isArray(local) && Array.isArray(remote)) return mergeArray(Array.isArray(base) ? base : [], local, remote, localTime, remoteTime);
+    return (localTime || 0) >= (remoteTime || 0) ? local : remote;
+  }
+  function parseStoredValue(raw) {
+    if (raw === undefined) return undefined;
+    try { return JSON.parse(raw); } catch (e) { return raw; }
+  }
+  function mergePayload(basePayload, localPayload, remotePayload, localTime, remoteTime) {
+    var base = basePayload || {}, local = localPayload || {}, remote = remotePayload || {}, result = {};
+    DATA_KEYS.forEach(function (key) {
+      var b = parseStoredValue(base[key]), l = parseStoredValue(local[key]), r = parseStoredValue(remote[key]);
+      var merged = mergeNode(b, l, r, localTime, remoteTime);
+      if (merged !== undefined) result[key] = typeof merged === 'string' && (typeof l === 'string' || typeof r === 'string') ? merged : JSON.stringify(merged);
+    });
+    return result;
+  }
+  function payloadEqual(a, b) {
+    a = a || {}; b = b || {};
+    return DATA_KEYS.every(function (key) {
+      var av = Object.prototype.hasOwnProperty.call(a, key) ? parseStoredValue(a[key]) : undefined;
+      var bv = Object.prototype.hasOwnProperty.call(b, key) ? parseStoredValue(b[key]) : undefined;
+      return equalValue(av, bv);
+    });
+  }
+  function writeLocalPayload(payload, updatedAt) {
+    var changed = [];
     backupLocalBeforeRestore();
     state.applying = true;
     try {
-      DATA_KEYS.forEach(function (k) {
-        if (Object.prototype.hasOwnProperty.call(payload, k)) localStorage.setItem(k, String(payload[k]));
-        else localStorage.removeItem(k);
+      DATA_KEYS.forEach(function (key) {
+        var next = Object.prototype.hasOwnProperty.call(payload || {}, key) ? String(payload[key]) : null;
+        var current = localStorage.getItem(key);
+        if (current === next) return;
+        if (next === null) localStorage.removeItem(key); else localStorage.setItem(key, next);
+        changed.push(key);
       });
-      setMeta({ lastRemoteUpdatedAt: updatedAt || null, initialized: true, dirty: false });
     } finally { state.applying = false; }
-    note('اطلاعات از ابر دریافت شد؛ برنامه برای بارگذاری داده‌های تازه بازآغاز می‌شود.');
-    setStatus('دریافت شد', 'ok');
-    setTimeout(function () { location.reload(); }, 650);
-  }
-  function showInitialChoice(remote) {
-    state.remoteChoice = { type: 'initial', remote: remote };
-    var box = byId('sosCloudChoice');
-    if (box) {
-      box.hidden = false;
-      box.innerHTML = '<div class="sos-cloud-choice-title">روی این دستگاه و فضای ابری هر دو اطلاعات وجود دارد.</div><div class="sos-cloud-choice-copy">برای جلوگیری از حذف ناخواسته، انتخاب کن کدام نسخه مبنا باشد. قبل از دریافت اطلاعات ابری، از داده‌های همین دستگاه هم نسخهٔ پشتیبان ساخته می‌شود.</div><div class="sos-cloud-choice-actions"><button type="button" id="sosUseLocal">اطلاعات این دستگاه را نگه دار و به ابر بفرست</button><button type="button" id="sosUseRemote" class="secondary">اطلاعات ابر را روی این دستگاه دریافت کن</button></div>';
-      byId('sosUseLocal').onclick = function () { hideChoice(); pushLocal(remote.updated_at || null); };
-      byId('sosUseRemote').onclick = function () { hideChoice(); applyRemote(remote.payload, remote.updated_at); };
+    if (changed.length) {
+      try { window.dispatchEvent(new CustomEvent('studyos:cloud-data-updated', { detail: { changedKeys: changed, updatedAt: updatedAt || null } })); } catch (e) {}
     }
-    note('انتخاب اولیه لازم است؛ بعد از این، همگام‌سازی خودکار انجام می‌شود.');
-    showPanel(true);
+    return changed;
   }
-  function clearPendingRemote() {
-    state.pendingRemote = null;
-    if (state.pendingRemoteCheck) clearInterval(state.pendingRemoteCheck);
-    state.pendingRemoteCheck = null;
+  function updateSyncedMeta(remote) {
+    var payload = remote && remote.payload ? remote.payload : snapshot();
+    setMeta({ lastRemoteUpdatedAt: remote && remote.updated_at || null, initialized: true, dirty: false, basePayload: payload, lastLocalChangeAt: 0 });
+    state.dirty = false;
+    setStatus('همگام است', 'ok');
+    note('تغییرات همهٔ دستگاه‌ها به‌صورت خودکار هماهنگ شدند.');
   }
-  function pageBusyForRemoteApply() {
-    var exam = byId('examArea');
-    if (exam && !exam.classList.contains('hidden') && getComputedStyle(exam).display !== 'none') return true;
-    var study = byId('studyOS');
-    if (study && getComputedStyle(study).display !== 'none') return true;
-    var workspace = byId('answerWorkspace');
-    if (workspace && (workspace.classList.contains('answer-fullscreen') || workspace.classList.contains('answer-mini-dock') || workspace.classList.contains('answer-pip-window'))) return true;
-    var timer = byId('timerMode');
-    if (timer && /در حال اجرا/.test(timer.textContent || '')) return true;
-    var active = document.activeElement;
-    if (active && active.matches && active.matches('input,textarea,select,[contenteditable="true"]')) return true;
-    if (document.querySelector('dialog[open]')) return true;
-    return false;
-  }
-  function showRemoteUpdate(remote) {
-    // Remote changes are applied automatically when this device has no local edits
-    // and the user is not in an exam/study workspace. If both sides changed,
-    // showConflict() below still requires an explicit choice to prevent data loss.
-    state.pendingRemote = remote;
-    if (state.pendingRemoteCheck) clearInterval(state.pendingRemoteCheck);
-    note('تغییرات دستگاه دیگر دریافت شد؛ پس از ۳۰ ثانیه بی‌فعالیتی و در زمان امن، خودکار اعمال می‌شود. هنگام آزمون یا در محیط مطالعه، دریافت تا پایان کار به تعویق می‌افتد.');
-    setStatus('دریافت خودکار در صف', 'warn');
-    state.pendingRemoteCheck = setInterval(function () {
-      var pending = state.pendingRemote;
-      if (!pending) { clearPendingRemote(); return; }
-      var meta = getMeta();
-      if (state.dirty || meta.dirty) {
-        clearPendingRemote();
-        showConflict(pending);
-        return;
-      }
-      if (document.visibilityState === 'hidden' || !document.hasFocus() || pageBusyForRemoteApply() || (Date.now() - state.lastInteractionAt) < 30000) return;
-      clearPendingRemote();
-      applyRemote(pending.payload, pending.updated_at);
-    }, 5000);
-  }
-  function showConflict(remote) {
-    clearPendingRemote();
-    state.remoteChoice = { type: 'conflict', remote: remote };
-    var box = byId('sosCloudChoice');
-    if (box) {
-      box.hidden = false;
-      box.innerHTML = '<div class="sos-cloud-choice-title">هر دو دستگاه از آخرین همگام‌سازی تغییر کرده‌اند.</div><div class="sos-cloud-choice-copy">برای جلوگیری از بازنویسی بی‌خبر، همگام‌سازی متوقف شده است. نسخه‌ای را که می‌خواهی مبنا قرار بگیرد انتخاب کن.</div><div class="sos-cloud-choice-actions"><button type="button" id="sosUseLocal">نسخهٔ این دستگاه به‌عنوان نسخهٔ اصلی</button><button type="button" id="sosUseRemote" class="secondary">نسخهٔ ابری به‌عنوان نسخهٔ اصلی</button></div>';
-      byId('sosUseLocal').onclick = function () { hideChoice(); pushLocal(remote.updated_at); };
-      byId('sosUseRemote').onclick = function () { hideChoice(); applyRemote(remote.payload, remote.updated_at); };
+  function reconcileRemote(remote, attempt) {
+    attempt = attempt || 0;
+    if (attempt > 5) return Promise.reject(new Error('همگام‌سازی هم‌زمان چند دستگاه بیش از حد تکرار شد؛ چند ثانیه بعد دوباره تلاش می‌کنیم.'));
+    var meta = getMeta(), localAtStart = snapshot(), revisionAtStart = state.localRevision;
+    var localTime = Number(meta.lastLocalChangeAt || state.lastLocalChangeAt || 0);
+    var remoteTime = remote && remote.updated_at ? Date.parse(remote.updated_at) : 0;
+    if (!remote && meta.initialized && meta.lastRemoteUpdatedAt) {
+      // The row may have been removed or temporarily hidden. Re-create from the local copy instead of discarding it.
+      note('رکورد ابری در دسترس نیست؛ نسخهٔ محلی حفظ و برای بازیابی ارسال می‌شود.', true);
     }
-    note('تداخل تغییرات شناسایی شد؛ هیچ اطلاعاتی خودکار حذف یا جایگزین نشده است.', true);
-    setStatus('نیازمند انتخاب', 'warn'); showPanel(true);
-  }
-  function hideChoice() { var b = byId('sosCloudChoice'); if (b) { b.hidden = true; b.innerHTML = ''; } state.remoteChoice = null; }
-  function pushLocal(expected) {
-    if (state.syncing) return Promise.resolve();
-    state.syncing = true; setBusy(true); setStatus('در حال ارسال…', 'busy');
-    var revisionAtStart = state.localRevision;
-    var payloadAtStart = snapshot();
-    return saveRemote(payloadAtStart, expected).then(function (result) {
-      if (result.conflict) { showConflict({ payload: result.row.payload, updated_at: result.row.updated_at }); return; }
-      var changedDuringUpload = state.localRevision !== revisionAtStart;
-      setMeta({ lastRemoteUpdatedAt: result.row.updated_at, initialized: true, dirty: changedDuringUpload });
-      state.dirty = changedDuringUpload;
-      if (changedDuringUpload) {
-        note('تغییر تازه‌ای هنگام ارسال ثبت شد؛ باقی تغییرات هم در صف ارسال قرار گرفت.');
-        setStatus('تغییرات در صف ارسال', 'warn');
+    var base = meta.initialized && meta.basePayload ? meta.basePayload : {};
+    var remotePayload = remote && remote.payload && typeof remote.payload === 'object' ? remote.payload : (meta.initialized && meta.basePayload ? meta.basePayload : {});
+    var merged = mergePayload(base, localAtStart, remotePayload, localTime, remoteTime);
+    writeLocalPayload(merged, remote && remote.updated_at);
+    var localNow = snapshot();
+    if (remote && payloadEqual(localNow, remote.payload)) {
+      updateSyncedMeta(remote);
+      if (state.localRevision !== revisionAtStart) { state.dirty = true; setMeta({ dirty: true }); setTimeout(function () { runSync(false); }, 120); }
+      return Promise.resolve(remote);
+    }
+    setStatus('در حال هماهنگ‌سازی…', 'busy');
+    return saveRemote(localNow, remote && remote.updated_at || null).then(function (result) {
+      if (result.conflict) return getRemote().then(function (latest) { return reconcileRemote(latest, attempt + 1); });
+      var savedRow = result.row || { payload: localNow, updated_at: null };
+      var currentChanged = state.localRevision !== revisionAtStart;
+      setMeta({ lastRemoteUpdatedAt: savedRow.updated_at, initialized: true, dirty: currentChanged, basePayload: savedRow.payload || localNow, lastLocalChangeAt: currentChanged ? (state.lastLocalChangeAt || Date.now()) : 0 });
+      state.dirty = currentChanged;
+      if (currentChanged) {
+        setStatus('تغییر تازه در صف ارسال', 'warn');
+        setTimeout(function () { runSync(false); }, 120);
       } else {
-        note('همهٔ اطلاعات این دستگاه با فضای ابری هماهنگ شد.'); setStatus('همگام شد', 'ok');
+        setStatus('همگام است', 'ok');
+        note('تغییرات همهٔ دستگاه‌ها به‌صورت خودکار هماهنگ شدند.');
       }
-    }).catch(function (err) {
-      state.dirty = true; setMeta({ dirty: true });
-      setStatus(navigator.onLine ? 'خطا در همگام‌سازی' : 'آفلاین؛ اطلاعات محلی محفوظ است', navigator.onLine ? 'error' : 'warn');
-      note('همگام‌سازی انجام نشد: ' + err.message + ' اطلاعات روی همین دستگاه محفوظ است.', true);
-    }).then(function () {
-      state.syncing = false; setBusy(false);
-      if (state.dirty && !state.remoteChoice && getSession() && navigator.onLine) {
-        clearTimeout(pushLocal.retryTimer);
-        pushLocal.retryTimer = setTimeout(function () { runSync(false); }, 700);
-      }
+      return savedRow;
     });
   }
-
+  function finishSync() {
+    state.syncing = false; setBusy(false);
+    var queued = state.queuedRemote; state.queuedRemote = null;
+    if (queued && getSession() && navigator.onLine) { handleRemoteRow(queued); return; }
+    if (state.dirty && getSession() && navigator.onLine) setTimeout(function () { runSync(false); }, 140);
+  }
   function runSync(force) {
-    if (state.syncing || state.remoteChoice) return Promise.resolve();
-    var s = getSession(); if (!s || !s.access_token) { setStatus('فقط روی این دستگاه', 'idle'); return Promise.resolve(); }
+    if (state.syncing) return Promise.resolve();
+    var s = getSession();
+    if (!s || !s.access_token) { setStatus('فقط روی این دستگاه', 'idle'); return Promise.resolve(); }
     if (!navigator.onLine) { setStatus('آفلاین؛ اطلاعات محلی محفوظ است', 'warn'); return Promise.resolve(); }
     state.syncing = true; setStatus('در حال بررسی…', 'busy');
-    return getRemote().then(function (remote) {
-      var meta = getMeta(), localData = hasMeaningfulLocalData(), remoteData = remote && hasMeaningfulSnapshot(remote.payload);
-      if (!meta.initialized) {
-        if (remote && remoteData && localData) { state.syncing = false; showInitialChoice(remote); return; }
-        if (remote && remoteData && !localData) { state.syncing = false; applyRemote(remote.payload, remote.updated_at); return; }
-        state.syncing = false; return pushLocal(remote ? remote.updated_at : null);
+    return getRemote().then(function (remote) { return reconcileRemote(remote, 0); })
+      .catch(function (err) { setStatus(navigator.onLine ? 'خطا در همگام‌سازی' : 'آفلاین؛ اطلاعات محلی محفوظ است', navigator.onLine ? 'error' : 'warn'); note('همگام‌سازی انجام نشد: ' + err.message + '؛ اطلاعات محلی محفوظ است.', true); })
+      .then(finishSync);
+  }
+  function handleRemoteRow(row) {
+    if (!row || !row.payload || row.user_id !== currentUserId()) return;
+    var meta = getMeta();
+    if (row.updated_at && row.updated_at === meta.lastRemoteUpdatedAt) return;
+    if (state.syncing) { state.queuedRemote = row; return; }
+    if (!getSession() || !navigator.onLine) return;
+    state.syncing = true; setStatus('دریافت تغییر دستگاه دیگر…', 'busy');
+    reconcileRemote(row, 0)
+      .catch(function (err) { note('دریافت زنده انجام نشد: ' + err.message, true); setStatus('در انتظار همگام‌سازی مجدد', 'warn'); })
+      .then(finishSync);
+  }
+  function nextRef() { state.ref = (Number(state.ref) || 0) + 1; return String(state.ref); }
+  function sendRealtime(event, payload, topic, ref) {
+    var ws = state.realtime;
+    if (!ws || ws.readyState !== 1) return false;
+    var targetTopic = topic || state.realtimeTopic || 'phoenix';
+    var message = { topic: targetTopic, event: event, payload: payload || {}, ref: ref || nextRef() };
+    if (targetTopic !== 'phoenix' && state.joinRef) message.join_ref = state.joinRef;
+    try { ws.send(JSON.stringify(message)); return true; } catch (e) { return false; }
+  }
+  function stopRealtime() {
+    state.stopRealtime = true; state.realtimeReady = false;
+    if (state.heartbeat) clearInterval(state.heartbeat); state.heartbeat = null;
+    if (state.reconnectTimer) clearTimeout(state.reconnectTimer); state.reconnectTimer = null;
+    if (state.realtime) { try { state.realtime.onclose = null; state.realtime.close(); } catch (e) {} }
+    state.realtime = null; state.realtimeTopic = null; state.joinRef = null;
+  }
+  function scheduleRealtimeReconnect() {
+    if (state.stopRealtime || !getSession() || !navigator.onLine || state.reconnectTimer) return;
+    var delay = Math.min(30000, 1200 * Math.pow(1.7, state.reconnectAttempt++));
+    state.reconnectTimer = setTimeout(function () { state.reconnectTimer = null; connectRealtime(); }, delay);
+  }
+  function connectRealtime() {
+    var c = getConfig(), session = getSession(), uid = currentUserId();
+    if (!uid || !session || !session.access_token || !navigator.onLine || typeof WebSocket === 'undefined') return;
+    if (state.realtime && (state.realtime.readyState === 0 || state.realtime.readyState === 1)) return;
+    state.stopRealtime = false;
+    var topic = 'realtime:public:study_os_sync'; state.realtimeTopic = topic;
+    var endpoint = cleanUrl(c.url).replace(/^https:/, 'wss:') + '/realtime/v1/websocket?apikey=' + encodeURIComponent(c.key) + '&vsn=1.0.0';
+    var ws;
+    try { ws = new WebSocket(endpoint); } catch (e) { scheduleRealtimeReconnect(); return; }
+    state.realtime = ws;
+    ws.onopen = function () {
+      state.reconnectAttempt = 0;
+      var uidNow = currentUserId();
+      if (!uidNow) { stopRealtime(); return; }
+      state.joinRef = String(nextRef());
+      sendRealtime('phx_join', {
+        config: { broadcast: { ack: false, self: false, replication_ready: true }, presence: { enabled: false, key: uidNow }, postgres_changes: [{ event: '*', schema: 'public', table: 'study_os_sync', filter: 'user_id=eq.' + uidNow }], private: false },
+        access_token: (getSession() || {}).access_token || ''
+      }, topic, state.joinRef);
+      if (state.heartbeat) clearInterval(state.heartbeat);
+      state.heartbeat = setInterval(function () { sendRealtime('heartbeat', {}, 'phoenix'); }, 20000);
+    };
+    ws.onmessage = function (event) {
+      var message; try { message = JSON.parse(event.data); } catch (e) { return; }
+      if (message.event === 'phx_reply' && message.payload && message.payload.status === 'ok' && String(message.ref || '') === String(state.joinRef || '')) {
+        state.reconnectAttempt = 0;
+        setStatus('اتصال زنده برقرار شد', 'ok');
+        return;
       }
-      if (!remote) {
-        if (meta.lastRemoteUpdatedAt) { state.syncing = false; note('نسخهٔ ابری پیدا نشد؛ برای ایمنی، ارسال خودکار متوقف شد.', true); setStatus('نیازمند بررسی', 'warn'); return; }
-        state.syncing = false; return pushLocal(null);
+      if (message.event === 'phx_reply' && message.payload && message.payload.status === 'error') {
+        state.realtimeReady = false;
+        note('کانال زنده هنوز فعال نشده؛ همگام‌سازی پشتیبان ادامه دارد. اگر این وضعیت ماند، SQL فعال‌سازی Realtime را اجرا کن.', true);
+        try { ws.close(); } catch (e) {}
+        return;
       }
-      var remoteChanged = !!meta.lastRemoteUpdatedAt && remote.updated_at !== meta.lastRemoteUpdatedAt;
-      var dirty = !!(meta.dirty || state.dirty);
-      if (remoteChanged && dirty) { state.syncing = false; showConflict(remote); return; }
-      if (remoteChanged && !dirty) { state.syncing = false; showRemoteUpdate(remote); return; }
-      if (dirty || !meta.lastRemoteUpdatedAt) { state.syncing = false; return pushLocal(remote.updated_at); }
-      setStatus('همگام است', 'ok'); note('این دستگاه با فضای ابری هماهنگ است.');
-    }).catch(function (err) {
-      setStatus(navigator.onLine ? 'خطا در اتصال' : 'آفلاین؛ اطلاعات محلی محفوظ است', navigator.onLine ? 'error' : 'warn');
-      note('بررسی فضای ابری انجام نشد: ' + err.message, true);
-    }).then(function () { state.syncing = false; setBusy(false); });
+      if (message.event === 'postgres_changes') {
+        var data = message.payload && message.payload.data || {};
+        var record = data.record || message.payload && message.payload.record;
+        if (record) handleRemoteRow(record);
+      }
+      if (message.event === 'system' && message.payload) {
+        if (message.payload.extension === 'postgres_changes' && message.payload.status === 'ok') {
+          state.realtimeReady = true; setStatus('همگام‌سازی زنده فعال', 'ok');
+        } else if (message.payload.status === 'error') {
+          state.realtimeReady = false; note('کانال زنده موقتاً قطع شد؛ همگام‌سازی پشتیبان ادامه دارد.');
+        }
+      }
+    };
+    ws.onerror = function () { state.realtimeReady = false; };
+    ws.onclose = function () {
+      if (state.heartbeat) clearInterval(state.heartbeat); state.heartbeat = null;
+      if (state.realtime === ws) { state.realtime = null; state.realtimeReady = false; }
+      scheduleRealtimeReconnect();
+    };
   }
   function startSync(fromLogin) {
     state.dirty = !!getMeta().dirty;
     refreshAccountUI();
-    note(fromLogin ? 'ورود انجام شد؛ در حال بررسی داده‌های محلی و ابری…' : 'همگام‌سازی خودکار فعال است.');
-    return runSync(true).then(function () { beginPolling(); });
+    note(fromLogin ? 'ورود انجام شد؛ همگام‌سازی خودکار دستگاه‌ها فعال می‌شود…' : 'همگام‌سازی خودکار فعال است.');
+    return runSync(true).then(function () { beginPolling(); connectRealtime(); });
   }
   function queueSync() {
     if (state.applying) return;
     state.localRevision += 1;
+    state.lastLocalChangeAt = Date.now();
     if (!getSession()) return;
-    state.dirty = true; setMeta({ dirty: true });
-    setStatus(navigator.onLine ? 'تغییرات در صف ارسال' : 'آفلاین؛ ذخیرهٔ محلی', 'warn');
+    state.dirty = true; setMeta({ dirty: true, lastLocalChangeAt: state.lastLocalChangeAt });
+    setStatus(navigator.onLine ? 'در حال ارسال تغییر…' : 'آفلاین؛ ذخیرهٔ محلی', 'warn');
     clearTimeout(queueSync.timer);
-    queueSync.timer = setTimeout(function () { runSync(false); }, 2200);
+    queueSync.timer = setTimeout(function () { runSync(false); }, 120);
   }
   function beginPolling() {
     if (state.poll) clearInterval(state.poll);
-    state.poll = setInterval(function () { if (document.visibilityState !== 'hidden' && navigator.onLine) runSync(false); }, 25000);
+    state.poll = setInterval(function () {
+      if (document.visibilityState !== 'hidden' && navigator.onLine && getSession()) runSync(false);
+    }, 12000);
   }
+  function clearPendingRemote() { state.queuedRemote = null; }
   function refreshAccountUI() {
     var logged = !!(getSession() && getSession().access_token);
     var auth = byId('sosCloudAuthFields'), logout = byId('sosCloudLogout'), login = byId('sosCloudLogin'), signup = byId('sosCloudSignup'), sync = byId('sosCloudSyncNow');
@@ -326,7 +447,7 @@
     if (logged) setStatus('حساب متصل', 'ok'); else setStatus('فقط روی این دستگاه', 'idle');
   }
   function logout() {
-    clearPendingRemote();
+    stopRealtime();
     var c = getConfig(), s = getSession();
     var req = s ? fetch(c.url + '/auth/v1/logout', { method: 'POST', headers: { apikey: c.key, Authorization: 'Bearer ' + s.access_token } }).catch(function () {}) : Promise.resolve();
     return req.then(function () { localStorage.removeItem(SESSION_KEY); state.session = null; state.dirty = false; refreshAccountUI(); setStatus('فقط روی این دستگاه', 'idle'); note('از حساب ابری خارج شدی؛ اطلاعات محلی این دستگاه پاک نشده است.'); });
@@ -336,7 +457,7 @@
     if (!/^https:\/\/[a-zA-Z0-9.-]+$/.test(url)) throw new Error('نشانی پروژه باید با https:// شروع شود.');
     if (key.length < 20) throw new Error('کلید عمومی پروژه کامل به نظر نمی‌رسد.');
     var prev = getConfig();
-    if (prev.url !== url || prev.key !== key) { localStorage.removeItem(SESSION_KEY); localStorage.removeItem(META_KEY); }
+    if (prev.url !== url || prev.key !== key) { stopRealtime(); localStorage.removeItem(SESSION_KEY); localStorage.removeItem(META_KEY); }
     writeJSON(CONFIG_KEY, { url: url, key: key });
     refreshAccountUI(); note('تنظیمات پروژه ذخیره شد. حالا با همان حساب در همهٔ دستگاه‌ها وارد شو.');
   }
@@ -352,7 +473,16 @@
     var css = document.createElement('style');
     css.textContent = '#sosCloudPill{position:fixed;z-index:9998;left:14px;bottom:14px;border:1px solid rgba(129,157,210,.32);background:rgba(17,27,46,.94);color:#eaf0ff;border-radius:999px;padding:9px 13px;display:flex;align-items:center;gap:8px;box-shadow:0 5px 24px rgba(0,0,0,.2);font:500 13px Tahoma,sans-serif;cursor:pointer}#sosCloudPill:focus-visible,#sosCloudPanel button:focus-visible{outline:2px solid #83baff;outline-offset:2px}.sos-cloud-dot{width:8px;height:8px;border-radius:50%;background:#8b96aa;display:inline-block}.sos-cloud-dot.ok{background:#55cf9c}.sos-cloud-dot.busy{background:#71baff;box-shadow:0 0 0 4px rgba(113,186,255,.13)}.sos-cloud-dot.warn{background:#e8bd69}.sos-cloud-dot.error{background:#ed7777}#sosCloudPanel{position:fixed;z-index:9999;left:12px;bottom:62px;width:min(370px,calc(100vw - 24px));max-height:82vh;overflow:auto;background:#111b2e;color:#ecf2ff;border:1px solid rgba(134,161,211,.28);border-radius:16px;padding:15px;box-shadow:0 16px 52px rgba(0,0,0,.36);font:13px/1.75 Tahoma,sans-serif;direction:rtl}#sosCloudPanel[hidden],#sosCloudChoice[hidden]{display:none}#sosCloudPanel h3{font-size:15px;margin:0 0 5px}#sosCloudPanel p{margin:4px 0 12px;color:#b9c5da}#sosCloudPanel label{display:block;margin:9px 0 3px;color:#cbd7ea}#sosCloudPanel input{display:block;width:100%;min-height:40px;padding:8px 10px;border-radius:9px;border:1px solid #354763;background:#0b1322;color:#fff;font:13px Tahoma,sans-serif;direction:ltr;text-align:left}#sosCloudPanel input:focus{outline:2px solid #679bdc;outline-offset:1px}#sosCloudPanel button{border:0;border-radius:9px;padding:9px 11px;background:#4979c7;color:white;font:600 12px Tahoma,sans-serif;cursor:pointer;min-height:38px}#sosCloudPanel button.secondary{background:#263752;color:#e5edff}#sosCloudPanel button:disabled{opacity:.55;cursor:wait}.sos-cloud-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}.sos-cloud-note{margin-top:10px;padding:9px 10px;border-radius:9px;background:#1a2a43;color:#cbdaf1;overflow-wrap:anywhere}.sos-cloud-note.error{background:#3a222d;color:#ffd6dc}.sos-cloud-small{font-size:11px;color:#9eacc4;margin-top:10px}.sos-cloud-choice-title{font-weight:700;color:#fff;margin-bottom:4px}.sos-cloud-choice-copy{color:#becae0}.sos-cloud-choice-actions{display:grid;gap:7px;margin-top:10px}.sos-cloud-choice{padding:11px;margin-top:12px;border:1px solid #53698e;border-radius:11px;background:#192942}#sosCloudPanel .sos-cloud-top{display:flex;justify-content:space-between;align-items:center;gap:10px}#sosCloudPanel .sos-cloud-top button{min-height:30px;padding:4px 9px}#sosCloudPanel .sos-cloud-warning{color:#e9ca8b;font-size:11px;margin-top:8px}@media(max-width:520px){#sosCloudPill{left:10px;bottom:10px;padding:8px 11px}#sosCloudPanel{left:8px;bottom:56px;width:calc(100vw - 16px);max-height:78vh}}';
     css.textContent += `
-      /* V83: actual vector cloud glyph; base desktop pill remains unchanged. */
+      /* V89: compact icon-only cloud control, consistent on desktop/tablet/phone. */
+      #sosCloudPill { position:fixed!important; z-index:100007!important; left:14px!important; right:auto!important; bottom:14px!important; width:46px!important; min-width:46px!important; max-width:46px!important; height:46px!important; min-height:46px!important; padding:0!important; display:grid!important; place-items:center!important; border-radius:50%!important; background:rgba(17,27,46,.97)!important; border:1px solid rgba(129,157,210,.42)!important; color:#eaf0ff!important; box-shadow:0 5px 18px rgba(0,0,0,.24)!important; }
+      #sosCloudPill .sos-cloud-glyph { display:flex!important; width:23px!important; height:23px!important; align-items:center!important; justify-content:center!important; }
+      #sosCloudPill .sos-cloud-glyph svg { display:block!important; width:23px!important; height:23px!important; fill:none!important; stroke:currentColor!important; stroke-width:1.8!important; stroke-linecap:round!important; stroke-linejoin:round!important; }
+      #sosCloudPill .sos-cloud-label { display:none!important; }
+      #sosCloudPill .sos-cloud-dot { position:absolute!important; top:5px!important; right:5px!important; width:7px!important; height:7px!important; border:1px solid #111b2e!important; border-radius:50%!important; }
+      @media(max-width:600px){ #sosCloudPill{left:10px!important;bottom:10px!important;width:42px!important;min-width:42px!important;max-width:42px!important;height:42px!important;min-height:42px!important;} }
+    `;
+    css.textContent += `
+      /* V83: actual vector cloud glyph; tablet retains its own safe-area offset. */
       #sosCloudPill .sos-cloud-glyph { display:none; flex:0 0 21px; width:21px; height:21px; align-items:center; justify-content:center; }
       #sosCloudPill .sos-cloud-glyph svg { display:block; width:21px; height:21px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
       #sosCloudPill .sos-cloud-label { display:inline-block; line-height:1.25; }
@@ -365,17 +495,17 @@
         left:12px !important; right:auto !important;
         bottom:calc(84px + env(safe-area-inset-bottom,0px)) !important;
         display:inline-flex !important; align-items:center !important; justify-content:center !important;
-        gap:8px !important; width:auto !important; min-width:108px !important; max-width:calc(100vw - 24px) !important;
-        min-height:46px !important; height:auto !important; padding:9px 13px !important;
+        gap:8px !important; width:46px !important; min-width:46px !important; max-width:46px !important;
+        min-height:46px !important; height:46px !important; padding:0 !important;
         box-sizing:border-box !important; border:1px solid rgba(129,157,210,.38) !important;
         border-radius:999px !important; background:rgba(17,27,46,.97) !important; color:#eaf0ff !important;
         box-shadow:0 5px 18px rgba(0,0,0,.22) !important; font:600 13px/1.25 system-ui,'Noto Naskh Arabic',Tahoma,sans-serif !important;
         direction:rtl !important; white-space:nowrap !important; transform:none !important; filter:none !important;
         touch-action:manipulation !important; -webkit-tap-highlight-color:transparent !important;
       }
-      html.sos-device-tablet #sosCloudPill .sos-cloud-glyph { display:inline-flex !important; flex:0 0 20px !important; width:20px !important; height:20px !important; }
+      html.sos-device-tablet #sosCloudPill .sos-cloud-glyph { display:flex !important; flex:0 0 22px !important; width:22px !important; height:22px !important; }
       html.sos-device-tablet #sosCloudPill .sos-cloud-glyph svg { display:block !important; width:20px !important; height:20px !important; fill:none !important; stroke:currentColor !important; stroke-width:1.9 !important; stroke-linecap:round !important; stroke-linejoin:round !important; }
-      html.sos-device-tablet #sosCloudPill .sos-cloud-dot { flex:0 0 8px !important; width:8px !important; height:8px !important; border-radius:50% !important; }
+      html.sos-device-tablet #sosCloudPill .sos-cloud-dot { position:absolute!important;top:5px!important;right:5px!important;flex:0 0 7px!important;width:7px!important;height:7px!important;border-radius:50%!important; }
       html.sos-device-tablet #sosCloudPanel {
         position:fixed !important; z-index:100008 !important;
         left:12px !important; right:12px !important; bottom:calc(138px + env(safe-area-inset-bottom,0px)) !important;
@@ -386,8 +516,19 @@
       html.sos-device-tablet #sosCloudPanel button { min-height:42px !important; border-radius:10px !important; white-space:normal !important; }
       html.sos-device-tablet #sosCloudPanel input { min-width:0 !important; max-width:100% !important; }
     `;
+    css.textContent += `
+      /* V89 final override: icon-only cloud button wins over all legacy V83 rules. */
+      #sosCloudPill { display:grid!important; place-items:center!important; width:46px!important; min-width:46px!important; max-width:46px!important; height:46px!important; min-height:46px!important; padding:0!important; border-radius:50%!important; }
+      #sosCloudPill .sos-cloud-glyph { display:flex!important; width:23px!important; height:23px!important; flex:0 0 23px!important; }
+      #sosCloudPill .sos-cloud-label { display:none!important; }
+      #sosCloudPill .sos-cloud-dot { position:absolute!important; top:5px!important; right:5px!important; width:7px!important; height:7px!important; flex:0 0 7px!important; }
+      html.sos-device-tablet #sosCloudPill { display:grid!important; place-items:center!important; width:46px!important; min-width:46px!important; max-width:46px!important; height:46px!important; min-height:46px!important; padding:0!important; border-radius:50%!important; }
+      html.sos-device-tablet #sosCloudPill .sos-cloud-glyph { display:flex!important; width:23px!important; height:23px!important; flex:0 0 23px!important; }
+      html.sos-device-tablet #sosCloudPill .sos-cloud-label { display:none!important; }
+      @media(max-width:600px){#sosCloudPill{width:42px!important;min-width:42px!important;max-width:42px!important;height:42px!important;min-height:42px!important}}
+    `;
     document.head.appendChild(css);
-    var markup = '<button id="sosCloudPill" type="button" aria-expanded="false" aria-label="وضع همگام‌سازی"><span id="sosCloudDot" class="sos-cloud-dot"></span><span class="sos-cloud-glyph" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7.2 18h9.6a4.4 4.4 0 0 0 .7-8.75 5.7 5.7 0 0 0-11.1 1.2A3.8 3.8 0 0 0 7.2 18Z"/></svg></span><span class="sos-cloud-label">ابر</span></button>' +
+    var markup = '<button id="sosCloudPill" type="button" aria-expanded="false" aria-label="وضع همگام‌سازی"><span id="sosCloudDot" class="sos-cloud-dot"></span><span class="sos-cloud-glyph" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7.2 18h9.6a4.4 4.4 0 0 0 .7-8.75 5.7 5.7 0 0 0-11.1 1.2A3.8 3.8 0 0 0 7.2 18Z"/></svg></span></button>' +
       '<section id="sosCloudPanel" hidden aria-label="همگام‌سازی ابری"><div class="sos-cloud-top"><div><h3>همگام‌سازی Study OS</h3><div id="sosCloudStatusText" class="sos-cloud-small">فقط روی این دستگاه</div></div><button id="sosCloudClose" class="secondary" type="button">بستن</button></div>' +
       '<p>اطلاعات ابتدا روی همین دستگاه ذخیره می‌شوند. با اتصال اینترنت، تغییرات بین دستگاه‌ها هماهنگ می‌شود.</p>' +
       '<label for="sosCloudUrl">نشانی پروژهٔ Supabase</label><input id="sosCloudUrl" inputmode="url" autocomplete="url" placeholder="https://your-project.supabase.co">' +
@@ -418,19 +559,19 @@
     var originalRemove = Storage.prototype.removeItem;
     Storage.prototype.setItem = function (key, value) {
       originalSet.call(this, key, value);
-      if (this === localStorage && DATA_KEYS.indexOf(String(key)) !== -1) queueSync();
+      if (this === localStorage && !state.applying && DATA_KEYS.indexOf(String(key)) !== -1) queueSync();
     };
     Storage.prototype.removeItem = function (key) {
       originalRemove.call(this, key);
-      if (this === localStorage && DATA_KEYS.indexOf(String(key)) !== -1) queueSync();
+      if (this === localStorage && !state.applying && DATA_KEYS.indexOf(String(key)) !== -1) queueSync();
     };
     window.addEventListener('storage', function (event) {
       if (event.storageArea === localStorage && event.key && DATA_KEYS.indexOf(String(event.key)) !== -1) queueSync();
     });
-    window.addEventListener('online', function () { if (getSession()) { note('اینترنت وصل شد؛ همگام‌سازی از سر گرفته می‌شود.'); runSync(false); } });
+    window.addEventListener('online', function () { if (getSession()) { note('اینترنت وصل شد؛ همگام‌سازی زنده از سر گرفته می‌شود.'); runSync(false); connectRealtime(); } });
     window.addEventListener('beforeinstallprompt', function (event) { event.preventDefault(); state.installPrompt = event; var b = byId('sosInstallApp'); if (b) b.textContent = 'نصب Study OS'; });
     window.addEventListener('appinstalled', function () { state.installPrompt = null; note('Study OS به صفحهٔ اصلی اضافه شد.'); });
-    document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible' && getSession() && navigator.onLine) runSync(false); });
+    document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible' && getSession() && navigator.onLine) { runSync(false); connectRealtime(); } });
   }
   function registerWorker() {
     if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
@@ -442,7 +583,6 @@
     if (getSession()) {
       state.session = getSession();
       if (navigator.onLine) startSync(false); else setStatus('آفلاین؛ اطلاعات محلی محفوظ است', 'warn');
-      beginPolling();
     }
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
