@@ -1,4 +1,4 @@
-/* Study OS cloud sync v80 — safe automatic remote updates, local-first Supabase sync. */
+/* Study OS cloud sync v83 — safe automatic remote updates, local-first Supabase sync. */
 (function () {
   'use strict';
   var CONFIG_KEY = 'studyOSCloudConfigV79';
@@ -352,7 +352,7 @@
     var css = document.createElement('style');
     css.textContent = '#sosCloudPill{position:fixed;z-index:9998;left:14px;bottom:14px;border:1px solid rgba(129,157,210,.32);background:rgba(17,27,46,.94);color:#eaf0ff;border-radius:999px;padding:9px 13px;display:flex;align-items:center;gap:8px;box-shadow:0 5px 24px rgba(0,0,0,.2);font:500 13px Tahoma,sans-serif;cursor:pointer}#sosCloudPill:focus-visible,#sosCloudPanel button:focus-visible{outline:2px solid #83baff;outline-offset:2px}.sos-cloud-dot{width:8px;height:8px;border-radius:50%;background:#8b96aa;display:inline-block}.sos-cloud-dot.ok{background:#55cf9c}.sos-cloud-dot.busy{background:#71baff;box-shadow:0 0 0 4px rgba(113,186,255,.13)}.sos-cloud-dot.warn{background:#e8bd69}.sos-cloud-dot.error{background:#ed7777}#sosCloudPanel{position:fixed;z-index:9999;left:12px;bottom:62px;width:min(370px,calc(100vw - 24px));max-height:82vh;overflow:auto;background:#111b2e;color:#ecf2ff;border:1px solid rgba(134,161,211,.28);border-radius:16px;padding:15px;box-shadow:0 16px 52px rgba(0,0,0,.36);font:13px/1.75 Tahoma,sans-serif;direction:rtl}#sosCloudPanel[hidden],#sosCloudChoice[hidden]{display:none}#sosCloudPanel h3{font-size:15px;margin:0 0 5px}#sosCloudPanel p{margin:4px 0 12px;color:#b9c5da}#sosCloudPanel label{display:block;margin:9px 0 3px;color:#cbd7ea}#sosCloudPanel input{display:block;width:100%;min-height:40px;padding:8px 10px;border-radius:9px;border:1px solid #354763;background:#0b1322;color:#fff;font:13px Tahoma,sans-serif;direction:ltr;text-align:left}#sosCloudPanel input:focus{outline:2px solid #679bdc;outline-offset:1px}#sosCloudPanel button{border:0;border-radius:9px;padding:9px 11px;background:#4979c7;color:white;font:600 12px Tahoma,sans-serif;cursor:pointer;min-height:38px}#sosCloudPanel button.secondary{background:#263752;color:#e5edff}#sosCloudPanel button:disabled{opacity:.55;cursor:wait}.sos-cloud-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}.sos-cloud-note{margin-top:10px;padding:9px 10px;border-radius:9px;background:#1a2a43;color:#cbdaf1;overflow-wrap:anywhere}.sos-cloud-note.error{background:#3a222d;color:#ffd6dc}.sos-cloud-small{font-size:11px;color:#9eacc4;margin-top:10px}.sos-cloud-choice-title{font-weight:700;color:#fff;margin-bottom:4px}.sos-cloud-choice-copy{color:#becae0}.sos-cloud-choice-actions{display:grid;gap:7px;margin-top:10px}.sos-cloud-choice{padding:11px;margin-top:12px;border:1px solid #53698e;border-radius:11px;background:#192942}#sosCloudPanel .sos-cloud-top{display:flex;justify-content:space-between;align-items:center;gap:10px}#sosCloudPanel .sos-cloud-top button{min-height:30px;padding:4px 9px}#sosCloudPanel .sos-cloud-warning{color:#e9ca8b;font-size:11px;margin-top:8px}@media(max-width:520px){#sosCloudPill{left:10px;bottom:10px;padding:8px 11px}#sosCloudPanel{left:8px;bottom:56px;width:calc(100vw - 16px);max-height:78vh}}';
     css.textContent += `
-      /* V82: actual vector cloud glyph; base desktop pill remains unchanged. */
+      /* V83: actual vector cloud glyph; base desktop pill remains unchanged. */
       #sosCloudPill .sos-cloud-glyph { display:none; flex:0 0 21px; width:21px; height:21px; align-items:center; justify-content:center; }
       #sosCloudPill .sos-cloud-glyph svg { display:block; width:21px; height:21px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
       #sosCloudPill .sos-cloud-label { display:inline-block; line-height:1.25; }
@@ -368,6 +368,34 @@
         #sosCloudPanel input { box-sizing:border-box !important; max-width:100% !important; }
         #sosCloudPanel .sos-cloud-actions { align-items:stretch; }
       }
+    `;
+    css.textContent += `
+      /* V83: tablet class is based on touch + physical screen shape, not CSS viewport width alone. */
+      html.sos-tablet-v83 #sosCloudPill {
+        position:fixed !important; z-index:100007 !important;
+        left:12px !important; right:auto !important;
+        bottom:calc(84px + env(safe-area-inset-bottom,0px)) !important;
+        display:inline-flex !important; align-items:center !important; justify-content:center !important;
+        gap:8px !important; width:auto !important; min-width:108px !important; max-width:calc(100vw - 24px) !important;
+        min-height:46px !important; height:auto !important; padding:9px 13px !important;
+        box-sizing:border-box !important; border:1px solid rgba(129,157,210,.38) !important;
+        border-radius:999px !important; background:rgba(17,27,46,.97) !important; color:#eaf0ff !important;
+        box-shadow:0 5px 18px rgba(0,0,0,.22) !important; font:600 13px/1.25 system-ui,'Noto Naskh Arabic',Tahoma,sans-serif !important;
+        direction:rtl !important; white-space:nowrap !important; transform:none !important; filter:none !important;
+        touch-action:manipulation !important; -webkit-tap-highlight-color:transparent !important;
+      }
+      html.sos-tablet-v83 #sosCloudPill .sos-cloud-glyph { display:inline-flex !important; flex:0 0 20px !important; width:20px !important; height:20px !important; }
+      html.sos-tablet-v83 #sosCloudPill .sos-cloud-glyph svg { display:block !important; width:20px !important; height:20px !important; fill:none !important; stroke:currentColor !important; stroke-width:1.9 !important; stroke-linecap:round !important; stroke-linejoin:round !important; }
+      html.sos-tablet-v83 #sosCloudPill .sos-cloud-dot { flex:0 0 8px !important; width:8px !important; height:8px !important; border-radius:50% !important; }
+      html.sos-tablet-v83 #sosCloudPanel {
+        position:fixed !important; z-index:100008 !important;
+        left:12px !important; right:12px !important; bottom:calc(138px + env(safe-area-inset-bottom,0px)) !important;
+        width:auto !important; max-width:460px !important; max-height:calc(100vh - 158px) !important;
+        box-sizing:border-box !important; overflow:auto !important; overscroll-behavior:contain !important;
+        -webkit-overflow-scrolling:touch !important; border-radius:16px !important;
+      }
+      html.sos-tablet-v83 #sosCloudPanel button { min-height:42px !important; border-radius:10px !important; white-space:normal !important; }
+      html.sos-tablet-v83 #sosCloudPanel input { min-width:0 !important; max-width:100% !important; }
     `;
     document.head.appendChild(css);
     var markup = '<button id="sosCloudPill" type="button" aria-expanded="false" aria-label="وضع همگام‌سازی"><span id="sosCloudDot" class="sos-cloud-dot"></span><span class="sos-cloud-glyph" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7.2 18h9.6a4.4 4.4 0 0 0 .7-8.75 5.7 5.7 0 0 0-11.1 1.2A3.8 3.8 0 0 0 7.2 18Z"/></svg></span><span class="sos-cloud-label">ابر</span></button>' +

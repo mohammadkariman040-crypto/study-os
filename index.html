@@ -13,7 +13,7 @@
 <link rel="manifest" href="manifest.webmanifest"/>
 <link rel="icon" href="icon-192.png" type="image/png"/>
 <link rel="apple-touch-icon" href="icon-192.png"/>
-<title>Study OS — نسخه ۸۲ · بهبود تبلت، ابر و نورپردازی</title>
+<title>Study OS — نسخه ۸۳ · بازآرایی تبلت</title>
 <style>
 
 :root{--bg:#f4f7fb;--card:#fff;--ink:#1d2a3a;--muted:#64748b;--line:#dce5ef;--accent:#3769d6;--accent2:#eaf0ff;--good:#18845b;--bad:#c44545;--gold:#b7791f}
@@ -3599,6 +3599,22 @@ html#studyOsPrismRootV67.prism-power-off-v65.rgb-v63-active .rgb-test-surface-v6
  // The existing event handlers remain attached after moving the controls into the viewport portal.
 })();
 </script>
+<script id="study-os-v83-portal-theme-sync">
+(()=>{
+  const study=document.getElementById('studyOS');
+  const portal=document.getElementById('studyNavPortalV67');
+  if(!study||!portal)return;
+  const names=['--shell-bg','--shell-card','--shell-ink','--shell-muted','--shell-line','--shell-accent','--shell-accent-soft'];
+  const sync=()=>{
+    const cs=getComputedStyle(study);
+    names.forEach(name=>{const value=cs.getPropertyValue(name).trim();if(value)portal.style.setProperty(name,value);});
+    portal.classList.toggle('sos-darkish-v83',study.classList.contains('darkish'));
+  };
+  sync();
+  new MutationObserver(sync).observe(study,{attributes:true,attributeFilter:['class','style']});
+})();
+</script>
+
 
 
 <style id="study-os-v67-power-fade">
@@ -4222,6 +4238,25 @@ html.prism-power-off-v65 #studyOS .review-question-v53{box-shadow:0 5px 18px rgb
  #studyOS .os-topbar,#studyOS #osTopbarPeekV65,#studyOS #osNavToggle{transition-duration:.01ms!important;will-change:auto!important}
 }
 </style>
+<script id="study-os-v83-tablet-detect">
+(()=>{
+  const root=document.documentElement;
+  const ua=navigator.userAgent||'';
+  const touch=(Number(navigator.maxTouchPoints||0)>0)||('ontouchstart' in window);
+  const w=Math.max(1,Number(screen.width||innerWidth||1));
+  const h=Math.max(1,Number(screen.height||innerHeight||1));
+  const short=Math.min(w,h), long=Math.max(w,h), ratio=long/short;
+  const explicitTablet=/(?:TB-[A-Z0-9]+|Lenovo\s*TB|iPad|Tablet)/i.test(ua);
+  const tabletShape=/Android|iPad|Tablet/i.test(ua)&&short>=360&&long>=600&&ratio<=1.95;
+  const isTablet=touch&&(explicitTablet||tabletShape);
+  root.classList.toggle('sos-tablet-v83',isTablet);
+  const syncBody=()=>{if(document.body)document.body.classList.toggle('sos-tablet-v83',isTablet);};
+  syncBody();
+  document.addEventListener('DOMContentLoaded',syncBody,{once:true});
+  window.addEventListener('orientationchange',()=>{setTimeout(()=>{const nw=Math.max(1,Number(screen.width||innerWidth||1)),nh=Math.max(1,Number(screen.height||innerHeight||1));const ns=Math.min(nw,nh),nl=Math.max(nw,nh),nr=nl/ns;const next=touch&&(explicitTablet||(/Android|iPad|Tablet/i.test(ua)&&ns>=360&&nl>=600&&nr<=1.95));root.classList.toggle('sos-tablet-v83',next);syncBody();},120);},{passive:true});
+})();
+</script>
+
 <script id="study-os-v65-edge-dock-controller">
 (()=>{
  const $=id=>document.getElementById(id),study=$('studyOS'),topbar=study?.querySelector('.os-topbar');
@@ -4229,15 +4264,15 @@ html.prism-power-off-v65 #studyOS .review-question-v53{box-shadow:0 5px 18px rgb
  const powerButtons=[$('osPrismPowerToggle'),$('answerPrismPowerToggle')].filter(Boolean);
  const POWER_KEY='pasokhBargPrismPowerV65';
  const TABLET_POWER_QUERY='(hover:none) and (pointer:coarse) and (min-width:500px) and (max-width:1280px) and (min-height:500px)';
- const POWER_ICON_SVG='<svg data-power-icon-v82 aria-hidden=\"true\" viewBox=\"0 0 24 24\"><path d=\"M12 2.5v8.7\"/><path d=\"M6.35 6.7a8 8 0 1 0 11.3 0\"/></svg>';
+ const POWER_ICON_SVG='<svg data-power-icon-v83 aria-hidden=\"true\" viewBox=\"0 0 24 24\"><path d=\"M12 2.5v8.7\"/><path d=\"M6.35 6.7a8 8 0 1 0 11.3 0\"/></svg>';
  const read=(key,fallback)=>{try{return localStorage.getItem(key)??fallback}catch(e){return fallback}};
  const write=(key,value)=>{try{localStorage.setItem(key,value)}catch(e){}};
  let rgbOn=read(POWER_KEY,'on')!=='off';
  function renderPowerGlyph(btn){
   if(!btn)return;
-  const tablet=window.matchMedia&&window.matchMedia(TABLET_POWER_QUERY).matches;
-  if(tablet){if(!btn.querySelector('[data-power-icon-v82]'))btn.innerHTML=POWER_ICON_SVG;btn.classList.add('power-svg-v82');}
-  else{if(btn.querySelector('[data-power-icon-v82]'))btn.textContent='⏻';btn.classList.remove('power-svg-v82');}
+  const tablet=document.documentElement.classList.contains('sos-tablet-v83')||(window.matchMedia&&window.matchMedia(TABLET_POWER_QUERY).matches);
+  if(tablet){if(!btn.querySelector('[data-power-icon-v83]'))btn.innerHTML=POWER_ICON_SVG;btn.classList.add('power-svg-v83');}
+  else{if(btn.querySelector('[data-power-icon-v83]'))btn.textContent='⏻';btn.classList.remove('power-svg-v83');}
  }
  function setPower(on,persist=true){
   rgbOn=!!on;document.documentElement.classList.toggle('prism-power-off-v65',!rgbOn);
@@ -4401,7 +4436,7 @@ html.ui-is-scrolling #studyOS .review-chapter-v53:hover,html.ui-is-scrolling #st
  bar.addEventListener('pointerenter',show);bar.addEventListener('pointerleave',()=>scheduleHide(900));
  bar.addEventListener('focusin',show);bar.addEventListener('focusout',()=>setTimeout(()=>{if(!bar.contains(document.activeElement))scheduleHide(650)},0));
  peek.addEventListener('pointerenter',show);peek.addEventListener('click',()=>{show();scheduleHide(3200)});
- document.addEventListener('pointermove',ev=>{if(!active())return;if(ev.clientY<=12){show();return;}if(study.scrollTop>20&&!bar.contains(ev.target)&&!peek.contains(ev.target))scheduleHide(700)},{passive:true});
+ document.addEventListener('pointermove',ev=>{if(!active()||!window.matchMedia('(hover:hover) and (pointer:fine)').matches)return;if(ev.clientY<=12){show();return;}if(study.scrollTop>20&&!bar.contains(ev.target)&&!peek.contains(ev.target))scheduleHide(700)},{passive:true});
  document.addEventListener('keydown',ev=>{if(bar.contains(ev.target))show()});
 })();
 </script>
@@ -4541,271 +4576,326 @@ html.ui-is-scrolling #studyOS .review-chapter-v53:hover,html.ui-is-scrolling #st
 }
 </style>
 
-<style id="study-os-tablet-layout-v81">
-/* Tablet-only responsive pass. Targets touch tablets, not phones or ordinary laptops.
-   The source used many overlapping 850/760/700/600px breakpoints, so tablets between
-   those widths could mix desktop rails with mobile content rules. */
-@media (hover: none) and (pointer: coarse) and (min-width: 500px) and (max-width: 1280px) and (min-height: 500px) {
-  html, body { max-width: 100%; overflow-x: hidden; }
-
-  /* Main answer-sheet area */
-  body > header { padding: 16px 16px 14px; }
-  body > header .wrap { min-width: 0; }
-  .answer-app-header-wrap-v63 { align-items: center; flex-wrap: wrap; gap: 9px; }
-  .answer-app-header-wrap-v63 h1 { flex: 1 1 100%; font-size: clamp(1.15rem, 2.6vw, 1.55rem); line-height: 1.45; }
-  .answer-app-actions-v63 { flex: 1 1 auto; min-width: 0; flex-wrap: wrap; justify-content: flex-start; gap: 6px; }
-  body > main {
-    display: grid !important;
-    grid-template-columns: minmax(0, 1fr) !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    min-width: 0 !important;
-    padding: 12px !important;
-    gap: 12px !important;
-  }
-  body > main > * { width: 100%; max-width: 100%; min-width: 0; }
-  body > main > aside.card, body > main > section.card { min-width: 0; }
-  #sidebarPanel { max-width: 100%; }
-  .stats { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
-  #questions, #answerKey {
-    grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)) !important;
-    min-width: 0 !important;
-  }
-  .question-grid, .key-grid { min-width: 0 !important; }
-  .answer-app-actions-v63 button, #answerWorkspace button { max-width: 100%; }
-  #answerWorkspace .answer-workspace-head { flex-wrap: wrap; gap: 8px; }
-  #answerWorkspace #answerToolbar, #answerWorkspace .toolbar { display: flex; flex-wrap: wrap; gap: 6px; }
-
-  /* Study OS: a consistent, always-visible bottom navigation for tablets in both orientations. */
-  #studyOS main.os-main { min-width: 0 !important; width: 100% !important; padding: 0 0 96px !important; }
-  #studyOS .os-topbar {
-    height: auto !important;
-    min-height: 58px;
-    padding: 7px 12px !important;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-  #studyOS .os-brand { min-width: 0; font-size: .84rem; }
-  #studyOS .os-top-actions { min-width: 0; gap: 5px; flex-wrap: wrap; justify-content: flex-end; }
-  #studyOS .scontent {
-    display: block !important;
-    width: 100% !important;
-    max-width: none !important;
-    min-width: 0 !important;
-    margin: 0 !important;
-    padding: 18px 15px calc(104px + env(safe-area-inset-bottom, 0px)) !important;
-    box-sizing: border-box !important;
-  }
-  #studyOS .scontent > *, #studyOS .os-card, #studyOS .card,
-  #studyOS .metric, #studyOS .review-question-v53 { min-width: 0 !important; max-width: 100%; }
-  #studyOS .os-rail, #studyOS #sTabs {
-    position: fixed !important;
-    top: auto !important;
-    right: 10px !important;
-    left: 10px !important;
-    bottom: calc(8px + env(safe-area-inset-bottom, 0px)) !important;
-    width: auto !important;
-    height: 70px !important;
-    min-height: 70px !important;
-    max-height: 70px !important;
-    box-sizing: border-box !important;
-    display: flex !important;
-    flex-direction: row !important;
-    align-items: center !important;
-    justify-content: space-around !important;
-    gap: 4px !important;
-    padding: 6px 7px !important;
-    overflow-x: auto !important;
-    overflow-y: hidden !important;
-    overscroll-behavior-x: contain;
-    border-radius: 18px !important;
-    z-index: 80 !important;
-  }
-  #studyOS #sTabs .rail-head,
-  #studyOS #sTabs .rail-caption,
-  #studyOS #sTabs .rail-bottom { display: none !important; }
-  #studyOS #sTabs button {
-    display: flex !important;
-    flex: 1 1 0 !important;
-    width: auto !important;
-    min-width: 50px !important;
-    max-width: 112px !important;
-    height: 54px !important;
-    min-height: 48px !important;
-    padding: 4px 2px !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 3px !important;
-    border-radius: 13px !important;
-    text-align: center !important;
-    white-space: nowrap;
-    font-size: .62rem !important;
-  }
-  #studyOS #sTabs button .rail-svg { width: 20px !important; height: 20px !important; flex: 0 0 auto; }
-  #studyOS #sTabs button .rail-label {
-    display: block !important;
-    flex: 0 1 auto !important;
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    font-size: .59rem !important;
-    line-height: 1.15 !important;
-    text-align: center !important;
-  }
-  #studyOS #osNavToggle, #studyOS #osNavBackdrop { display: none !important; pointer-events: none !important; }
-
-  /* Tablet-friendly card and form grids: no narrow side-by-side panels. */
-  #studyOS .home-grid-main,
-  #studyOS .split-grid,
-  #studyOS .home-layout-grid { grid-template-columns: minmax(0, 1fr) !important; }
-  #studyOS .metric-grid,
-  #studyOS .cards,
-  #studyOS .report-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
-  #studyOS .plan-form,
-  #studyOS .planner-form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
-  #studyOS .page-head, #studyOS .home-head { align-items: flex-start !important; flex-wrap: wrap !important; gap: 10px !important; }
-  #studyOS .home-focus-content { flex-wrap: wrap; gap: 12px; }
-  #studyOS .review-select-grid-v53 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
-  #studyOS .review-question-v53 { grid-template-columns: 38px minmax(0, 1fr) !important; }
-  #studyOS .review-q-actions { grid-column: 1 / -1 !important; padding-right: 0 !important; align-items: center !important; flex-direction: row !important; flex-wrap: wrap !important; }
-  #studyOS .review-search-v53 { grid-column: 1 / -1 !important; }
-  #studyOS .week-days { grid-template-columns: repeat(7, minmax(0, 1fr)) !important; gap: 4px !important; }
-  #studyOS .week-day { min-width: 0 !important; padding-inline: 2px !important; }
-  #studyOS .report-table-wrap { max-width: 100%; overflow-x: auto !important; -webkit-overflow-scrolling: touch; }
-  #studyOS table { min-width: 600px; }
-  #studyOS input, #studyOS select, #studyOS textarea, #studyOS button { max-width: 100%; }
-}
-</style>
-
 <script>
-(()=>{if(!('serviceWorker' in navigator)||!/^https?:$/.test(location.protocol))return;window.addEventListener('load',()=>{navigator.serviceWorker.register('./sw.js?v=82',{scope:'./'}).catch(err=>console.warn('Study OS offline setup:',err));});})();
+(()=>{if(!('serviceWorker' in navigator)||!/^https?:$/.test(location.protocol))return;window.addEventListener('load',()=>{navigator.serviceWorker.register('./sw.js?v=83',{scope:'./'}).catch(err=>console.warn('Study OS offline setup:',err));});})();
 </script>
 
-<script src="./cloud-sync.js?v=82"></script>
+<script src="./cloud-sync.js?v=83"></script>
 
-<style id="study-os-v82-tablet-polish">
-/* V82 tablet refinements. Scoped to touch tablets only; phones and desktop layout remain unchanged. */
-@media (hover: none) and (pointer: coarse) and (min-width: 500px) and (max-width: 1280px) and (min-height: 500px) {
-  html, body { max-width: 100%; overflow-x: hidden !important; }
-  #studyOS .scontent, #studyOS .os-card, #studyOS .card, #studyOS .metric, #studyOS .review-question-v53 { min-width: 0 !important; max-width: 100% !important; }
-  #studyOS main.os-main { width: 100% !important; max-width: 100% !important; padding: 0 0 calc(88px + env(safe-area-inset-bottom, 0px)) !important; }
-  #studyOS .scontent {
-    width: 100% !important; max-width: 100% !important; margin: 0 !important;
-    padding: 16px 14px calc(98px + env(safe-area-inset-bottom, 0px)) !important;
-    box-sizing: border-box !important;
-  }
-  #studyOS .os-topbar {
-    position: sticky !important; top: 0 !important; z-index: 45 !important;
-    min-height: 56px !important; height: auto !important; padding: 7px 11px !important;
-    display: flex !important; align-items: center !important; flex-wrap: wrap !important; gap: 7px !important;
-    transform: none !important;
-  }
-  #studyOS .os-brand { min-width: 0 !important; flex: 1 1 145px !important; font-size: .82rem !important; }
-  #studyOS .os-top-actions { min-width: 0 !important; flex: 0 1 auto !important; display: flex !important; flex-wrap: nowrap !important; align-items: center !important; justify-content: flex-end !important; gap: 5px !important; }
-  #studyOS .os-top-actions > button { flex: 0 0 38px !important; width: 38px !important; min-width: 38px !important; max-width: 38px !important; height: 38px !important; min-height: 38px !important; padding: 0 !important; display: inline-grid !important; place-items: center !important; }
-  #studyOS .os-top-actions > .os-prism-power-v65 svg { width: 20px !important; height: 20px !important; display: block !important; }
-  #studyOS .os-prism-power-v65.power-svg-v82 svg,
-  body > header .answer-prism-power-v65.power-svg-v82 svg { width: 20px !important; height: 20px !important; display: block !important; fill: none !important; stroke: currentColor !important; stroke-width: 2 !important; stroke-linecap: round !important; stroke-linejoin: round !important; }
-  body > header .answer-app-actions-v63 .answer-prism-power-v65 { width: 38px !important; min-width: 38px !important; height: 38px !important; min-height: 38px !important; padding: 0 !important; display: inline-grid !important; place-items: center !important; }
-
-  /* The navigation is portalled outside #studyOS; style the actual portal instead of the old parent selector. */
-  body.study-os-active-v63 #studyNavPortalV67 { display: block !important; pointer-events: none !important; }
-  #studyNavPortalV67 #sTabs {
-    position: fixed !important; top: auto !important; right: 9px !important; left: 9px !important;
-    bottom: calc(7px + env(safe-area-inset-bottom, 0px)) !important;
-    width: auto !important; height: 68px !important; min-height: 68px !important; max-height: 68px !important;
-    max-width: none !important; box-sizing: border-box !important; margin: 0 !important;
-    display: flex !important; flex-direction: row !important; align-items: center !important;
-    justify-content: space-between !important; gap: 3px !important; padding: 5px 6px !important;
-    border-radius: 17px !important; overflow-x: auto !important; overflow-y: hidden !important;
-    overscroll-behavior-x: contain !important; -webkit-overflow-scrolling: touch !important;
-    transform: none !important; opacity: 1 !important; visibility: visible !important;
-    pointer-events: auto !important; z-index: 100006 !important; backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-  }
-  #studyNavPortalV67 #sTabs .rail-head,
-  #studyNavPortalV67 #sTabs .rail-caption,
-  #studyNavPortalV67 #sTabs .rail-bottom { display: none !important; }
-  #studyNavPortalV67 #sTabs button[data-tab] {
-    flex: 1 1 0 !important; width: auto !important; min-width: 58px !important; max-width: none !important;
-    height: 54px !important; min-height: 54px !important; margin: 0 !important; padding: 4px 2px !important;
-    display: flex !important; flex-direction: column !important; align-items: center !important;
-    justify-content: center !important; gap: 3px !important; border-radius: 12px !important;
-    font-size: .61rem !important; line-height: 1.15 !important; white-space: nowrap !important;
-    transform: none !important; box-shadow: none !important;
-  }
-  #studyNavPortalV67 #sTabs .rail-svg { width: 19px !important; height: 19px !important; min-width: 19px !important; flex: 0 0 19px !important; }
-  #studyNavPortalV67 #sTabs .rail-label { display: block !important; max-width: 100% !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; font-size: .59rem !important; line-height: 1.1 !important; }
-  #studyNavPortalV67 #osNavToggle,
-  #studyNavPortalV67 #osNavBackdrop,
-  #studyNavPortalV67 #osTopbarPeekV65 { display: none !important; pointer-events: none !important; }
-
-  /* Stable tablet grids: portrait keeps detailed panels stacked; landscape makes better use of width. */
-  #studyOS .metric-grid, #studyOS .cards, #studyOS .report-grid,
-  #studyOS .review-select-grid-v53 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 9px !important; }
-  #studyOS .home-grid-main, #studyOS .split-grid, #studyOS .home-layout-grid { grid-template-columns: minmax(0, 1fr) !important; }
-  #studyOS .plan-form, #studyOS .planner-form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 9px !important; }
-  #studyOS .os-card, #studyOS .card, #studyOS .metric, #studyOS .review-question-v53,
-  #studyOS .planner-day, #studyOS .planner-entry { min-width: 0 !important; max-width: 100% !important; }
-  #studyOS .page-head, #studyOS .home-head { align-items: flex-start !important; flex-wrap: wrap !important; gap: 9px !important; }
-  #studyOS .review-question-v53 { grid-template-columns: 34px minmax(0, 1fr) !important; }
-  #studyOS .review-q-actions { grid-column: 1 / -1 !important; flex-direction: row !important; flex-wrap: wrap !important; padding: 0 !important; }
-  #studyOS .report-table-wrap { max-width: 100% !important; overflow-x: auto !important; -webkit-overflow-scrolling: touch !important; }
-  #studyOS table { min-width: 620px !important; }
-  #studyOS input, #studyOS select, #studyOS textarea { max-width: 100% !important; min-width: 0 !important; }
-
-  /* Older tablet GPUs: retain RGB controls and color edges, but avoid blur-heavy layers and hover repaint. */
-  #studyOS .sbar, #studyOS .os-topbar, #studyNavPortalV67 #sTabs,
-  #studyOS .prism-settings, #studyOS .os-rail {
-    backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
-  }
-  #studyOS .os-card, #studyOS .review-stat-v53, #studyOS .review-subject-v53,
-  #studyOS .review-book-v53, #studyOS .review-chapter-v53, #studyOS .review-question-v53,
-  #studyOS .planner-day, #studyOS .planner-entry {
-    transition: box-shadow .14s ease, border-color .14s ease, background-color .14s ease !important;
-  }
-  #studyOS .os-card:hover, #studyOS .review-stat-v53:hover, #studyOS .review-subject-v53:hover,
-  #studyOS .review-book-v53:hover, #studyOS .review-chapter-v53:hover,
-  #studyOS .review-question-v53:hover, #studyOS .planner-day:hover, #studyOS .planner-entry:hover {
-    transform: none !important;
-  }
-  html.rgb-v63-active.ambient-motion-enabled:not(.prism-power-off-v65) #studyOS .os-card::before,
-  html.rgb-v63-active.ambient-motion-enabled:not(.prism-power-off-v65) #studyOS .review-stat-v53::before,
-  html.rgb-v63-active.ambient-motion-enabled:not(.prism-power-off-v65) #studyOS .review-subject-v53::before,
-  html.rgb-v63-active.ambient-motion-enabled:not(.prism-power-off-v65) #studyOS .review-book-v53::before,
-  html.rgb-v63-active.ambient-motion-enabled:not(.prism-power-off-v65) #studyOS .review-chapter-v53::before,
-  html.rgb-v63-active.ambient-motion-enabled:not(.prism-power-off-v65) #studyOS .review-question-v53::before,
-  html.rgb-v63-active.ambient-motion-enabled:not(.prism-power-off-v65) .rgb-test-surface-v63::before { animation: none !important; }
-  html.rgb-v63-active.ambient-motion-enabled:not(.prism-power-off-v65) #studyOS .home-focus-card::before,
-  html.rgb-v63-active.ambient-motion-enabled:not(.prism-power-off-v65) #studyOS .home-next-card::before,
-  html.rgb-v63-active.ambient-motion-enabled:not(.prism-power-off-v65) #studyOS .review-hero-v53::before,
-  html.rgb-v63-active.ambient-motion-enabled:not(.prism-power-off-v65) #studyOS .stopwatch-v51-face::before { animation-duration: 42s !important; }
+<style id="study-os-v83-tablet-system">
+/* Study OS v83 — one tablet-only responsive system. Desktop and phone rules are untouched. */
+html.sos-tablet-v83, html.sos-tablet-v83 body {
+  width:100%; max-width:100%; min-width:0; overflow-x:hidden;
+  -webkit-text-size-adjust:100%; text-size-adjust:100%;
 }
-@media (hover: none) and (pointer: coarse) and (min-width: 500px) and (max-width: 1280px) and (min-height: 500px) and (orientation: landscape) {
-  #studyOS .home-grid-main, #studyOS .split-grid, #studyOS .home-layout-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 11px !important; }
-  #studyOS .home-focus-card { grid-column: 1 / -1; }
-  #studyOS .planner-week-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+html.sos-tablet-v83 body { min-height:100%; }
+html.sos-tablet-v83 *, html.sos-tablet-v83 *::before, html.sos-tablet-v83 *::after { box-sizing:border-box; }
+
+/* Test-taking shell: stable two-panel landscape and clean stacked portrait. */
+html.sos-tablet-v83 body > header { padding:14px 14px 12px !important; }
+html.sos-tablet-v83 body > header .wrap {
+  width:100% !important; max-width:none !important; min-width:0 !important;
+  display:flex !important; align-items:center !important; justify-content:space-between !important;
+  flex-wrap:wrap !important; gap:10px !important;
 }
-@media (hover: none) and (pointer: coarse) and (min-width: 500px) and (max-width: 1280px) and (min-height: 500px) and (orientation: portrait) {
-  #studyOS .home-grid-main, #studyOS .split-grid, #studyOS .home-layout-grid,
-  #studyOS .planner-week-grid { grid-template-columns: minmax(0, 1fr) !important; }
+html.sos-tablet-v83 body > header h1 {
+  flex:1 1 190px !important; min-width:0 !important; margin:0 !important;
+  font-size:clamp(1rem,2.2vw,1.25rem) !important; line-height:1.45 !important;
 }
-@media (hover: none) and (pointer: coarse) and (min-width: 500px) and (max-width: 1280px) and (min-height: 500px) {
-  /* Final, high-specificity master switch: wins over later RGB mode/animation rules. */
-  html#studyOsPrismRootV67.prism-power-off-v65 #studyOS .os-card::before,
-  html#studyOsPrismRootV67.prism-power-off-v65 #studyOS .os-card::after,
-  html#studyOsPrismRootV67.prism-power-off-v65 #studyOS .review-stat-v53::before,
-  html#studyOsPrismRootV67.prism-power-off-v65 #studyOS .review-stat-v53::after,
-  html#studyOsPrismRootV67.prism-power-off-v65 #studyOS .review-subject-v53::before,
-  html#studyOsPrismRootV67.prism-power-off-v65 #studyOS .review-book-v53::before,
-  html#studyOsPrismRootV67.prism-power-off-v65 #studyOS .review-chapter-v53::before,
-  html#studyOsPrismRootV67.prism-power-off-v65 #studyOS .review-question-v53::before,
-  html#studyOsPrismRootV67.prism-power-off-v65 .rgb-test-surface-v63::before,
-  html#studyOsPrismRootV67.prism-power-off-v65 .rgb-test-surface-v63::after {
-    opacity: 0 !important; animation: none !important; visibility: hidden !important; filter: none !important;
-  }
+html.sos-tablet-v83 .answer-app-header-wrap-v63 { align-items:center !important; flex-wrap:wrap !important; gap:9px !important; }
+html.sos-tablet-v83 .answer-app-header-wrap-v63 h1 { min-width:0 !important; }
+html.sos-tablet-v83 .answer-app-actions-v63 {
+  display:flex !important; flex:1 1 100% !important; min-width:0 !important;
+  align-items:center !important; justify-content:flex-start !important; flex-wrap:wrap !important; gap:6px !important;
+}
+html.sos-tablet-v83 .answer-app-actions-v63 > button,
+html.sos-tablet-v83 .answer-app-actions-v63 > .study-launch-inline-v63 {
+  flex:0 0 auto !important; max-width:100% !important; min-width:38px;
+}
+html.sos-tablet-v83 body > main {
+  display:grid !important; grid-template-columns:minmax(0,1fr) !important;
+  width:100% !important; max-width:1480px !important; min-width:0 !important;
+  margin:0 auto !important; padding:12px !important; gap:12px !important;
+  align-items:start !important;
+}
+html.sos-tablet-v83 body > main > aside.card,
+html.sos-tablet-v83 body > main > section.card {
+  width:100% !important; max-width:100% !important; min-width:0 !important;
+  border-radius:17px !important; padding:13px !important;
+}
+html.sos-tablet-v83 #sidebarPanel { min-width:0 !important; max-width:100% !important; }
+html.sos-tablet-v83 .sidebar-head { flex-wrap:wrap !important; align-items:center !important; gap:8px !important; }
+html.sos-tablet-v83 .sidebar-head h2 { min-width:0 !important; font-size:1rem !important; }
+html.sos-tablet-v83 .tree-list { max-height:260px !important; overscroll-behavior:contain; -webkit-overflow-scrolling:touch; }
+html.sos-tablet-v83 .tree-item { min-width:0 !important; flex-wrap:wrap !important; gap:6px !important; }
+html.sos-tablet-v83 .tree-item [data-open] { flex:1 1 100px !important; min-width:0 !important; overflow-wrap:anywhere; }
+html.sos-tablet-v83 .stats { grid-template-columns:repeat(2,minmax(0,1fr)) !important; gap:8px !important; }
+html.sos-tablet-v83 .stat { min-width:0 !important; padding:9px 6px !important; border-radius:12px !important; }
+html.sos-tablet-v83 .stat strong { font-size:clamp(1rem,2.5vw,1.25rem) !important; }
+html.sos-tablet-v83 .question-grid,
+html.sos-tablet-v83 #questions,
+html.sos-tablet-v83 #answerKey {
+  width:100% !important; max-width:100% !important; min-width:0 !important;
+  grid-template-columns:repeat(auto-fill,minmax(72px,1fr)) !important; gap:7px !important;
+}
+html.sos-tablet-v83 .question,
+html.sos-tablet-v83 #answerKey .question {
+  min-width:0 !important; max-width:100% !important; padding:7px !important;
+  border-radius:11px !important; overflow-wrap:anywhere;
+}
+html.sos-tablet-v83 .question .opt { min-width:0 !important; min-height:30px !important; padding:4px 2px !important; }
+html.sos-tablet-v83 #answerWorkspace { min-width:0 !important; max-width:100% !important; }
+html.sos-tablet-v83 #answerWorkspace .answer-workspace-head { display:flex !important; align-items:center !important; justify-content:space-between !important; flex-wrap:wrap !important; gap:8px !important; }
+html.sos-tablet-v83 #answerWorkspace #answerToolbar,
+html.sos-tablet-v83 #answerWorkspace .toolbar { display:flex !important; flex-wrap:wrap !important; align-items:center !important; gap:6px !important; }
+html.sos-tablet-v83 #answerWorkspace #answerToolbar button,
+html.sos-tablet-v83 #answerWorkspace .toolbar button {
+  flex:0 1 auto !important; max-width:100% !important; min-height:38px !important;
+  padding:7px 9px !important; white-space:normal !important; line-height:1.35 !important;
+}
+html.sos-tablet-v83 #answerWorkspace.answer-fullscreen {
+  width:100vw !important; max-width:100vw !important; min-width:0 !important;
+  padding:12px !important; overflow-x:hidden !important; overflow-y:auto !important;
+  overscroll-behavior-y:contain; -webkit-overflow-scrolling:touch;
+}
+html.sos-tablet-v83 #answerWorkspace.answer-fullscreen .answer-fullscreen-topbar-v75 {
+  position:sticky !important; top:-12px !important; z-index:50 !important;
+  width:calc(100% + 24px) !important; margin:-12px -12px 12px !important;
+  padding:10px 12px 8px !important; border-radius:0 !important;
+}
+html.sos-tablet-v83 #answerWorkspace.answer-fullscreen .answer-fullscreen-topbar-v75 .answer-workspace-head {
+  padding:2px 118px 8px 0 !important; min-height:38px !important;
+}
+html.sos-tablet-v83 #answerWorkspace.answer-fullscreen .answer-fullscreen-topbar-v75 #answerToolbar {
+  display:flex !important; flex-wrap:wrap !important; gap:6px !important; padding-top:7px !important;
+}
+html.sos-tablet-v83 #answerWorkspace.answer-fullscreen .fullscreen-timer {
+  position:absolute !important; top:10px !important; left:12px !important; right:auto !important;
+  max-width:112px !important; padding:6px 8px !important; gap:6px !important;
+}
+html.sos-tablet-v83 #answerWorkspace.answer-fullscreen #questions {
+  grid-template-columns:repeat(auto-fill,minmax(72px,1fr)) !important; gap:7px !important;
+}
+
+/* Study area: all panels share the same width, spacing and theme tokens. */
+html.sos-tablet-v83 #studyOS {
+  width:100% !important; max-width:100% !important; min-width:0 !important;
+  min-height:100vh !important; overflow-x:hidden !important; box-sizing:border-box !important;
+}
+html.sos-tablet-v83 #studyOS .os-main {
+  display:block !important; width:100% !important; max-width:100% !important;
+  min-width:0 !important; margin:0 !important;
+  padding:0 0 calc(92px + env(safe-area-inset-bottom,0px)) !important;
+}
+html.sos-tablet-v83 #studyOS .os-topbar {
+  position:sticky !important; top:0 !important; z-index:100 !important;
+  display:flex !important; align-items:center !important; justify-content:space-between !important;
+  flex-wrap:wrap !important; gap:8px !important; width:100% !important; min-width:0 !important;
+  height:auto !important; min-height:56px !important; padding:8px 12px !important;
+  transform:none !important;
+}
+html.sos-tablet-v83 #studyOS .os-brand { flex:1 1 150px !important; min-width:0 !important; gap:7px !important; }
+html.sos-tablet-v83 #studyOS .os-top-actions {
+  display:flex !important; flex:1 1 auto !important; min-width:0 !important;
+  align-items:center !important; justify-content:flex-end !important; flex-wrap:wrap !important; gap:6px !important;
+}
+html.sos-tablet-v83 #studyOS .os-top-actions > button {
+  flex:0 0 40px !important; width:40px !important; min-width:40px !important;
+  max-width:40px !important; height:40px !important; min-height:40px !important;
+  padding:0 !important; display:inline-grid !important; place-items:center !important;
+}
+html.sos-tablet-v83 #studyOS .scontent {
+  display:block !important; width:100% !important; max-width:100% !important;
+  min-width:0 !important; margin:0 !important; padding:16px 13px calc(112px + env(safe-area-inset-bottom,0px)) !important;
+  box-sizing:border-box !important; animation:none !important;
+}
+html.sos-tablet-v83 #studyOS .scontent > *,
+html.sos-tablet-v83 #studyOS .scontent .os-card,
+html.sos-tablet-v83 #studyOS .scontent .card,
+html.sos-tablet-v83 #studyOS .scontent .metric,
+html.sos-tablet-v83 #studyOS .scontent .review-question-v53,
+html.sos-tablet-v83 #studyOS .scontent .planner-day,
+html.sos-tablet-v83 #studyOS .scontent .planner-entry {
+  min-width:0 !important; max-width:100% !important; box-sizing:border-box !important;
+}
+html.sos-tablet-v83 #studyOS .scontent .card,
+html.sos-tablet-v83 #studyOS .scontent .os-card,
+html.sos-tablet-v83 #studyOS .scontent .metric {
+  border-radius:16px !important; overflow-wrap:anywhere;
+}
+html.sos-tablet-v83 #studyOS .page-head,
+html.sos-tablet-v83 #studyOS .home-head,
+html.sos-tablet-v83 #studyOS .planner-head {
+  display:flex !important; align-items:flex-start !important; justify-content:space-between !important;
+  flex-wrap:wrap !important; gap:9px !important; min-width:0 !important;
+}
+html.sos-tablet-v83 #studyOS .home-grid-main,
+html.sos-tablet-v83 #studyOS .split-grid,
+html.sos-tablet-v83 #studyOS .home-layout-grid,
+html.sos-tablet-v83 #studyOS .planner-week-grid {
+  display:grid !important; grid-template-columns:minmax(0,1fr) !important; gap:11px !important;
+}
+html.sos-tablet-v83 #studyOS .metric-grid,
+html.sos-tablet-v83 #studyOS .cards,
+html.sos-tablet-v83 #studyOS .report-grid,
+html.sos-tablet-v83 #studyOS .review-select-grid-v53 {
+  display:grid !important; grid-template-columns:repeat(2,minmax(0,1fr)) !important; gap:9px !important;
+}
+html.sos-tablet-v83 #studyOS .plan-form,
+html.sos-tablet-v83 #studyOS .planner-form-grid {
+  display:grid !important; grid-template-columns:repeat(2,minmax(0,1fr)) !important; gap:9px !important;
+}
+html.sos-tablet-v83 #studyOS .home-focus-content,
+html.sos-tablet-v83 #studyOS .planner-actions { display:flex !important; flex-wrap:wrap !important; gap:10px !important; }
+html.sos-tablet-v83 #studyOS .review-question-v53 { grid-template-columns:36px minmax(0,1fr) !important; gap:8px !important; }
+html.sos-tablet-v83 #studyOS .review-q-actions { grid-column:1 / -1 !important; display:flex !important; flex-direction:row !important; flex-wrap:wrap !important; align-items:center !important; gap:6px !important; padding:0 !important; }
+html.sos-tablet-v83 #studyOS .review-search-v53 { grid-column:1 / -1 !important; }
+html.sos-tablet-v83 #studyOS .week-days { display:grid !important; grid-template-columns:repeat(7,minmax(0,1fr)) !important; gap:4px !important; }
+html.sos-tablet-v83 #studyOS .week-day { min-width:0 !important; padding-inline:2px !important; }
+html.sos-tablet-v83 #studyOS .report-table-wrap { max-width:100% !important; overflow-x:auto !important; -webkit-overflow-scrolling:touch !important; }
+html.sos-tablet-v83 #studyOS table { min-width:600px !important; }
+html.sos-tablet-v83 #studyOS input,
+html.sos-tablet-v83 #studyOS select,
+html.sos-tablet-v83 #studyOS textarea { max-width:100% !important; min-width:0 !important; }
+html.sos-tablet-v83 #studyOS button { max-width:100% !important; touch-action:manipulation; }
+
+/* The navigation is moved outside #studyOS; explicitly carry its theme and restore its surface. */
+html.sos-tablet-v83 body.study-os-active-v63 #studyNavPortalV67 { display:block !important; pointer-events:none !important; }
+html.sos-tablet-v83 #studyNavPortalV67 #sTabs {
+  position:fixed !important; top:auto !important; right:9px !important; left:9px !important;
+  bottom:calc(7px + env(safe-area-inset-bottom,0px)) !important;
+  width:auto !important; max-width:none !important; height:68px !important; min-height:68px !important; max-height:68px !important;
+  margin:0 !important; padding:5px 6px !important; box-sizing:border-box !important;
+  display:flex !important; flex-direction:row !important; align-items:center !important; justify-content:space-between !important;
+  gap:3px !important; overflow-x:auto !important; overflow-y:hidden !important;
+  -webkit-overflow-scrolling:touch !important; overscroll-behavior-x:contain !important;
+  background:var(--shell-card,#17243a) !important; color:var(--shell-ink,#edf2ff) !important;
+  border:1px solid var(--shell-line,#34435c) !important; border-radius:17px !important;
+  box-shadow:0 8px 24px rgba(0,0,0,.22) !important; backdrop-filter:none !important; -webkit-backdrop-filter:none !important;
+  transform:none !important; opacity:1 !important; visibility:visible !important;
+  pointer-events:auto !important; z-index:100006 !important;
+}
+html.sos-tablet-v83 #studyNavPortalV67 #sTabs .rail-head,
+html.sos-tablet-v83 #studyNavPortalV67 #sTabs .rail-caption,
+html.sos-tablet-v83 #studyNavPortalV67 #sTabs .rail-bottom { display:none !important; }
+html.sos-tablet-v83 #studyNavPortalV67 #sTabs button[data-tab] {
+  display:flex !important; flex:1 1 0 !important; width:auto !important; min-width:48px !important; max-width:none !important;
+  height:54px !important; min-height:50px !important; margin:0 !important; padding:4px 2px !important;
+  flex-direction:column !important; align-items:center !important; justify-content:center !important; gap:3px !important;
+  border:1px solid transparent !important; border-radius:12px !important;
+  background:transparent !important; color:var(--shell-muted,#aab6cc) !important;
+  font-size:.61rem !important; line-height:1.15 !important; white-space:nowrap !important;
+  transform:none !important; box-shadow:none !important;
+}
+html.sos-tablet-v83 #studyNavPortalV67 #sTabs button[data-tab].activeTab {
+  background:linear-gradient(115deg,#7774d9,#8d82df) !important; color:#fff !important;
+  border-color:transparent !important; box-shadow:0 4px 12px rgba(105,103,210,.22) !important;
+}
+html.sos-tablet-v83 #studyNavPortalV67 #sTabs .rail-svg { width:19px !important; height:19px !important; min-width:19px !important; flex:0 0 19px !important; }
+html.sos-tablet-v83 #studyNavPortalV67 #sTabs .rail-label { display:block !important; max-width:100% !important; overflow:hidden !important; text-overflow:ellipsis !important; white-space:nowrap !important; font-size:.58rem !important; line-height:1.1 !important; }
+html.sos-tablet-v83 #studyNavPortalV67 #osNavToggle,
+html.sos-tablet-v83 #studyNavPortalV67 #osNavBackdrop,
+html.sos-tablet-v83 #studyNavPortalV67 #osTopbarPeekV65 { display:none !important; pointer-events:none !important; }
+
+/* Clear tablet-safe power glyphs and tap targets. RGB state continues to use the original controller. */
+html.sos-tablet-v83 #studyOS .os-prism-power-v65,
+html.sos-tablet-v83 body > header .answer-prism-power-v65 {
+  width:40px !important; min-width:40px !important; max-width:40px !important;
+  height:40px !important; min-height:40px !important; padding:0 !important;
+  display:inline-grid !important; place-items:center !important; border-radius:12px !important;
+}
+html.sos-tablet-v83 .os-prism-power-v65 svg,
+html.sos-tablet-v83 .answer-prism-power-v65 svg {
+  display:block !important; width:21px !important; height:21px !important; overflow:visible !important;
+  fill:none !important; stroke:currentColor !important; stroke-width:2.1 !important;
+  stroke-linecap:round !important; stroke-linejoin:round !important;
+}
+html.sos-tablet-v83 .os-prism-power-v65[aria-pressed="false"],
+html.sos-tablet-v83 .answer-prism-power-v65[aria-pressed="false"] { opacity:.62 !important; box-shadow:none !important; }
+
+/* RGB remains available; remove costly blur layers and hover repaint, not the controls or gradients. */
+html.sos-tablet-v83 #studyOS .sbar,
+html.sos-tablet-v83 #studyOS .os-topbar,
+html.sos-tablet-v83 #studyOS .prism-settings,
+html.sos-tablet-v83 #studyNavPortalV67 #sTabs { backdrop-filter:none !important; -webkit-backdrop-filter:none !important; }
+html.sos-tablet-v83 #studyOS .os-card,
+html.sos-tablet-v83 #studyOS .review-stat-v53,
+html.sos-tablet-v83 #studyOS .review-subject-v53,
+html.sos-tablet-v83 #studyOS .review-book-v53,
+html.sos-tablet-v83 #studyOS .review-chapter-v53,
+html.sos-tablet-v83 #studyOS .review-question-v53,
+html.sos-tablet-v83 #studyOS .planner-day,
+html.sos-tablet-v83 #studyOS .planner-entry {
+  transition:background-color .14s ease,border-color .14s ease,box-shadow .14s ease !important;
+}
+html.sos-tablet-v83 #studyOS .os-card:hover,
+html.sos-tablet-v83 #studyOS .review-stat-v53:hover,
+html.sos-tablet-v83 #studyOS .review-subject-v53:hover,
+html.sos-tablet-v83 #studyOS .review-book-v53:hover,
+html.sos-tablet-v83 #studyOS .review-chapter-v53:hover,
+html.sos-tablet-v83 #studyOS .review-question-v53:hover,
+html.sos-tablet-v83 #studyOS .planner-day:hover,
+html.sos-tablet-v83 #studyOS .planner-entry:hover { transform:none !important; filter:none !important; }
+html.sos-tablet-v83 #studyOS .os-card.metric::before { filter:blur(2px) !important; }
+html.sos-tablet-v83 #studyOS .review-stat-v53::after { filter:blur(10px) !important; }
+html.sos-tablet-v83 #studyOS .os-card::before,
+html.sos-tablet-v83 #studyOS .os-card::after,
+html.sos-tablet-v83 #studyOS .review-stat-v53::before,
+html.sos-tablet-v83 #studyOS .review-stat-v53::after,
+html.sos-tablet-v83 #studyOS .review-subject-v53::before,
+html.sos-tablet-v83 #studyOS .review-subject-v53::after,
+html.sos-tablet-v83 #studyOS .review-book-v53::before,
+html.sos-tablet-v83 #studyOS .review-book-v53::after,
+html.sos-tablet-v83 #studyOS .review-chapter-v53::before,
+html.sos-tablet-v83 #studyOS .review-chapter-v53::after,
+html.sos-tablet-v83 #studyOS .review-question-v53::before,
+html.sos-tablet-v83 #studyOS .review-question-v53::after,
+html.sos-tablet-v83 .rgb-test-surface-v63::before,
+html.sos-tablet-v83 .rgb-test-surface-v63::after { max-width:100%; }
+
+/* The master power switch must extinguish every tablet RGB pseudo-layer. */
+html.sos-tablet-v83.prism-power-off-v65 #studyOS .os-card::before,
+html.sos-tablet-v83.prism-power-off-v65 #studyOS .os-card::after,
+html.sos-tablet-v83.prism-power-off-v65 #studyOS .review-stat-v53::before,
+html.sos-tablet-v83.prism-power-off-v65 #studyOS .review-stat-v53::after,
+html.sos-tablet-v83.prism-power-off-v65 #studyOS .review-subject-v53::before,
+html.sos-tablet-v83.prism-power-off-v65 #studyOS .review-subject-v53::after,
+html.sos-tablet-v83.prism-power-off-v65 #studyOS .review-book-v53::before,
+html.sos-tablet-v83.prism-power-off-v65 #studyOS .review-book-v53::after,
+html.sos-tablet-v83.prism-power-off-v65 #studyOS .review-chapter-v53::before,
+html.sos-tablet-v83.prism-power-off-v65 #studyOS .review-chapter-v53::after,
+html.sos-tablet-v83.prism-power-off-v65 #studyOS .review-question-v53::before,
+html.sos-tablet-v83.prism-power-off-v65 #studyOS .review-question-v53::after,
+html.sos-tablet-v83.prism-power-off-v65 .rgb-test-surface-v63::before,
+html.sos-tablet-v83.prism-power-off-v65 .rgb-test-surface-v63::after,
+html.sos-tablet-v83.prism-power-off-v65 #sidebarPanel::before,
+html.sos-tablet-v83.prism-power-off-v65 #subtestManager::before {
+  opacity:0 !important; animation:none !important; visibility:hidden !important; filter:none !important;
+}
+
+@media (orientation:landscape) {
+  html.sos-tablet-v83 body > main { grid-template-columns:minmax(235px,.72fr) minmax(0,1.65fr) !important; }
+  html.sos-tablet-v83 #studyOS .home-grid-main,
+  html.sos-tablet-v83 #studyOS .split-grid,
+  html.sos-tablet-v83 #studyOS .home-layout-grid,
+  html.sos-tablet-v83 #studyOS .planner-week-grid { grid-template-columns:repeat(2,minmax(0,1fr)) !important; gap:11px !important; }
+  html.sos-tablet-v83 #studyOS .home-focus-card { grid-column:1 / -1; }
+}
+@media (orientation:portrait) {
+  html.sos-tablet-v83 body > main { grid-template-columns:minmax(0,1fr) !important; }
+  html.sos-tablet-v83 #studyOS .home-grid-main,
+  html.sos-tablet-v83 #studyOS .split-grid,
+  html.sos-tablet-v83 #studyOS .home-layout-grid,
+  html.sos-tablet-v83 #studyOS .planner-week-grid { grid-template-columns:minmax(0,1fr) !important; }
+}
+@media (max-width:560px) {
+  html.sos-tablet-v83 #studyOS .metric-grid,
+  html.sos-tablet-v83 #studyOS .cards,
+  html.sos-tablet-v83 #studyOS .report-grid,
+  html.sos-tablet-v83 #studyOS .review-select-grid-v53,
+  html.sos-tablet-v83 #studyOS .plan-form,
+  html.sos-tablet-v83 #studyOS .planner-form-grid { grid-template-columns:minmax(0,1fr) !important; }
+  html.sos-tablet-v83 #studyOS .os-brand { flex:1 1 100% !important; }
 }
 </style>
 
