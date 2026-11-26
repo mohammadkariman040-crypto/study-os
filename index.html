@@ -252,7 +252,6 @@ html.sos-device-tablet #answerKey .question.key-current-v70 {
 }
 html.sos-device-phone #questions .question.kbd-current-v58 .q-number,
 html.sos-device-tablet #questions .question.kbd-current-v58 .q-number { color:inherit!important; }
-.q-important-touch{display:none!important}
 
 /* ---------------- Tablet common foundation ---------------- */
 html.sos-device-tablet,
@@ -424,17 +423,6 @@ html.sos-device-tablet #answerKey .q-head {
 }
 html.sos-device-tablet #questions .q-head .q-number,
 html.sos-device-tablet #answerKey .q-head .q-number { margin-inline-end:auto!important;flex:0 0 auto!important; }
-html.sos-device-tablet .q-important-touch {
-  appearance:none!important;-webkit-appearance:none!important;display:inline-grid!important;place-items:center!important;
-  flex:0 0 28px!important;width:28px!important;min-width:28px!important;max-width:28px!important;
-  height:28px!important;min-height:28px!important;max-height:28px!important;margin:0!important;padding:0!important;
-  border:1px solid var(--line,#dce5ef)!important;border-radius:8px!important;
-  background:var(--bg,#f4f7fb)!important;background-image:none!important;color:var(--muted,#64748b)!important;
-  box-shadow:none!important;font:700 16px/1 Tahoma,sans-serif!important;transform:none!important;
-}
-html.sos-device-tablet .q-important-touch[aria-pressed="true"] {
-  color:var(--gold,#b7791f)!important;background:var(--accent2,#eaf0ff)!important;border-color:var(--gold,#b7791f)!important;
-}
 html.sos-device-tablet #questions .daily-test-mark {
   appearance:none!important;-webkit-appearance:none!important;display:inline-grid!important;place-items:center!important;
   flex:0 0 28px!important;width:28px!important;min-width:28px!important;height:28px!important;min-height:28px!important;
@@ -768,6 +756,12 @@ html.sos-device-tablet.sos-tablet-landscape #studyNavPortalV67 #sTabs .rail-labe
   html.sos-device-phone #studyNavPortalV67 #sTabs button[data-tab] { flex:1 0 52px!important;width:auto!important;height:48px!important;flex-direction:column!important;gap:2px!important; }
   html.sos-device-phone #studyNavPortalV67 #sTabs .rail-label { font-size:.52rem!important; }
 }
+
+/* v88: keep the manual device selector visible in both application top bars. */
+#studyOS .os-top-actions .device-profile-picker-v85{display:inline-flex!important;align-items:center!important;justify-content:center!important;flex:0 0 auto!important;position:relative!important;z-index:100400!important}
+#studyOS .os-top-actions .device-profile-toggle-v85{display:inline-grid!important;place-items:center!important;flex:0 0 36px!important;width:36px!important;height:36px!important;min-width:36px!important;min-height:36px!important;padding:0!important}
+#studyOS .os-top-actions .device-profile-menu-v85{top:calc(100% + 8px)!important;inset-inline-end:0!important;z-index:100500!important}
+.answer-app-actions-v63 .device-profile-picker-v85{display:inline-flex!important;visibility:visible!important;opacity:1!important}
 </style>
 </head>
 <body>
@@ -1158,7 +1152,7 @@ function renderExam(){
  box.innerHTML=list.map(q=>{
   const state=questionVisualStateV74(q,e);
   return `<article class="question ${q.important?'important':''} ${state.isWrong?'wrong':''} ${state.unanswered?'unanswered':''} ${state.answeredUngraded?'answered-ungraded':''} ${state.correctState?'answer-correct-state':''} ${q.marked?'marked-for-review':''}" data-q-card="${q.n}" tabindex="0">
-   <div class="q-head"><span class="q-number">${fa(q.n)}</span><button type="button" class="q-important-touch" data-important-q="${q.n}" aria-label="${q.important?'برداشتن علامت سؤال مهم':'علامت‌گذاری سؤال مهم'}" aria-pressed="${q.important?'true':'false'}" title="${q.important?'سؤال مهم':'علامت‌گذاری سؤال مهم'}">${q.important?'★':'☆'}</button><button type="button" class="daily-test-mark ${state.dailyMarked?'active':''}" data-daily-mark="${q.n}" title="ثبت یا لغو شمارش تست روزانه" aria-label="ثبت یا لغو شمارش تست روزانه">${state.dailyMarked?'✓':'○'}</button></div>
+   <div class="q-head"><span class="q-number">${fa(q.n)}</span><button type="button" class="daily-test-mark ${state.dailyMarked?'active':''}" data-daily-mark="${q.n}" title="ثبت یا لغو شمارش تست روزانه" aria-label="ثبت یا لغو شمارش تست روزانه">${state.dailyMarked?'✓':'○'}</button></div>
    <div class="options">${[1,2,3,4].map(n=>{
     const correctClass=state.revealCorrect&&q.key===n?'answer-correct':'';
     const wrongClass=state.revealCorrect&&state.isWrong&&q.answer===n?'answer-wrong':'';
@@ -1201,7 +1195,6 @@ function renderExam(){
   if(autoStart&&!running&&remaining>0)startTimer();
  });
  box.querySelectorAll('[data-daily-mark]').forEach(btn=>btn.onclick=()=>toggleDailyTest(activeExam().exam.id,+btn.dataset.dailyMark));
- box.querySelectorAll('[data-important-q]').forEach(btn=>btn.onclick=ev=>{ev.preventDefault();ev.stopPropagation();toggleQuestionFlagV74(+btn.dataset.importantQ,'important','exam');});
  box.querySelectorAll('.q-number').forEach(num=>num.addEventListener('click',ev=>{
   ev.stopPropagation();const card=num.closest('[data-q-card]');if(!card)return;
   currentQuestionNumberV58=+card.dataset.qCard;toggleQuestionFlagV74(currentQuestionNumberV58,'marked','exam');
@@ -1219,7 +1212,7 @@ function renderKey(){
  const grid=$('answerKey');
  grid.innerHTML=scopedQuestions(e).map(q=>{
   const state=questionVisualStateV74(q,e);
-  return `<article class="question answer-key-question-v70 ${q.important?'important':''} ${state.isWrong?'wrong':''} ${state.unanswered?'unanswered':''} ${state.answeredUngraded?'answered-ungraded':''} ${state.correctState?'answer-correct-state':''} ${q.marked?'marked-for-review':''}" data-key-card="${q.n}" tabindex="0"><div class="q-head"><span class="q-number">${fa(q.n)}</span><button type="button" class="q-important-touch" data-important-q="${q.n}" aria-label="${q.important?'برداشتن علامت سؤال مهم':'علامت‌گذاری سؤال مهم'}" aria-pressed="${q.important?'true':'false'}" title="${q.important?'سؤال مهم':'علامت‌گذاری سؤال مهم'}">${q.important?'★':'☆'}</button></div><div class="options">${[1,2,3,4].map(n=>`<button type="button" class="opt key-opt ${q.key===n?'selected':''}" data-key-q="${q.n}" data-key-a="${n}" aria-label="ثبت کلید سؤال ${q.n} گزینه ${n}">${n}</button>`).join('')}</div></article>`;
+  return `<article class="question answer-key-question-v70 ${q.important?'important':''} ${state.isWrong?'wrong':''} ${state.unanswered?'unanswered':''} ${state.answeredUngraded?'answered-ungraded':''} ${state.correctState?'answer-correct-state':''} ${q.marked?'marked-for-review':''}" data-key-card="${q.n}" tabindex="0"><div class="q-head"><span class="q-number">${fa(q.n)}</span></div><div class="options">${[1,2,3,4].map(n=>`<button type="button" class="opt key-opt ${q.key===n?'selected':''}" data-key-q="${q.n}" data-key-a="${n}" aria-label="ثبت کلید سؤال ${q.n} گزینه ${n}">${n}</button>`).join('')}</div></article>`;
  }).join('');
  if(document.documentElement.dataset.sosDevice==='desktop')grid.setAttribute('aria-keyshortcuts','1 2 3 4 Space ArrowLeft ArrowRight ArrowUp ArrowDown Delete Backspace I O');else grid.removeAttribute('aria-keyshortcuts');
  grid.querySelectorAll('[data-key-card]').forEach(card=>{
@@ -1231,7 +1224,11 @@ function renderKey(){
   currentKeyQuestionNumberV70=Number(card.dataset.keyCard);
   toggleQuestionFlagV74(currentKeyQuestionNumberV70,'marked','key');
  }));
- grid.querySelectorAll('[data-important-q]').forEach(btn=>btn.onclick=ev=>{ev.preventDefault();ev.stopPropagation();toggleQuestionFlagV74(+btn.dataset.importantQ,'important','key');});
+ grid.querySelectorAll('[data-key-card]').forEach(card=>card.addEventListener('dblclick',ev=>{
+  if(ev.target.closest('button, input, select, textarea, summary, a'))return;
+  currentKeyQuestionNumberV70=Number(card.dataset.keyCard);
+  toggleQuestionFlagV74(currentKeyQuestionNumberV70,'important','key');
+ }));
  grid.querySelectorAll('[data-key-q]').forEach(btn=>btn.onclick=()=>{
   const n=Number(btn.dataset.keyQ),q=getQ(n);if(!q)return;
   currentKeyQuestionNumberV70=n;q.key=q.key===Number(btn.dataset.keyA)?null:Number(btn.dataset.keyA);
@@ -1832,6 +1829,19 @@ label{color:#c7d0e1!important;font-size:.82rem!important}
 <div class="os-top-actions">
 <button aria-label="نورپردازی: روشن" aria-pressed="true" class="os-icon-btn os-prism-power-v65" id="osPrismPowerToggle" title="خاموش کردن نورپردازی" type="button">⏻</button><button aria-label="حرکت رنگ‌ها: روشن" aria-pressed="true" class="os-icon-btn os-motion-toggle" id="osMotionToggle" title="حرکت رنگ‌ها: روشن" type="button">≈</button>
 <button aria-label="تنظیم نور رنگی" aria-expanded="false" class="os-icon-btn" id="osPrismSettingsToggle" title="تنظیم نور" type="button">◉</button>
+<div class="device-profile-picker-v85" id="deviceProfilePickerStudyTopbarV88">
+<button aria-label="انتخاب چیدمان دستگاه" aria-controls="deviceProfileMenuStudyTopbarV88" aria-expanded="false" class="answer-rgb-icon-v63 device-profile-toggle-v85" id="deviceProfileToggleStudyTopbarV88" title="انتخاب چیدمان دستگاه" type="button">
+<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.7" y="4" width="13.5" height="10" rx="1.7"></rect><path d="M7 18.8h5.2M9.6 14v4.8"></path><rect x="17.3" y="8" width="4.2" height="9.2" rx="1.1"></rect></svg>
+</button>
+<div class="device-profile-menu-v85" id="deviceProfileMenuStudyTopbarV88" role="group" aria-label="انتخاب نوع دستگاه" hidden>
+<div class="device-profile-menu-title-v85">چیدمان این دستگاه</div>
+<button type="button" class="device-profile-option-v85" data-device-profile-v85="auto" aria-pressed="true"><span class="device-profile-option-icon-v85">◎</span><span>تشخیص خودکار</span><span class="device-profile-check-v85">✓</span></button>
+<div class="device-profile-separator-v85"></div>
+<button type="button" class="device-profile-option-v85" data-device-profile-v85="desktop" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="4" width="19" height="13" rx="1.8"></rect><path d="M8 21h8M12 17v4"></path></svg><span>سیستم / کامپیوتر</span><span class="device-profile-check-v85">✓</span></button>
+<button type="button" class="device-profile-option-v85" data-device-profile-v85="tablet" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5.5" y="2.2" width="13" height="19.6" rx="2"></rect><path d="M10.5 18.5h3"></path></svg><span>تبلت</span><span class="device-profile-check-v85">✓</span></button>
+<button type="button" class="device-profile-option-v85" data-device-profile-v85="phone" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7.2" y="2" width="9.6" height="20" rx="2"></rect><path d="M10.5 18.8h3"></path></svg><span>گوشی</span><span class="device-profile-check-v85">✓</span></button>
+<div class="device-profile-hint-v85">انتخاب فقط روی همین دستگاه ذخیره می‌شود.</div>
+</div>
 <div class="prism-settings" id="osPrismSettings" hidden>
   <div class="prism-settings-head-v61"><span>نورپردازی</span><div class="prism-presets-v61" role="group" aria-label="پیش‌تنظیم نور"><button type="button" data-prism-preset-v61="calm">آرام</button><button type="button" data-prism-preset-v61="balanced">متعادل</button><button type="button" data-prism-preset-v61="vivid">زنده</button></div></div>
   <div class="prism-setting-row"><label for="osPrismMode">حرکت</label><select id="osPrismMode"><option value="spectrum">چرخش طیف</option><option value="aurora">شفق</option><option value="wave">موج</option><option value="pulse">تنفسی</option><option value="static">ثابت</option></select></div>
@@ -4858,15 +4868,15 @@ html.prism-power-off-v65 #studyOS .review-question-v53{box-shadow:0 5px 18px rgb
     root.dataset.sosMode=selectedMode;
     root.dataset.sosManual=selectedMode==='auto'?'false':'true';
     if(document.body){classes.forEach(c=>document.body.classList.toggle(c,root.classList.contains(c)));}
-    const menu=document.getElementById('deviceProfileMenuV85');
-    if(menu){menu.querySelectorAll('[data-device-profile-v85]').forEach(btn=>btn.setAttribute('aria-pressed',String(btn.dataset.deviceProfileV85===selectedMode)));}
-    const toggle=document.getElementById('deviceProfileToggleV85');
-    if(toggle){
-      const current=labels[selectedMode]||labels.auto;
+    document.querySelectorAll('.device-profile-menu-v85').forEach(menu=>{
+      menu.querySelectorAll('[data-device-profile-v85]').forEach(btn=>btn.setAttribute('aria-pressed',String(btn.dataset.deviceProfileV85===selectedMode)));
+    });
+    const current=labels[selectedMode]||labels.auto;
+    document.querySelectorAll('.device-profile-toggle-v85').forEach(toggle=>{
       toggle.title='چیدمان: '+current;
       toggle.setAttribute('aria-label','انتخاب چیدمان؛ وضعیت فعلی: '+current);
       toggle.dataset.currentMode=selectedMode;
-    }
+    });
     try{document.dispatchEvent(new CustomEvent('studyos:deviceprofilechange',{detail:{mode:selectedMode,device:actual,orientation,manual:selectedMode!=='auto'}}));}catch(e){}
     return actual;
   }
@@ -5200,7 +5210,7 @@ html.ui-is-scrolling #studyOS .review-chapter-v53:hover,html.ui-is-scrolling #st
 </style>
 
 <script>
-(()=>{if(!('serviceWorker' in navigator)||!/^https?:$/.test(location.protocol))return;window.addEventListener('load',()=>{navigator.serviceWorker.register('./sw.js?v=87',{scope:'./'}).catch(err=>console.warn('Study OS offline setup:',err));});})();
+(()=>{if(!('serviceWorker' in navigator)||!/^https?:$/.test(location.protocol))return;window.addEventListener('load',()=>{navigator.serviceWorker.register('./sw.js?v=88',{scope:'./'}).catch(err=>console.warn('Study OS offline setup:',err));});})();
 </script>
 
 <script src="./cloud-sync.js?v=87"></script>
@@ -5224,32 +5234,33 @@ html.ui-is-scrolling #studyOS .review-chapter-v53:hover,html.ui-is-scrolling #st
 </script>
 
 
-<script id="study-os-v85-device-profile-picker">
+<script id="study-os-v88-device-profile-pickers">
 (()=>{
- const picker=document.getElementById('deviceProfilePickerV85');
- const toggle=document.getElementById('deviceProfileToggleV85');
- const menu=document.getElementById('deviceProfileMenuV85');
- if(!picker||!toggle||!menu)return;
  const profile=window.StudyOSDeviceProfileV85;
- const setExpanded=value=>toggle.setAttribute('aria-expanded',String(!!value));
- const close=()=>{menu.hidden=true;setExpanded(false)};
- const open=()=>{
-   menu.hidden=false;setExpanded(true);
-   const active=menu.querySelector('[aria-pressed="true"]');
-   if(active)active.focus();
- };
- toggle.addEventListener('click',ev=>{ev.preventDefault();ev.stopPropagation();menu.hidden?open():close();});
- menu.addEventListener('click',ev=>{
+ const pickers=[...document.querySelectorAll('.device-profile-picker-v85')];
+ if(!pickers.length)return;
+ const instances=[];
+ pickers.forEach(picker=>{
+  const toggle=picker.querySelector('.device-profile-toggle-v85');
+  const menu=picker.querySelector('.device-profile-menu-v85');
+  if(!toggle||!menu)return;
+  const setExpanded=value=>toggle.setAttribute('aria-expanded',String(!!value));
+  const close=()=>{menu.hidden=true;setExpanded(false)};
+  const open=()=>{menu.hidden=false;setExpanded(true)};
+  toggle.addEventListener('click',ev=>{ev.preventDefault();ev.stopPropagation();menu.hidden?open():close();});
+  menu.addEventListener('click',ev=>{
    const option=ev.target.closest('[data-device-profile-v85]');
    if(!option)return;
    const mode=option.getAttribute('data-device-profile-v85');
    if(profile&&typeof profile.setMode==='function')profile.setMode(mode);
    close();
    try{window.dispatchEvent(new Event('resize'));}catch(e){}
+  });
+  document.addEventListener('click',ev=>{if(!picker.contains(ev.target))close();});
+  document.addEventListener('keydown',ev=>{if(ev.key==='Escape'&&!menu.hidden){close();toggle.focus();}});
+  instances.push(close);
  });
- document.addEventListener('click',ev=>{if(!picker.contains(ev.target))close();});
- document.addEventListener('keydown',ev=>{if(ev.key==='Escape'&&!menu.hidden){close();toggle.focus();}});
- window.addEventListener('orientationchange',close,{passive:true});
+ window.addEventListener('orientationchange',()=>instances.forEach(close),{passive:true});
  if(profile&&typeof profile.refresh==='function')profile.refresh();
 })();
 </script>
