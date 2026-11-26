@@ -1,4 +1,4 @@
-/* Study OS cloud sync v78 — local-first, Supabase Auth + one-row JSON sync. */
+/* Study OS cloud sync v80 — safe automatic remote updates, local-first Supabase sync. */
 (function () {
   'use strict';
   var CONFIG_KEY = 'studyOSCloudConfigV79';
@@ -17,7 +17,7 @@
     'pasokhBargPrismLiftV61', 'pasokhBargPrismPaletteV63', 'pasokhBargPrismCustomV63',
     'pasokhBargPrismThicknessV63', 'pasokhBargPrismGlowV63', 'pasokhBargPrismPowerV65'
   ];
-  var state = { session: null, syncing: false, dirty: false, applying: false, panelOpen: false, installPrompt: null, remoteChoice: null, poll: null, localRevision: 0 };
+  var state = { session: null, syncing: false, dirty: false, applying: false, panelOpen: false, installPrompt: null, remoteChoice: null, poll: null, localRevision: 0, lastInteractionAt: Date.now(), pendingRemote: null, pendingRemoteCheck: null };
 
   function byId(id) { return document.getElementById(id); }
   function readJSON(key, fallback) { try { return JSON.parse(localStorage.getItem(key) || 'null') || fallback; } catch (e) { return fallback; } }
@@ -185,19 +185,49 @@
     note('انتخاب اولیه لازم است؛ بعد از این، همگام‌سازی خودکار انجام می‌شود.');
     showPanel(true);
   }
+  function clearPendingRemote() {
+    state.pendingRemote = null;
+    if (state.pendingRemoteCheck) clearInterval(state.pendingRemoteCheck);
+    state.pendingRemoteCheck = null;
+  }
+  function pageBusyForRemoteApply() {
+    var exam = byId('examArea');
+    if (exam && !exam.classList.contains('hidden') && getComputedStyle(exam).display !== 'none') return true;
+    var study = byId('studyOS');
+    if (study && getComputedStyle(study).display !== 'none') return true;
+    var workspace = byId('answerWorkspace');
+    if (workspace && (workspace.classList.contains('answer-fullscreen') || workspace.classList.contains('answer-mini-dock') || workspace.classList.contains('answer-pip-window'))) return true;
+    var timer = byId('timerMode');
+    if (timer && /در حال اجرا/.test(timer.textContent || '')) return true;
+    var active = document.activeElement;
+    if (active && active.matches && active.matches('input,textarea,select,[contenteditable="true"]')) return true;
+    if (document.querySelector('dialog[open]')) return true;
+    return false;
+  }
   function showRemoteUpdate(remote) {
-    state.remoteChoice = { type: 'remote-update', remote: remote };
-    var box = byId('sosCloudChoice');
-    if (box) {
-      box.hidden = false;
-      box.innerHTML = '<div class="sos-cloud-choice-title">نسخهٔ تازه‌تری در فضای ابری وجود دارد.</div><div class="sos-cloud-choice-copy">برای اینکه وسط آزمون یا هنگام ویرایش، صفحه ناگهانی بازآغاز نشود، دریافت نسخهٔ تازه با تأیید تو انجام می‌شود.</div><div class="sos-cloud-choice-actions"><button type="button" id="sosUseRemote">دریافت نسخهٔ تازه از ابر</button><button type="button" id="sosUseLocal" class="secondary">فعلاً همین نسخه را نگه دار</button></div>';
-      byId('sosUseLocal').onclick = function () { hideChoice(); state.dirty = true; setMeta({ lastRemoteUpdatedAt: remote.updated_at, dirty: true }); note('نسخهٔ همین دستگاه انتخاب شد؛ در حال ارسال آن به فضای ابری…'); pushLocal(remote.updated_at); };
-      byId('sosUseRemote').onclick = function () { hideChoice(); applyRemote(remote.payload, remote.updated_at); };
-    }
-    note('نسخهٔ تازهٔ ابری آماده است؛ برای جلوگیری از قطع آزمون یا ویرایش، دریافت آن نیازمند تأیید توست.');
-    setStatus('نسخهٔ تازه در ابر', 'warn'); showPanel(true);
+    // Remote changes are applied automatically when this device has no local edits
+    // and the user is not in an exam/study workspace. If both sides changed,
+    // showConflict() below still requires an explicit choice to prevent data loss.
+    state.pendingRemote = remote;
+    if (state.pendingRemoteCheck) clearInterval(state.pendingRemoteCheck);
+    note('تغییرات دستگاه دیگر دریافت شد؛ پس از ۳۰ ثانیه بی‌فعالیتی و در زمان امن، خودکار اعمال می‌شود. هنگام آزمون یا در محیط مطالعه، دریافت تا پایان کار به تعویق می‌افتد.');
+    setStatus('دریافت خودکار در صف', 'warn');
+    state.pendingRemoteCheck = setInterval(function () {
+      var pending = state.pendingRemote;
+      if (!pending) { clearPendingRemote(); return; }
+      var meta = getMeta();
+      if (state.dirty || meta.dirty) {
+        clearPendingRemote();
+        showConflict(pending);
+        return;
+      }
+      if (document.visibilityState === 'hidden' || !document.hasFocus() || pageBusyForRemoteApply() || (Date.now() - state.lastInteractionAt) < 30000) return;
+      clearPendingRemote();
+      applyRemote(pending.payload, pending.updated_at);
+    }, 5000);
   }
   function showConflict(remote) {
+    clearPendingRemote();
     state.remoteChoice = { type: 'conflict', remote: remote };
     var box = byId('sosCloudChoice');
     if (box) {
@@ -296,6 +326,7 @@
     if (logged) setStatus('حساب متصل', 'ok'); else setStatus('فقط روی این دستگاه', 'idle');
   }
   function logout() {
+    clearPendingRemote();
     var c = getConfig(), s = getSession();
     var req = s ? fetch(c.url + '/auth/v1/logout', { method: 'POST', headers: { apikey: c.key, Authorization: 'Bearer ' + s.access_token } }).catch(function () {}) : Promise.resolve();
     return req.then(function () { localStorage.removeItem(SESSION_KEY); state.session = null; state.dirty = false; refreshAccountUI(); setStatus('فقط روی این دستگاه', 'idle'); note('از حساب ابری خارج شدی؛ اطلاعات محلی این دستگاه پاک نشده است.'); });
@@ -345,6 +376,9 @@
     refreshAccountUI();
   }
   function installHooks() {
+    ['pointerdown','keydown','input','touchstart','wheel'].forEach(function (type) {
+      document.addEventListener(type, function () { state.lastInteractionAt = Date.now(); }, true);
+    });
     var originalSet = Storage.prototype.setItem;
     var originalRemove = Storage.prototype.removeItem;
     Storage.prototype.setItem = function (key, value) {
