@@ -1,4 +1,4 @@
-/* Study OS cloud sync v83 — safe automatic remote updates, local-first Supabase sync. */
+/* Study OS cloud sync v84 — safe automatic remote updates, local-first Supabase sync. */
 (function () {
   'use strict';
   var CONFIG_KEY = 'studyOSCloudConfigV79';
@@ -356,22 +356,11 @@
       #sosCloudPill .sos-cloud-glyph { display:none; flex:0 0 21px; width:21px; height:21px; align-items:center; justify-content:center; }
       #sosCloudPill .sos-cloud-glyph svg { display:block; width:21px; height:21px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
       #sosCloudPill .sos-cloud-label { display:inline-block; line-height:1.25; }
-      @media (hover:none) and (pointer:coarse) and (min-width:500px) and (max-width:1280px) and (min-height:500px) {
-        /* Prevent generic global button !important rules from squaring/clipping the cloud pill on tablets. */
-        #sosCloudPill { all:unset !important; position:fixed !important; z-index:100007 !important; left:12px !important; bottom:calc(86px + env(safe-area-inset-bottom,0px)) !important; box-sizing:border-box !important; display:inline-flex !important; align-items:center !important; justify-content:center !important; gap:9px !important; min-width:112px !important; min-height:48px !important; padding:10px 14px !important; border:1px solid rgba(129,157,210,.32) !important; border-radius:999px !important; background:rgba(17,27,46,.96) !important; color:#eaf0ff !important; box-shadow:0 5px 24px rgba(0,0,0,.2) !important; font:600 13px/1.2 system-ui,'Noto Naskh Arabic',Tahoma,sans-serif !important; direction:rtl !important; white-space:nowrap !important; cursor:pointer !important; touch-action:manipulation !important; -webkit-tap-highlight-color:transparent !important; }
-        #sosCloudPill:hover { filter:none !important; transform:none !important; }
-        #sosCloudPill .sos-cloud-dot { display:inline-block !important; flex:0 0 8px !important; width:8px !important; min-width:8px !important; height:8px !important; min-height:8px !important; border-radius:50% !important; }
-        #sosCloudPill .sos-cloud-glyph { display:inline-flex !important; }
-        #sosCloudPanel { position:fixed !important; z-index:100008 !important; left:12px !important; right:12px !important; bottom:calc(142px + env(safe-area-inset-bottom,0px)) !important; width:min(420px,calc(100vw - 24px)) !important; max-width:calc(100vw - 24px) !important; max-height:70vh !important; padding:14px !important; box-sizing:border-box !important; overflow:auto !important; overscroll-behavior:contain !important; -webkit-overflow-scrolling:touch !important; font-family:system-ui,'Noto Naskh Arabic',Tahoma,sans-serif !important; }
-        #sosCloudPanel button { box-sizing:border-box !important; min-height:42px !important; padding:9px 11px !important; border:1px solid rgba(255,255,255,.08) !important; border-radius:10px !important; background:#4979c7 !important; color:#fff !important; box-shadow:none !important; transform:none !important; font:600 12px/1.45 system-ui,'Noto Naskh Arabic',Tahoma,sans-serif !important; touch-action:manipulation !important; }
-        #sosCloudPanel button.secondary { background:#263752 !important; color:#e5edff !important; }
-        #sosCloudPanel input { box-sizing:border-box !important; max-width:100% !important; }
-        #sosCloudPanel .sos-cloud-actions { align-items:stretch; }
-      }
+
     `;
     css.textContent += `
       /* V83: tablet class is based on touch + physical screen shape, not CSS viewport width alone. */
-      html.sos-tablet-v83 #sosCloudPill {
+      html.sos-device-tablet #sosCloudPill {
         position:fixed !important; z-index:100007 !important;
         left:12px !important; right:auto !important;
         bottom:calc(84px + env(safe-area-inset-bottom,0px)) !important;
@@ -384,18 +373,18 @@
         direction:rtl !important; white-space:nowrap !important; transform:none !important; filter:none !important;
         touch-action:manipulation !important; -webkit-tap-highlight-color:transparent !important;
       }
-      html.sos-tablet-v83 #sosCloudPill .sos-cloud-glyph { display:inline-flex !important; flex:0 0 20px !important; width:20px !important; height:20px !important; }
-      html.sos-tablet-v83 #sosCloudPill .sos-cloud-glyph svg { display:block !important; width:20px !important; height:20px !important; fill:none !important; stroke:currentColor !important; stroke-width:1.9 !important; stroke-linecap:round !important; stroke-linejoin:round !important; }
-      html.sos-tablet-v83 #sosCloudPill .sos-cloud-dot { flex:0 0 8px !important; width:8px !important; height:8px !important; border-radius:50% !important; }
-      html.sos-tablet-v83 #sosCloudPanel {
+      html.sos-device-tablet #sosCloudPill .sos-cloud-glyph { display:inline-flex !important; flex:0 0 20px !important; width:20px !important; height:20px !important; }
+      html.sos-device-tablet #sosCloudPill .sos-cloud-glyph svg { display:block !important; width:20px !important; height:20px !important; fill:none !important; stroke:currentColor !important; stroke-width:1.9 !important; stroke-linecap:round !important; stroke-linejoin:round !important; }
+      html.sos-device-tablet #sosCloudPill .sos-cloud-dot { flex:0 0 8px !important; width:8px !important; height:8px !important; border-radius:50% !important; }
+      html.sos-device-tablet #sosCloudPanel {
         position:fixed !important; z-index:100008 !important;
         left:12px !important; right:12px !important; bottom:calc(138px + env(safe-area-inset-bottom,0px)) !important;
         width:auto !important; max-width:460px !important; max-height:calc(100vh - 158px) !important;
         box-sizing:border-box !important; overflow:auto !important; overscroll-behavior:contain !important;
         -webkit-overflow-scrolling:touch !important; border-radius:16px !important;
       }
-      html.sos-tablet-v83 #sosCloudPanel button { min-height:42px !important; border-radius:10px !important; white-space:normal !important; }
-      html.sos-tablet-v83 #sosCloudPanel input { min-width:0 !important; max-width:100% !important; }
+      html.sos-device-tablet #sosCloudPanel button { min-height:42px !important; border-radius:10px !important; white-space:normal !important; }
+      html.sos-device-tablet #sosCloudPanel input { min-width:0 !important; max-width:100% !important; }
     `;
     document.head.appendChild(css);
     var markup = '<button id="sosCloudPill" type="button" aria-expanded="false" aria-label="وضع همگام‌سازی"><span id="sosCloudDot" class="sos-cloud-dot"></span><span class="sos-cloud-glyph" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7.2 18h9.6a4.4 4.4 0 0 0 .7-8.75 5.7 5.7 0 0 0-11.1 1.2A3.8 3.8 0 0 0 7.2 18Z"/></svg></span><span class="sos-cloud-label">ابر</span></button>' +

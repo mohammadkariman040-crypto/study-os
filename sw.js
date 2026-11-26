@@ -1,5 +1,5 @@
-const CACHE = 'study-os-shell-v83';
-const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './cloud-sync.js?v=83'];
+const CACHE = 'study-os-shell-v84';
+const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './cloud-sync.js?v=84'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(SHELL)).then(() => self.skipWaiting()));
 });
