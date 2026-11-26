@@ -13,7 +13,7 @@
 <link rel="manifest" href="manifest.webmanifest"/>
 <link rel="icon" href="icon-192.png" type="image/png"/>
 <link rel="apple-touch-icon" href="icon-192.png"/>
-<title>Study OS — نسخه ۸۵ · انتخاب دستی دستگاه</title>
+<title>Study OS — نسخه ۸۶ · سه چیدمان مستقل دستگاه</title>
 <style>
 
 :root{--bg:#f4f7fb;--card:#fff;--ink:#1d2a3a;--muted:#64748b;--line:#dce5ef;--accent:#3769d6;--accent2:#eaf0ff;--good:#18845b;--bad:#c44545;--gold:#b7791f}
@@ -4658,319 +4658,12 @@ html.ui-is-scrolling #studyOS .review-chapter-v53:hover,html.ui-is-scrolling #st
 </style>
 
 <script>
-(()=>{if(!('serviceWorker' in navigator)||!/^https?:$/.test(location.protocol))return;window.addEventListener('load',()=>{navigator.serviceWorker.register('./sw.js?v=85',{scope:'./'}).catch(err=>console.warn('Study OS offline setup:',err));});})();
+(()=>{if(!('serviceWorker' in navigator)||!/^https?:$/.test(location.protocol))return;window.addEventListener('load',()=>{navigator.serviceWorker.register('./sw.js?v=86',{scope:'./'}).catch(err=>console.warn('Study OS offline setup:',err));});})();
 </script>
 
-<script src="./cloud-sync.js?v=85"></script>
+<script src="./cloud-sync.js?v=86"></script>
 
-<style id="study-os-v84-responsive-profiles">
-/* Three isolated device profiles:
-   desktop = untouched base layout; phone = existing mobile rules; tablet = rules below.
-   The tablet profile is selected by device type, not just CSS viewport width. */
-html.sos-device-tablet, html.sos-device-tablet body {
-  width:100%; max-width:100%; min-width:0; overflow-x:hidden;
-  -webkit-text-size-adjust:100%; text-size-adjust:100%;
-}
-html.sos-device-tablet *, html.sos-device-tablet *::before, html.sos-device-tablet *::after { box-sizing:border-box; }
 
-/* ---------------- Test-taking shell: shared tablet base ---------------- */
-html.sos-device-tablet body > header { padding:clamp(12px,1.7vw,18px) clamp(12px,2vw,20px) !important; }
-html.sos-device-tablet body > header .wrap {
-  width:100% !important; max-width:1480px !important; min-width:0 !important;
-  margin:0 auto !important; display:flex !important; align-items:center !important;
-  justify-content:space-between !important; flex-wrap:wrap !important; gap:10px !important;
-}
-html.sos-device-tablet .answer-app-header-wrap-v63 { align-items:center !important; min-width:0 !important; }
-html.sos-device-tablet .answer-app-header-wrap-v63 h1 {
-  flex:1 1 220px !important; min-width:0 !important;
-  font-size:clamp(1.05rem,1.9vw,1.42rem) !important; line-height:1.4 !important;
-}
-html.sos-device-tablet .answer-app-actions-v63 {
-  display:flex !important; flex:0 1 auto !important; min-width:0 !important;
-  align-items:center !important; justify-content:flex-end !important;
-  flex-wrap:wrap !important; gap:7px !important;
-}
-html.sos-device-tablet .answer-app-actions-v63 > button,
-html.sos-device-tablet .answer-app-actions-v63 > .study-launch-inline-v63 {
-  flex:0 0 auto !important; min-width:38px !important; max-width:100% !important;
-}
-html.sos-device-tablet body > main {
-  display:grid !important; width:100% !important; max-width:1480px !important;
-  min-width:0 !important; margin:0 auto !important;
-  padding:clamp(10px,1.5vw,16px) !important; gap:clamp(10px,1.4vw,14px) !important;
-  align-items:start !important; grid-template-columns:minmax(0,1fr) !important;
-}
-html.sos-device-tablet body > main > aside.card,
-html.sos-device-tablet body > main > section.card {
-  width:100% !important; min-width:0 !important; max-width:100% !important;
-}
-html.sos-device-tablet #sidebarPanel { min-width:0 !important; max-width:100% !important; }
-html.sos-device-tablet .sidebar-head { display:flex !important; align-items:center !important; justify-content:space-between !important; flex-wrap:nowrap !important; gap:8px !important; }
-html.sos-device-tablet .sidebar-head h2 { min-width:0 !important; font-size:1rem !important; }
-html.sos-device-tablet #collapseSidebar { flex:0 0 40px !important; width:40px !important; min-width:40px !important; height:38px !important; padding:0 !important; }
-html.sos-device-tablet #showSidebar:not(.hidden) { display:inline-flex !important; max-width:100% !important; margin:0 0 12px !important; }
-html.sos-device-tablet #sidebarPanel .tree-list {
-  max-height:clamp(190px,34vh,310px) !important; overflow:auto !important;
-  overscroll-behavior:contain; -webkit-overflow-scrolling:touch;
-}
-html.sos-device-tablet #sidebarPanel .tree-item { min-width:0 !important; flex-wrap:wrap !important; gap:6px !important; }
-html.sos-device-tablet #sidebarPanel .tree-item [data-open] { flex:1 1 110px !important; min-width:0 !important; overflow-wrap:anywhere; }
-html.sos-device-tablet #sidebarPanel .row { display:flex !important; flex-wrap:wrap !important; align-items:center !important; gap:7px !important; }
-html.sos-device-tablet #sidebarPanel .row > * { min-width:0 !important; max-width:100% !important; }
-html.sos-device-tablet #sidebarPanel input,
-html.sos-device-tablet #sidebarPanel select,
-html.sos-device-tablet #sidebarPanel textarea { min-width:0 !important; max-width:100% !important; }
-html.sos-device-tablet .stats { display:grid !important; grid-template-columns:repeat(2,minmax(0,1fr)) !important; gap:8px !important; }
-html.sos-device-tablet .stat { min-width:0 !important; padding:9px 7px !important; }
-html.sos-device-tablet .stat strong { font-size:clamp(1rem,2vw,1.3rem) !important; }
-html.sos-device-tablet #examArea,
-html.sos-device-tablet #answerWorkspace,
-html.sos-device-tablet #subtestManager { min-width:0 !important; max-width:100% !important; }
-html.sos-device-tablet #examArea > .row { min-width:0 !important; flex-wrap:wrap !important; align-items:flex-start !important; gap:8px !important; }
-html.sos-device-tablet #examArea .toolbar,
-html.sos-device-tablet #answerWorkspace .toolbar,
-html.sos-device-tablet #answerWorkspace #answerToolbar {
-  display:flex !important; flex-wrap:wrap !important; align-items:center !important;
-  gap:7px !important; min-width:0 !important; max-width:100% !important;
-}
-html.sos-device-tablet #examArea .toolbar > *,
-html.sos-device-tablet #answerWorkspace .toolbar > * { min-width:0 !important; max-width:100% !important; }
-html.sos-device-tablet #answerWorkspace .toolbar button {
-  flex:0 1 auto !important; min-height:38px !important;
-  padding:7px 9px !important; white-space:normal !important; line-height:1.35 !important;
-}
-html.sos-device-tablet #questions,
-html.sos-device-tablet #answerKey,
-html.sos-device-tablet .question-grid,
-html.sos-device-tablet .key-grid {
-  width:100% !important; max-width:100% !important; min-width:0 !important;
-  grid-template-columns:repeat(auto-fill,minmax(72px,1fr)) !important;
-  gap:7px !important; align-items:start !important;
-}
-html.sos-device-tablet #questions .question,
-html.sos-device-tablet #answerKey .question { min-width:0 !important; max-width:100% !important; }
-html.sos-device-tablet #answerWorkspace.answer-fullscreen {
-  position:fixed !important; inset:0 !important; z-index:99999 !important;
-  width:100vw !important; max-width:100vw !important; min-width:0 !important;
-  height:100vh !important; height:100dvh !important; max-height:none !important;
-  padding:12px !important; overflow-x:hidden !important; overflow-y:auto !important;
-  overscroll-behavior-y:contain; -webkit-overflow-scrolling:touch;
-}
-html.sos-device-tablet #answerWorkspace.answer-fullscreen .answer-fullscreen-topbar-v75 {
-  position:sticky !important; top:-12px !important; z-index:50 !important;
-  width:calc(100% + 24px) !important; margin:-12px -12px 12px !important;
-  padding:10px 12px 8px !important; border-radius:0 !important;
-}
-html.sos-device-tablet #answerWorkspace.answer-fullscreen .answer-fullscreen-topbar-v75 .answer-workspace-head {
-  padding:2px 120px 8px 0 !important; min-height:38px !important; flex-wrap:wrap !important;
-}
-html.sos-device-tablet #answerWorkspace.answer-fullscreen .fullscreen-timer {
-  position:absolute !important; top:10px !important; left:12px !important; right:auto !important;
-  max-width:108px !important; padding:6px 8px !important; gap:6px !important;
-}
-html.sos-device-tablet #answerWorkspace.answer-fullscreen #questions {
-  grid-template-columns:repeat(auto-fill,minmax(70px,1fr)) !important; gap:7px !important;
-}
-
-/* The collapse state must win over the orientation grid. Closing the right panel
-   removes its column completely and gives the answer area the full available width. */
-html.sos-device-tablet body > main.sidebar-collapsed {
-  grid-template-columns:minmax(0,1fr) !important;
-}
-html.sos-device-tablet body > main.sidebar-collapsed > #sidebarPanel { display:none !important; }
-html.sos-device-tablet body > main.sidebar-collapsed > section.card {
-  grid-column:1 / -1 !important; width:100% !important; min-width:0 !important;
-}
-
-/* ---------------- Tablet portrait profile ---------------- */
-@media (orientation:portrait) {
-  html.sos-device-tablet body > main:not(.sidebar-collapsed) {
-    grid-template-columns:minmax(0,1fr) !important;
-  }
-  html.sos-device-tablet #sidebarPanel { position:static !important; max-height:none !important; overflow:visible !important; }
-  html.sos-device-tablet #studyOS .home-grid-main,
-  html.sos-device-tablet #studyOS .split-grid,
-  html.sos-device-tablet #studyOS .home-layout-grid,
-  html.sos-device-tablet #studyOS .planner-week-grid { grid-template-columns:minmax(0,1fr) !important; }
-  html.sos-device-tablet #studyOS .metric-grid,
-  html.sos-device-tablet #studyOS .cards,
-  html.sos-device-tablet #studyOS .report-grid,
-  html.sos-device-tablet #studyOS .review-select-grid-v53 { grid-template-columns:repeat(2,minmax(0,1fr)) !important; }
-  html.sos-device-tablet #studyOS .plan-form,
-  html.sos-device-tablet #studyOS .planner-form-grid { grid-template-columns:repeat(2,minmax(0,1fr)) !important; }
-}
-
-/* ---------------- Tablet landscape profile ---------------- */
-@media (orientation:landscape) {
-  html.sos-device-tablet body > main:not(.sidebar-collapsed) {
-    grid-template-columns:minmax(245px,.4fr) minmax(0,1fr) !important;
-  }
-  html.sos-device-tablet #sidebarPanel { position:sticky !important; top:10px !important; max-height:calc(100vh - 20px) !important; overflow:auto !important; }
-  html.sos-device-tablet .stats { grid-template-columns:repeat(4,minmax(0,1fr)) !important; }
-  html.sos-device-tablet #studyOS .home-grid-main,
-  html.sos-device-tablet #studyOS .split-grid,
-  html.sos-device-tablet #studyOS .home-layout-grid,
-  html.sos-device-tablet #studyOS .planner-week-grid { grid-template-columns:repeat(2,minmax(0,1fr)) !important; gap:12px !important; }
-  html.sos-device-tablet #studyOS .metric-grid,
-  html.sos-device-tablet #studyOS .cards,
-  html.sos-device-tablet #studyOS .report-grid,
-  html.sos-device-tablet #studyOS .review-select-grid-v53 { grid-template-columns:repeat(3,minmax(0,1fr)) !important; }
-  html.sos-device-tablet #studyOS .plan-form,
-  html.sos-device-tablet #studyOS .planner-form-grid { grid-template-columns:repeat(2,minmax(0,1fr)) !important; }
-  html.sos-device-tablet #studyOS .home-focus-card { grid-column:1 / -1; }
-}
-
-/* ---------------- Study workspace: responsive sizing, original colors intact ---------------- */
-html.sos-device-tablet #studyOS {
-  width:100% !important; max-width:100% !important; min-width:0 !important;
-  overflow-x:hidden !important; box-sizing:border-box !important;
-}
-html.sos-device-tablet #studyOS .os-main {
-  width:100% !important; max-width:100% !important; min-width:0 !important;
-  margin:0 !important; padding:0 0 calc(88px + env(safe-area-inset-bottom,0px)) !important;
-  box-sizing:border-box !important;
-}
-html.sos-device-tablet #studyOS .os-topbar {
-  position:sticky !important; top:0 !important; z-index:100 !important;
-  display:flex !important; align-items:center !important; justify-content:space-between !important;
-  flex-wrap:wrap !important; gap:8px !important; width:100% !important; min-width:0 !important;
-  height:auto !important; min-height:56px !important; padding:8px 14px !important; transform:none !important;
-}
-html.sos-device-tablet #studyOS .os-brand { flex:1 1 165px !important; min-width:0 !important; gap:7px !important; }
-html.sos-device-tablet #studyOS .os-top-actions {
-  display:flex !important; flex:0 1 auto !important; min-width:0 !important;
-  align-items:center !important; justify-content:flex-end !important; flex-wrap:nowrap !important; gap:6px !important;
-}
-html.sos-device-tablet #studyOS .os-top-actions > button {
-  flex:0 0 40px !important; width:40px !important; min-width:40px !important;
-  max-width:40px !important; height:40px !important; min-height:40px !important;
-  padding:0 !important; display:inline-grid !important; place-items:center !important;
-}
-html.sos-device-tablet #studyOS .scontent {
-  width:100% !important; max-width:none !important; min-width:0 !important;
-  margin:0 !important; padding:16px clamp(12px,2vw,22px) calc(98px + env(safe-area-inset-bottom,0px)) !important;
-  box-sizing:border-box !important;
-}
-html.sos-device-tablet #studyOS .scontent > *,
-html.sos-device-tablet #studyOS .scontent .os-card,
-html.sos-device-tablet #studyOS .scontent .card,
-html.sos-device-tablet #studyOS .scontent .metric,
-html.sos-device-tablet #studyOS .scontent .review-question-v53,
-html.sos-device-tablet #studyOS .scontent .planner-day,
-html.sos-device-tablet #studyOS .scontent .planner-entry { min-width:0 !important; max-width:100% !important; }
-html.sos-device-tablet #studyOS .page-head,
-html.sos-device-tablet #studyOS .home-head,
-html.sos-device-tablet #studyOS .planner-head { display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:9px; min-width:0; }
-html.sos-device-tablet #studyOS .home-focus-content,
-html.sos-device-tablet #studyOS .planner-actions { display:flex; flex-wrap:wrap; gap:10px; min-width:0; }
-html.sos-device-tablet #studyOS .review-question-v53 { grid-template-columns:38px minmax(0,1fr) !important; min-width:0 !important; }
-html.sos-device-tablet #studyOS .review-q-actions { grid-column:1 / -1 !important; display:flex !important; flex-direction:row !important; flex-wrap:wrap !important; align-items:center !important; gap:6px !important; padding:0 !important; }
-html.sos-device-tablet #studyOS .review-search-v53 { grid-column:1 / -1 !important; }
-html.sos-device-tablet #studyOS .week-days { display:grid !important; grid-template-columns:repeat(7,minmax(0,1fr)) !important; gap:4px !important; }
-html.sos-device-tablet #studyOS .week-day { min-width:0 !important; padding-inline:2px !important; }
-html.sos-device-tablet #studyOS .report-table-wrap { max-width:100% !important; overflow-x:auto !important; -webkit-overflow-scrolling:touch !important; }
-html.sos-device-tablet #studyOS table { min-width:600px; }
-html.sos-device-tablet #studyOS input,
-html.sos-device-tablet #studyOS select,
-html.sos-device-tablet #studyOS textarea { min-width:0 !important; max-width:100% !important; }
-
-/* The navigation is portalled to body. Theme tokens are copied in the small JS helper below. */
-html.sos-device-tablet body.study-os-active-v63 #studyNavPortalV67 { display:block !important; pointer-events:none !important; }
-html.sos-device-tablet #studyNavPortalV67 #sTabs {
-  position:fixed !important; top:auto !important; right:9px !important; left:9px !important;
-  bottom:calc(7px + env(safe-area-inset-bottom,0px)) !important;
-  width:auto !important; max-width:none !important; height:70px !important; min-height:70px !important; max-height:70px !important;
-  margin:0 !important; padding:5px 6px !important; box-sizing:border-box !important;
-  display:flex !important; flex-direction:row !important; align-items:center !important; justify-content:space-between !important;
-  gap:3px !important; overflow-x:auto !important; overflow-y:hidden !important;
-  -webkit-overflow-scrolling:touch !important; overscroll-behavior-x:contain !important;
-  background:var(--shell-card,var(--os-panel,#17243a)) !important;
-  color:var(--shell-ink,var(--os-text,#edf2ff)) !important;
-  border:1px solid var(--shell-line,var(--os-line,#34435c)) !important; border-radius:17px !important;
-  box-shadow:0 8px 24px rgba(0,0,0,.18) !important;
-  transform:none !important; opacity:1 !important; visibility:visible !important;
-  pointer-events:auto !important; z-index:100006 !important;
-  backdrop-filter:none !important; -webkit-backdrop-filter:none !important;
-}
-html.sos-device-tablet #studyNavPortalV67 #sTabs .rail-head,
-html.sos-device-tablet #studyNavPortalV67 #sTabs .rail-caption,
-html.sos-device-tablet #studyNavPortalV67 #sTabs .rail-bottom { display:none !important; }
-html.sos-device-tablet #studyNavPortalV67 #sTabs button[data-tab] {
-  display:flex !important; flex:1 0 62px !important; width:auto !important; min-width:62px !important; max-width:140px !important;
-  height:55px !important; min-height:52px !important; margin:0 !important; padding:4px 3px !important;
-  flex-direction:column !important; align-items:center !important; justify-content:center !important; gap:3px !important;
-  border:1px solid transparent !important; border-radius:12px !important; background:transparent !important;
-  color:var(--shell-muted,var(--os-muted,#aab6cc)) !important; font-size:.62rem !important;
-  line-height:1.15 !important; white-space:nowrap !important; transform:none !important; box-shadow:none !important;
-}
-html.sos-device-tablet #studyNavPortalV67 #sTabs button[data-tab].activeTab {
-  background:var(--shell-accent-soft,#302d50) !important; color:var(--shell-ink,#edf2ff) !important;
-  border-color:var(--shell-line,#34435c) !important;
-}
-html.sos-device-tablet #studyNavPortalV67 #sTabs .rail-svg { width:19px !important; height:19px !important; min-width:19px !important; flex:0 0 19px !important; }
-html.sos-device-tablet #studyNavPortalV67 #sTabs .rail-label { display:block !important; max-width:100% !important; overflow:hidden !important; text-overflow:ellipsis !important; white-space:nowrap !important; font-size:.59rem !important; line-height:1.1 !important; }
-html.sos-device-tablet #studyNavPortalV67 #osNavToggle,
-html.sos-device-tablet #studyNavPortalV67 #osNavBackdrop,
-html.sos-device-tablet #studyNavPortalV67 #osTopbarPeekV65 { display:none !important; pointer-events:none !important; }
-
-/* Keep RGB behavior and power logic. Only remove expensive backdrop blur on older tablet GPUs. */
-html.sos-device-tablet #studyOS .os-topbar,
-html.sos-device-tablet #studyOS .sbar,
-html.sos-device-tablet #studyOS .prism-settings,
-html.sos-device-tablet #studyNavPortalV67 #sTabs {
-  backdrop-filter:none !important; -webkit-backdrop-filter:none !important;
-}
-html.sos-device-tablet #studyOS .os-card,
-html.sos-device-tablet #studyOS .review-stat-v53,
-html.sos-device-tablet #studyOS .review-subject-v53,
-html.sos-device-tablet #studyOS .review-book-v53,
-html.sos-device-tablet #studyOS .review-chapter-v53,
-html.sos-device-tablet #studyOS .review-question-v53,
-html.sos-device-tablet #studyOS .planner-day,
-html.sos-device-tablet #studyOS .planner-entry {
-  transition:background-color .16s ease,border-color .16s ease,box-shadow .16s ease !important;
-}
-html.sos-device-tablet #studyOS .os-card:hover,
-html.sos-device-tablet #studyOS .review-stat-v53:hover,
-html.sos-device-tablet #studyOS .review-subject-v53:hover,
-html.sos-device-tablet #studyOS .review-book-v53:hover,
-html.sos-device-tablet #studyOS .review-chapter-v53:hover,
-html.sos-device-tablet #studyOS .review-question-v53:hover,
-html.sos-device-tablet #studyOS .planner-day:hover,
-html.sos-device-tablet #studyOS .planner-entry:hover { transform:none !important; filter:none !important; }
-
-/* Consistent power glyph rendering on Android 8.1; the existing click handler/state is unchanged. */
-html.sos-device-tablet .os-prism-power-v65,
-html.sos-device-tablet body > header .answer-prism-power-v65 {
-  display:inline-grid !important; place-items:center !important; flex:0 0 40px !important;
-  width:40px !important; min-width:40px !important; max-width:40px !important;
-  height:40px !important; min-height:40px !important; padding:0 !important; line-height:1 !important;
-}
-html.sos-device-tablet .os-prism-power-v65 svg,
-html.sos-device-tablet .answer-prism-power-v65 svg {
-  display:block !important; width:21px !important; height:21px !important; overflow:visible !important;
-  fill:none !important; stroke:currentColor !important; stroke-width:2.1 !important;
-  stroke-linecap:round !important; stroke-linejoin:round !important;
-}
-html.sos-device-tablet.prism-power-off-v65 #studyOS .os-card::before,
-html.sos-device-tablet.prism-power-off-v65 #studyOS .os-card::after,
-html.sos-device-tablet.prism-power-off-v65 #studyOS .review-stat-v53::before,
-html.sos-device-tablet.prism-power-off-v65 #studyOS .review-stat-v53::after,
-html.sos-device-tablet.prism-power-off-v65 #studyOS .review-subject-v53::before,
-html.sos-device-tablet.prism-power-off-v65 #studyOS .review-book-v53::before,
-html.sos-device-tablet.prism-power-off-v65 #studyOS .review-chapter-v53::before,
-html.sos-device-tablet.prism-power-off-v65 #studyOS .review-question-v53::before,
-html.sos-device-tablet.prism-power-off-v65 .rgb-test-surface-v63::before,
-html.sos-device-tablet.prism-power-off-v65 .rgb-test-surface-v63::after,
-html.sos-device-tablet.prism-power-off-v65 #sidebarPanel::before,
-html.sos-device-tablet.prism-power-off-v65 #subtestManager::before {
-  opacity:0 !important; animation:none !important; visibility:hidden !important; filter:none !important;
-}
-@media(prefers-reduced-motion:reduce) {
-  html.sos-device-tablet #studyNavPortalV67 #sTabs,
-  html.sos-device-tablet #studyOS .os-topbar { transition-duration:.01ms !important; }
-}
-</style>
 <script id="study-os-v84-theme-portal-sync">
 (()=>{
   const study=document.getElementById('studyOS');
@@ -5018,5 +4711,721 @@ html.sos-device-tablet.prism-power-off-v65 #subtestManager::before {
  if(profile&&typeof profile.refresh==='function')profile.refresh();
 })();
 </script>
+<style id="study-os-v86-three-device-layouts">
+/*
+  Study OS v86 — explicit device profiles.
+  Device identity is selected by the user (html.sos-device-*).
+  Orientation only chooses the portrait/landscape layout within that profile.
+  Desktop keeps the original layout. Phone keeps the original portrait rules,
+  with a dedicated landscape correction. Tablet gets an independent layout.
+*/
+
+/* -------- Common tablet foundation: applies ONLY when Tablet is selected -------- */
+html.sos-device-tablet,
+html.sos-device-tablet body {
+  width:100% !important;
+  max-width:100% !important;
+  min-width:0 !important;
+  overflow-x:hidden !important;
+  -webkit-text-size-adjust:100% !important;
+  text-size-adjust:100% !important;
+}
+html.sos-device-tablet,
+html.sos-device-tablet body,
+html.sos-device-tablet body * {
+  box-sizing:border-box !important;
+}
+html.sos-device-tablet body {
+  margin:0 !important;
+  overscroll-behavior-x:none;
+}
+html.sos-device-tablet body > header.answer-app-header-v63 {
+  width:100% !important;
+  min-width:0 !important;
+  padding:12px 16px !important;
+}
+html.sos-device-tablet body > header.answer-app-header-v63 > .answer-app-header-wrap-v63 {
+  width:100% !important;
+  max-width:1480px !important;
+  min-width:0 !important;
+  margin:0 auto !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:space-between !important;
+  flex-wrap:wrap !important;
+  gap:10px 14px !important;
+}
+html.sos-device-tablet .answer-app-header-wrap-v63 > h1 {
+  flex:1 1 230px !important;
+  min-width:0 !important;
+  margin:0 !important;
+  font-size:clamp(1.05rem,1.8vw,1.42rem) !important;
+  line-height:1.45 !important;
+  overflow-wrap:anywhere !important;
+}
+html.sos-device-tablet .answer-app-actions-v63 {
+  display:flex !important;
+  flex:0 1 auto !important;
+  min-width:0 !important;
+  max-width:100% !important;
+  align-items:center !important;
+  justify-content:flex-end !important;
+  flex-wrap:wrap !important;
+  gap:7px !important;
+}
+html.sos-device-tablet .answer-app-actions-v63 > button,
+html.sos-device-tablet .answer-app-actions-v63 > .study-launch-inline-v63,
+html.sos-device-tablet .answer-app-actions-v63 > .device-profile-picker-v85 {
+  flex:0 0 auto !important;
+  min-width:36px !important;
+  max-width:100% !important;
+}
+html.sos-device-tablet #studyOSBtn.study-launch-inline-v63 {
+  min-height:38px !important;
+  padding:7px 11px !important;
+  font-size:.76rem !important;
+  white-space:nowrap !important;
+}
+
+/* Test-taking outer shell: predictable grid, no mixed mobile/desktop columns. */
+html.sos-device-tablet body > main {
+  display:grid !important;
+  width:100% !important;
+  max-width:1540px !important;
+  min-width:0 !important;
+  margin:0 auto !important;
+  padding:12px 14px 24px !important;
+  gap:12px !important;
+  align-items:start !important;
+  grid-template-columns:minmax(0,1fr) !important;
+  transition:none !important;
+}
+html.sos-device-tablet body > main > #sidebarPanel,
+html.sos-device-tablet body > main > section.card {
+  width:100% !important;
+  min-width:0 !important;
+  max-width:100% !important;
+  margin:0 !important;
+  justify-self:stretch !important;
+}
+html.sos-device-tablet #sidebarPanel {
+  padding:13px !important;
+  border-radius:18px !important;
+  min-height:0 !important;
+  overscroll-behavior:contain !important;
+}
+html.sos-device-tablet #sidebarPanel .sidebar-head {
+  display:flex !important;
+  align-items:center !important;
+  justify-content:space-between !important;
+  gap:9px !important;
+  min-width:0 !important;
+}
+html.sos-device-tablet #sidebarPanel .sidebar-head h2 {
+  min-width:0 !important;
+  margin:0 !important;
+  font-size:1rem !important;
+}
+html.sos-device-tablet #collapseSidebar {
+  flex:0 0 40px !important;
+  width:40px !important;
+  min-width:40px !important;
+  height:38px !important;
+  min-height:38px !important;
+  padding:0 !important;
+}
+html.sos-device-tablet #showSidebar:not(.hidden) {
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  max-width:100% !important;
+  margin:0 0 10px !important;
+}
+html.sos-device-tablet #sidebarPanel .row {
+  display:flex !important;
+  align-items:center !important;
+  flex-wrap:wrap !important;
+  gap:7px !important;
+  min-width:0 !important;
+}
+html.sos-device-tablet #sidebarPanel .row > * {
+  min-width:0 !important;
+  max-width:100% !important;
+}
+html.sos-device-tablet #sidebarPanel .row > input,
+html.sos-device-tablet #sidebarPanel .row > select,
+html.sos-device-tablet #sidebarPanel .row > div {
+  flex:1 1 110px !important;
+}
+html.sos-device-tablet #sidebarPanel input,
+html.sos-device-tablet #sidebarPanel select,
+html.sos-device-tablet #sidebarPanel textarea,
+html.sos-device-tablet #sidebarPanel button {
+  max-width:100% !important;
+}
+html.sos-device-tablet #sidebarPanel .tree-list {
+  min-width:0 !important;
+  max-width:100% !important;
+  overflow-x:hidden !important;
+  overflow-y:auto !important;
+  overscroll-behavior:contain !important;
+  -webkit-overflow-scrolling:touch !important;
+}
+html.sos-device-tablet #sidebarPanel .tree-item {
+  display:flex !important;
+  flex-wrap:wrap !important;
+  align-items:center !important;
+  gap:6px !important;
+  min-width:0 !important;
+}
+html.sos-device-tablet #sidebarPanel .tree-item [data-open] {
+  flex:1 1 120px !important;
+  min-width:0 !important;
+  overflow-wrap:anywhere !important;
+}
+
+/* Exam content and cards: preserve status colours; adjust geometry only. */
+html.sos-device-tablet body > main > section.card {
+  padding:14px !important;
+  border-radius:18px !important;
+  overflow:visible !important;
+}
+html.sos-device-tablet #examArea,
+html.sos-device-tablet #answerWorkspace,
+html.sos-device-tablet #subtestManager,
+html.sos-device-tablet #historyPanel {
+  width:100% !important;
+  max-width:100% !important;
+  min-width:0 !important;
+}
+html.sos-device-tablet #examArea > .row {
+  display:flex !important;
+  flex-wrap:wrap !important;
+  align-items:flex-start !important;
+  gap:8px !important;
+  min-width:0 !important;
+}
+html.sos-device-tablet #examArea > .row > * { min-width:0 !important; }
+html.sos-device-tablet .stats {
+  display:grid !important;
+  grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  gap:8px !important;
+  width:100% !important;
+  min-width:0 !important;
+}
+html.sos-device-tablet .stat {
+  min-width:0 !important;
+  padding:9px 7px !important;
+  overflow-wrap:anywhere !important;
+}
+html.sos-device-tablet .stat strong { font-size:clamp(1rem,2.1vw,1.32rem) !important; }
+html.sos-device-tablet .stat span { font-size:.72rem !important; }
+html.sos-device-tablet #examArea .toolbar,
+html.sos-device-tablet #answerWorkspace .toolbar,
+html.sos-device-tablet #answerWorkspace #answerToolbar {
+  display:flex !important;
+  flex-wrap:wrap !important;
+  align-items:center !important;
+  gap:7px !important;
+  width:100% !important;
+  max-width:100% !important;
+  min-width:0 !important;
+  overflow:visible !important;
+}
+html.sos-device-tablet #examArea .toolbar > *,
+html.sos-device-tablet #answerWorkspace .toolbar > * {
+  flex:0 1 auto !important;
+  min-width:0 !important;
+  max-width:100% !important;
+}
+html.sos-device-tablet #examArea .toolbar button,
+html.sos-device-tablet #answerWorkspace .toolbar button {
+  min-height:39px !important;
+  padding:7px 10px !important;
+  line-height:1.35 !important;
+  font-size:.76rem !important;
+  white-space:normal !important;
+}
+html.sos-device-tablet #questions,
+html.sos-device-tablet #answerKey,
+html.sos-device-tablet .question-grid,
+html.sos-device-tablet .key-grid {
+  display:grid !important;
+  width:100% !important;
+  max-width:100% !important;
+  min-width:0 !important;
+  grid-template-columns:repeat(auto-fill,minmax(88px,1fr)) !important;
+  gap:8px !important;
+  align-items:stretch !important;
+  overflow:visible !important;
+}
+html.sos-device-tablet #questions .question,
+html.sos-device-tablet #answerKey .question {
+  display:block !important;
+  min-width:0 !important;
+  max-width:100% !important;
+  padding:8px !important;
+  border-radius:13px !important;
+}
+html.sos-device-tablet .q-head { min-height:25px !important; gap:5px !important; }
+html.sos-device-tablet .q-number { font-size:.9rem !important; }
+html.sos-device-tablet .options { grid-template-columns:repeat(4,minmax(0,1fr)) !important; gap:4px !important; }
+html.sos-device-tablet .opt {
+  min-width:0 !important;
+  min-height:36px !important;
+  padding:5px 0 !important;
+  font-size:.82rem !important;
+  line-height:1.2 !important;
+  border-radius:8px !important;
+}
+html.sos-device-tablet .q-actions { flex-wrap:wrap !important; gap:5px !important; }
+html.sos-device-tablet .q-actions button { min-height:34px !important; }
+html.sos-device-tablet #answerKey .key-opt { min-height:34px !important; }
+html.sos-device-tablet #answerWorkspace .answer-fullscreen-topbar-v75 { min-width:0 !important; }
+html.sos-device-tablet #answerWorkspace.answer-fullscreen {
+  position:fixed !important;
+  inset:0 !important;
+  z-index:99999 !important;
+  width:100% !important;
+  max-width:none !important;
+  min-width:0 !important;
+  height:100vh !important;
+  height:100dvh !important;
+  max-height:none !important;
+  margin:0 !important;
+  padding:10px 12px 20px !important;
+  overflow-x:hidden !important;
+  overflow-y:auto !important;
+  overscroll-behavior:contain !important;
+  -webkit-overflow-scrolling:touch !important;
+}
+html.sos-device-tablet #answerWorkspace.answer-fullscreen .answer-fullscreen-topbar-v75 {
+  position:sticky !important;
+  top:-10px !important;
+  z-index:50 !important;
+  width:calc(100% + 24px) !important;
+  margin:-10px -12px 10px !important;
+  padding:9px 12px 8px !important;
+  border-radius:0 !important;
+}
+html.sos-device-tablet #answerWorkspace.answer-fullscreen .answer-workspace-head {
+  display:flex !important;
+  flex-wrap:wrap !important;
+  align-items:center !important;
+  gap:8px !important;
+  min-height:38px !important;
+  padding:2px 108px 7px 0 !important;
+}
+html.sos-device-tablet #answerWorkspace.answer-fullscreen .fullscreen-timer {
+  position:absolute !important;
+  top:9px !important;
+  left:12px !important;
+  right:auto !important;
+  max-width:100px !important;
+  padding:5px 7px !important;
+}
+html.sos-device-tablet #answerWorkspace.answer-fullscreen #questions {
+  grid-template-columns:repeat(auto-fill,minmax(82px,1fr)) !important;
+  gap:7px !important;
+}
+
+/* Correct collapse behavior: when the left/right category panel is closed,
+   the exam card receives the complete grid width in every tablet orientation. */
+html.sos-device-tablet body > main.sidebar-collapsed {
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) !important;
+}
+html.sos-device-tablet body > main.sidebar-collapsed > #sidebarPanel { display:none !important; }
+html.sos-device-tablet body > main.sidebar-collapsed > section.card {
+  display:block !important;
+  grid-column:1 / -1 !important;
+  width:100% !important;
+  max-width:100% !important;
+  min-width:0 !important;
+  justify-self:stretch !important;
+}
+
+/* Study OS overlay — same visual tokens, but a tablet-specific content frame. */
+html.sos-device-tablet #studyOS {
+  width:100% !important;
+  max-width:100% !important;
+  min-width:0 !important;
+  overflow-x:hidden !important;
+  overscroll-behavior-x:none !important;
+}
+html.sos-device-tablet #studyOS .os-topbar {
+  position:sticky !important;
+  top:0 !important;
+  z-index:60 !important;
+  display:flex !important;
+  flex-wrap:wrap !important;
+  align-items:center !important;
+  justify-content:space-between !important;
+  gap:7px 12px !important;
+  width:100% !important;
+  min-width:0 !important;
+  height:auto !important;
+  min-height:60px !important;
+  padding:8px 14px !important;
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
+}
+html.sos-device-tablet #studyOS .os-brand { min-width:0 !important; flex:1 1 150px !important; gap:8px !important; }
+html.sos-device-tablet #studyOS .os-top-actions {
+  display:flex !important;
+  flex:0 1 auto !important;
+  min-width:0 !important;
+  max-width:100% !important;
+  flex-wrap:wrap !important;
+  align-items:center !important;
+  justify-content:flex-end !important;
+  gap:5px !important;
+}
+html.sos-device-tablet #studyOS .os-top-actions > button,
+html.sos-device-tablet #studyOS .os-icon-btn {
+  flex:0 0 36px !important;
+  width:36px !important;
+  min-width:36px !important;
+  max-width:36px !important;
+  height:36px !important;
+  min-height:36px !important;
+  padding:0 !important;
+}
+html.sos-device-tablet #studyOS main.os-main {
+  display:block !important;
+  width:100% !important;
+  max-width:none !important;
+  min-width:0 !important;
+  margin:0 !important;
+  padding:0 !important;
+  background:transparent !important;
+}
+html.sos-device-tablet #studyOS #sPanel.scontent {
+  display:block !important;
+  width:100% !important;
+  max-width:1480px !important;
+  min-width:0 !important;
+  margin:0 auto !important;
+  padding:16px 14px 24px !important;
+  box-sizing:border-box !important;
+  animation:none !important;
+}
+html.sos-device-tablet #studyOS .page-head {
+  display:flex !important;
+  flex-wrap:wrap !important;
+  align-items:flex-start !important;
+  justify-content:space-between !important;
+  gap:9px 14px !important;
+  min-width:0 !important;
+  margin:0 0 16px !important;
+}
+html.sos-device-tablet #studyOS .page-head > * { min-width:0 !important; max-width:100% !important; }
+html.sos-device-tablet #studyOS .os-card,
+html.sos-device-tablet #studyOS .review-stat-v53,
+html.sos-device-tablet #studyOS .review-subject-v53,
+html.sos-device-tablet #studyOS .review-book-v53,
+html.sos-device-tablet #studyOS .review-chapter-v53,
+html.sos-device-tablet #studyOS .review-question-v53,
+html.sos-device-tablet #studyOS .planner-day,
+html.sos-device-tablet #studyOS .planner-entry {
+  min-width:0 !important;
+  max-width:100% !important;
+  overflow-wrap:anywhere !important;
+  transition:background-color .14s ease,border-color .14s ease,box-shadow .14s ease !important;
+}
+html.sos-device-tablet #studyOS .os-card:hover,
+html.sos-device-tablet #studyOS .review-stat-v53:hover,
+html.sos-device-tablet #studyOS .review-subject-v53:hover,
+html.sos-device-tablet #studyOS .review-book-v53:hover,
+html.sos-device-tablet #studyOS .review-chapter-v53:hover,
+html.sos-device-tablet #studyOS .review-question-v53:hover,
+html.sos-device-tablet #studyOS .planner-day:hover,
+html.sos-device-tablet #studyOS .planner-entry:hover { transform:none !important; }
+html.sos-device-tablet #studyOS .home-grid-main,
+html.sos-device-tablet #studyOS .home-layout-grid,
+html.sos-device-tablet #studyOS .split-grid,
+html.sos-device-tablet #studyOS .planner-week-grid,
+html.sos-device-tablet #studyOS .report-grid,
+html.sos-device-tablet #studyOS .metric-grid,
+html.sos-device-tablet #studyOS .cards,
+html.sos-device-tablet #studyOS .review-select-grid-v53,
+html.sos-device-tablet #studyOS .plan-form,
+html.sos-device-tablet #studyOS .planner-form-grid {
+  min-width:0 !important;
+  max-width:100% !important;
+  align-items:stretch !important;
+}
+html.sos-device-tablet #studyOS input,
+html.sos-device-tablet #studyOS select,
+html.sos-device-tablet #studyOS textarea,
+html.sos-device-tablet #studyOS button { max-width:100% !important; }
+html.sos-device-tablet #studyOS .report-table-wrap {
+  max-width:100% !important;
+  overflow-x:auto !important;
+  overflow-y:hidden !important;
+  -webkit-overflow-scrolling:touch !important;
+}
+html.sos-device-tablet #studyOS .report-table-wrap table { min-width:620px !important; }
+html.sos-device-tablet #studyOS .week-days {
+  display:grid !important;
+  grid-template-columns:repeat(7,minmax(0,1fr)) !important;
+  gap:4px !important;
+  min-width:0 !important;
+}
+html.sos-device-tablet #studyOS .week-day { min-width:0 !important; padding-inline:2px !important; }
+
+/* Navigation is portalled to body. Use its own tablet dock, outside app content flow. */
+html.sos-device-tablet #studyNavPortalV67 { z-index:100005 !important; }
+html.sos-device-tablet #studyNavPortalV67 #osNavBackdrop,
+html.sos-device-tablet #studyNavPortalV67 #osNavToggle { display:none !important; pointer-events:none !important; }
+html.sos-device-tablet #studyNavPortalV67 #sTabs {
+  position:fixed !important;
+  z-index:100006 !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:space-around !important;
+  gap:5px !important;
+  box-sizing:border-box !important;
+  margin:0 !important;
+  padding:7px !important;
+  background:var(--shell-card,var(--os-panel,#17243a)) !important;
+  color:var(--shell-ink,var(--os-text,#edf2ff)) !important;
+  border:1px solid var(--shell-line,var(--os-line,#34435c)) !important;
+  border-radius:18px !important;
+  box-shadow:0 8px 24px rgba(0,0,0,.16) !important;
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
+  opacity:1 !important;
+  visibility:visible !important;
+  transform:none !important;
+  pointer-events:auto !important;
+  overflow:auto !important;
+  overscroll-behavior:contain !important;
+}
+html.sos-device-tablet #studyNavPortalV67 #sTabs .rail-head,
+html.sos-device-tablet #studyNavPortalV67 #sTabs .rail-caption,
+html.sos-device-tablet #studyNavPortalV67 #sTabs .rail-bottom { display:none !important; }
+html.sos-device-tablet #studyNavPortalV67 #sTabs button[data-tab] {
+  display:flex !important;
+  min-width:0 !important;
+  min-height:0 !important;
+  margin:0 !important;
+  padding:6px 4px !important;
+  border:1px solid transparent !important;
+  border-radius:12px !important;
+  background:transparent !important;
+  color:var(--shell-muted,var(--os-muted,#aab6cc)) !important;
+  box-shadow:none !important;
+  transform:none !important;
+  align-items:center !important;
+  justify-content:center !important;
+}
+html.sos-device-tablet #studyNavPortalV67 #sTabs button[data-tab].activeTab {
+  background:var(--shell-accent-soft,#302d50) !important;
+  color:var(--shell-ink,#edf2ff) !important;
+  border-color:var(--shell-line,#34435c) !important;
+}
+html.sos-device-tablet #studyNavPortalV67 #sTabs .rail-svg {
+  display:block !important;
+  width:20px !important;
+  height:20px !important;
+  min-width:20px !important;
+  flex:0 0 20px !important;
+  fill:none !important;
+  stroke:currentColor !important;
+  stroke-width:1.8 !important;
+}
+html.sos-device-tablet #studyNavPortalV67 #sTabs .rail-label {
+  display:block !important;
+  max-width:100% !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+  white-space:nowrap !important;
+  font-size:.62rem !important;
+  line-height:1.1 !important;
+}
+
+/* -------- Tablet portrait: stacked test shell + bottom study dock -------- */
+@media (orientation:portrait) {
+  html.sos-device-tablet body > main:not(.sidebar-collapsed) {
+    grid-template-columns:minmax(0,1fr) !important;
+  }
+  html.sos-device-tablet #sidebarPanel {
+    position:relative !important;
+    top:auto !important;
+    max-height:min(38vh,360px) !important;
+    max-height:min(38dvh,360px) !important;
+    overflow-y:auto !important;
+    overflow-x:hidden !important;
+    -webkit-overflow-scrolling:touch !important;
+  }
+  html.sos-device-tablet #sidebarPanel .tree-list { max-height:150px !important; }
+  html.sos-device-tablet .stats { grid-template-columns:repeat(2,minmax(0,1fr)) !important; }
+  html.sos-device-tablet #questions,
+  html.sos-device-tablet #answerKey,
+  html.sos-device-tablet .question-grid,
+  html.sos-device-tablet .key-grid {
+    grid-template-columns:repeat(auto-fill,minmax(88px,1fr)) !important;
+  }
+  html.sos-device-tablet #studyOS .scontent { padding:14px 12px 98px !important; }
+  html.sos-device-tablet #studyOS .home-grid-main,
+  html.sos-device-tablet #studyOS .home-layout-grid,
+  html.sos-device-tablet #studyOS .split-grid,
+  html.sos-device-tablet #studyOS .planner-week-grid,
+  html.sos-device-tablet #studyOS .plan-form,
+  html.sos-device-tablet #studyOS .planner-form-grid {
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) !important;
+    gap:10px !important;
+  }
+  html.sos-device-tablet #studyOS .metric-grid,
+  html.sos-device-tablet #studyOS .cards,
+  html.sos-device-tablet #studyOS .report-grid,
+  html.sos-device-tablet #studyOS .review-select-grid-v53 {
+    display:grid !important;
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    gap:9px !important;
+  }
+  html.sos-device-tablet #studyNavPortalV67 #sTabs {
+    top:auto !important;
+    right:10px !important;
+    left:10px !important;
+    bottom:calc(7px + env(safe-area-inset-bottom,0px)) !important;
+    width:auto !important;
+    max-width:none !important;
+    height:68px !important;
+    min-height:68px !important;
+    max-height:68px !important;
+    flex-direction:row !important;
+    overflow-x:auto !important;
+    overflow-y:hidden !important;
+  }
+  html.sos-device-tablet #studyNavPortalV67 #sTabs button[data-tab] {
+    flex:1 0 68px !important;
+    width:auto !important;
+    max-width:120px !important;
+    height:54px !important;
+    flex-direction:column !important;
+    gap:4px !important;
+  }
+}
+
+/* -------- Tablet landscape: right-side rail + two-column study grids -------- */
+@media (orientation:landscape) {
+  html.sos-device-tablet body > main:not(.sidebar-collapsed) {
+    grid-template-columns:minmax(220px,clamp(230px,25vw,290px)) minmax(0,1fr) !important;
+  }
+  html.sos-device-tablet #sidebarPanel {
+    position:sticky !important;
+    top:10px !important;
+    max-height:calc(100vh - 20px) !important;
+    max-height:calc(100dvh - 20px) !important;
+    overflow-y:auto !important;
+    overflow-x:hidden !important;
+    -webkit-overflow-scrolling:touch !important;
+  }
+  html.sos-device-tablet #sidebarPanel .tree-list { max-height:clamp(150px,27vh,260px) !important; }
+  html.sos-device-tablet .stats { grid-template-columns:repeat(4,minmax(0,1fr)) !important; }
+  html.sos-device-tablet .stat span { font-size:.67rem !important; }
+  html.sos-device-tablet #questions,
+  html.sos-device-tablet #answerKey,
+  html.sos-device-tablet .question-grid,
+  html.sos-device-tablet .key-grid {
+    grid-template-columns:repeat(auto-fill,minmax(94px,1fr)) !important;
+  }
+  html.sos-device-tablet #studyOS .scontent { padding:14px 100px 24px 14px !important; }
+  html.sos-device-tablet #studyOS .home-grid-main,
+  html.sos-device-tablet #studyOS .home-layout-grid,
+  html.sos-device-tablet #studyOS .split-grid,
+  html.sos-device-tablet #studyOS .planner-week-grid {
+    display:grid !important;
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    gap:12px !important;
+  }
+  html.sos-device-tablet #studyOS .metric-grid,
+  html.sos-device-tablet #studyOS .cards,
+  html.sos-device-tablet #studyOS .report-grid,
+  html.sos-device-tablet #studyOS .review-select-grid-v53 {
+    display:grid !important;
+    grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+    gap:9px !important;
+  }
+  html.sos-device-tablet #studyOS .plan-form,
+  html.sos-device-tablet #studyOS .planner-form-grid {
+    display:grid !important;
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    gap:10px !important;
+  }
+  html.sos-device-tablet #studyOS .home-focus-card { grid-column:1 / -1 !important; }
+  html.sos-device-tablet #studyNavPortalV67 #sTabs {
+    top:78px !important;
+    right:10px !important;
+    left:auto !important;
+    bottom:10px !important;
+    width:76px !important;
+    min-width:76px !important;
+    max-width:76px !important;
+    height:auto !important;
+    min-height:0 !important;
+    max-height:none !important;
+    flex-direction:column !important;
+    justify-content:flex-start !important;
+    overflow-x:hidden !important;
+    overflow-y:auto !important;
+  }
+  html.sos-device-tablet #studyNavPortalV67 #sTabs button[data-tab] {
+    flex:0 0 58px !important;
+    width:100% !important;
+    max-width:none !important;
+    height:58px !important;
+    flex-direction:column !important;
+    gap:4px !important;
+  }
+  html.sos-device-tablet #studyNavPortalV67 #sTabs .rail-label { font-size:.55rem !important; }
+}
+
+/* -------- Phone landscape correction: keep phone mode phone-sized in both directions -------- */
+@media (orientation:landscape) {
+  html.sos-device-phone body > main {
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) !important;
+    width:100% !important;
+    max-width:100% !important;
+    padding:8px !important;
+    gap:8px !important;
+  }
+  html.sos-device-phone body > main.sidebar-collapsed { grid-template-columns:minmax(0,1fr) !important; }
+  html.sos-device-phone body > main.sidebar-collapsed > #sidebarPanel { display:none !important; }
+  html.sos-device-phone #sidebarPanel { max-height:30vh !important; overflow:auto !important; }
+  html.sos-device-phone .answer-app-header-wrap-v63 { flex-wrap:wrap !important; gap:6px !important; }
+  html.sos-device-phone .answer-app-actions-v63 { flex-wrap:nowrap !important; gap:4px !important; }
+  html.sos-device-phone #questions,
+  html.sos-device-phone #answerKey,
+  html.sos-device-phone .question-grid,
+  html.sos-device-phone .key-grid { grid-template-columns:repeat(auto-fill,minmax(66px,1fr)) !important; }
+  html.sos-device-phone #studyOS .scontent { width:100% !important; margin:0 !important; padding:12px 10px 90px !important; }
+  html.sos-device-phone #studyNavPortalV67 #sTabs {
+    top:auto !important; right:7px !important; left:7px !important;
+    bottom:calc(5px + env(safe-area-inset-bottom,0px)) !important;
+    width:auto !important; height:58px !important; min-height:58px !important; max-height:58px !important;
+    flex-direction:row !important; overflow-x:auto !important; overflow-y:hidden !important;
+  }
+  html.sos-device-phone #studyNavPortalV67 #sTabs .rail-head,
+  html.sos-device-phone #studyNavPortalV67 #sTabs .rail-bottom { display:none !important; }
+  html.sos-device-phone #studyNavPortalV67 #sTabs button[data-tab] {
+    flex:1 0 52px !important; width:auto !important; height:48px !important;
+    flex-direction:column !important; gap:2px !important;
+  }
+  html.sos-device-phone #studyNavPortalV67 #sTabs .rail-label { font-size:.52rem !important; }
+}
+
+/* Respect reduced-motion preferences without removing RGB controls or their on/off behavior. */
+@media(prefers-reduced-motion:reduce) {
+  html.sos-device-tablet #studyOS .os-card,
+  html.sos-device-tablet #studyNavPortalV67 #sTabs,
+  html.sos-device-tablet .answer-rgb-icon-v63,
+  html.sos-device-tablet .device-profile-toggle-v85 { transition-duration:.01ms !important; }
+}
+</style>
 </body>
 </html>

@@ -1,4 +1,4 @@
-/* Study OS cloud sync v84 — safe automatic remote updates, local-first Supabase sync. */
+/* Study OS cloud sync v86 (layout-only update; sync logic unchanged) — safe automatic remote updates, local-first Supabase sync. */
 (function () {
   'use strict';
   var CONFIG_KEY = 'studyOSCloudConfigV79';
