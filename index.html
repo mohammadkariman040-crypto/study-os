@@ -13,7 +13,7 @@
 <link rel="manifest" href="manifest.webmanifest"/>
 <link rel="icon" href="icon-192.png" type="image/png"/>
 <link rel="apple-touch-icon" href="icon-192.png"/>
-<title>Study OS — نسخه ۸۴ · سه چیدمان مستقل</title>
+<title>Study OS — نسخه ۸۵ · انتخاب دستی دستگاه</title>
 <style>
 
 :root{--bg:#f4f7fb;--card:#fff;--ink:#1d2a3a;--muted:#64748b;--line:#dce5ef;--accent:#3769d6;--accent2:#eaf0ff;--good:#18845b;--bad:#c44545;--gold:#b7791f}
@@ -215,9 +215,44 @@ background:radial-gradient(ellipse at 13% 0%,rgba(91,74,204,.24),transparent 35%
 #studyOS .scroll{border-radius:14px}
 @media(max-width:700px){#studyOS .sbar{padding:10px}#studyOS #sTabs{top:0}#studyOS .scontent{padding:12px}#studyOS .card{padding:12px;border-radius:15px}#studyOS #sTabs button{padding:8px 12px}}
 @media(prefers-reduced-motion:reduce){#studyOS button,#studyOS .card{transition:none}}
-</style></head>
+</style>
+<style id="study-os-v85-device-profile-picker-style">
+.device-profile-picker-v85{position:relative;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;z-index:100200}
+.device-profile-toggle-v85{width:38px!important;height:36px!important;min-width:38px!important;min-height:36px!important;padding:0!important;display:inline-grid!important;place-items:center!important;flex:0 0 38px!important}
+.device-profile-toggle-v85 svg{display:block;width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.device-profile-menu-v85{position:absolute;top:calc(100% + 9px);inset-inline-end:0;width:min(218px,calc(100vw - 22px));padding:9px;display:grid;gap:4px;direction:rtl;text-align:right;background:#172238;color:#edf3ff;border:1px solid rgba(173,190,225,.2);border-radius:15px;box-shadow:0 16px 42px rgba(4,10,24,.34);z-index:100300;isolation:isolate}
+.device-profile-menu-v85[hidden]{display:none!important}
+.device-profile-menu-title-v85{padding:5px 9px 7px;font-size:.76rem;font-weight:800;color:#dfe8ff}
+.device-profile-option-v85{appearance:none;-webkit-appearance:none;width:100%;min-width:0;min-height:40px;margin:0;padding:8px 10px;display:flex;align-items:center;gap:9px;border:1px solid transparent;border-radius:10px;background:transparent;color:#dce5f8;font-family:inherit;font-size:.76rem;font-weight:600;line-height:1.35;text-align:right;cursor:pointer;box-shadow:none;transform:none}
+.device-profile-option-v85:hover,.device-profile-option-v85:focus-visible{background:rgba(125,150,210,.14);border-color:rgba(160,183,235,.2);outline:none}
+.device-profile-option-v85[aria-pressed="true"]{background:rgba(118,133,220,.22);border-color:rgba(154,169,255,.34);color:#fff}
+.device-profile-option-v85>svg{display:block;width:18px;height:18px;flex:0 0 18px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.device-profile-option-icon-v85{width:18px;flex:0 0 18px;text-align:center;font-size:1rem;color:#aebeff}
+.device-profile-check-v85{margin-inline-start:auto;opacity:0;color:#91e2c3;font-weight:900}
+.device-profile-option-v85[aria-pressed="true"] .device-profile-check-v85{opacity:1}
+.device-profile-separator-v85{height:1px;margin:3px 5px;background:rgba(185,200,230,.14)}
+.device-profile-hint-v85{padding:7px 9px 3px;border-top:1px solid rgba(185,200,230,.12);font-size:.63rem;line-height:1.6;color:#aab8d4}
+@media(max-width:600px){.device-profile-toggle-v85{width:34px!important;height:33px!important;min-width:34px!important;min-height:33px!important;flex-basis:34px!important}.device-profile-menu-v85{inset-inline-end:-4px}}
+@media(prefers-reduced-motion:reduce){.device-profile-option-v85{transition:none!important}}
+/* The selector is local to this browser. It never enters the Supabase sync payload. */
+</style>
+</head>
 <body>
-<header class="answer-app-header-v63"><div class="wrap answer-app-header-wrap-v63"><h1>پاسخ‌برگ دیجیتال کنکور</h1><div class="answer-app-actions-v63"><button aria-label="نورپردازی: روشن" aria-pressed="true" class="answer-rgb-icon-v63 answer-prism-power-v65" id="answerPrismPowerToggle" title="خاموش کردن نورپردازی" type="button">⏻</button><button aria-label="حرکت نور رنگی" aria-pressed="true" class="answer-rgb-icon-v63" id="answerPrismMotionToggle" title="حرکت نور" type="button">≈</button><button aria-label="تنظیم نورپردازی" aria-expanded="false" class="answer-rgb-icon-v63" id="answerPrismSettingsToggle" title="تنظیم نور" type="button">◉</button><button class="secondary" id="themeToggle" type="button">🌙 حالت تاریک</button></div></div></header>
+<header class="answer-app-header-v63"><div class="wrap answer-app-header-wrap-v63"><h1>پاسخ‌برگ دیجیتال کنکور</h1><div class="answer-app-actions-v63"><button aria-label="نورپردازی: روشن" aria-pressed="true" class="answer-rgb-icon-v63 answer-prism-power-v65" id="answerPrismPowerToggle" title="خاموش کردن نورپردازی" type="button">⏻</button><button aria-label="حرکت نور رنگی" aria-pressed="true" class="answer-rgb-icon-v63" id="answerPrismMotionToggle" title="حرکت نور" type="button">≈</button><button aria-label="تنظیم نورپردازی" aria-expanded="false" class="answer-rgb-icon-v63" id="answerPrismSettingsToggle" title="تنظیم نور" type="button">◉</button><div class="device-profile-picker-v85" id="deviceProfilePickerV85">
+<button aria-label="انتخاب چیدمان دستگاه" aria-controls="deviceProfileMenuV85" aria-expanded="false" class="answer-rgb-icon-v63 device-profile-toggle-v85" id="deviceProfileToggleV85" title="انتخاب چیدمان دستگاه" type="button">
+<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.7" y="4" width="13.5" height="10" rx="1.7"></rect><path d="M7 18.8h5.2M9.6 14v4.8"></path><rect x="17.3" y="8" width="4.2" height="9.2" rx="1.1"></rect></svg>
+</button>
+<div class="device-profile-menu-v85" id="deviceProfileMenuV85" role="group" aria-label="انتخاب نوع دستگاه" hidden>
+<div class="device-profile-menu-title-v85">چیدمان این دستگاه</div>
+<button type="button" class="device-profile-option-v85" data-device-profile-v85="auto" aria-pressed="true"><span class="device-profile-option-icon-v85">◎</span><span>تشخیص خودکار</span><span class="device-profile-check-v85">✓</span></button>
+<div class="device-profile-separator-v85"></div>
+<button type="button" class="device-profile-option-v85" data-device-profile-v85="desktop" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="4" width="19" height="13" rx="1.8"></rect><path d="M8 21h8M12 17v4"></path></svg><span>سیستم / کامپیوتر</span><span class="device-profile-check-v85">✓</span></button>
+<button type="button" class="device-profile-option-v85" data-device-profile-v85="tablet" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5.5" y="2.2" width="13" height="19.6" rx="2"></rect><path d="M10.5 18.5h3"></path></svg><span>تبلت</span><span class="device-profile-check-v85">✓</span></button>
+<button type="button" class="device-profile-option-v85" data-device-profile-v85="phone" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7.2" y="2" width="9.6" height="20" rx="2"></rect><path d="M10.5 18.8h3"></path></svg><span>گوشی</span><span class="device-profile-check-v85">✓</span></button>
+<div class="device-profile-hint-v85">انتخاب فقط روی همین دستگاه ذخیره می‌شود.</div>
+</div>
+</div>
+<button class="secondary" id="themeToggle" type="button">🌙 حالت تاریک</button></div></div></header>
 <main>
 <aside class="card" id="sidebarPanel">
 <div class="sidebar-head"><h2>کتاب‌ها و آزمون‌ها</h2><button aria-expanded="true" aria-label="جمع‌کردن پنل" class="secondary" id="collapseSidebar" title="جمع‌کردن پنل" type="button">◀</button></div>
@@ -441,7 +476,7 @@ function updateCurrentQuestionV58(n,focus=false,doc=document){
  if(!active)active=cards[0];
  currentQuestionNumberV58=Number(active.dataset.qCard);
  cards.forEach(c=>{const on=c===active;c.classList.toggle('kbd-current-v58',on);if(on)c.setAttribute('aria-current','true');else c.removeAttribute('aria-current')});
- if(focus){try{active.focus({preventScroll:true});active.scrollIntoView({behavior:'smooth',block:'nearest',inline:'nearest'})}catch(e){active.focus()}}
+ if(focus){try{active.focus();active.scrollIntoView({behavior:'smooth',block:'nearest',inline:'nearest'})}catch(e){active.focus()}}
 }
 function moveCurrentQuestionV58(step,focus=true,doc=document){
  const box=(doc&&doc.getElementById?doc.getElementById('questions'):null)||$('questions');if(!box)return;
@@ -4238,25 +4273,37 @@ html.prism-power-off-v65 #studyOS .review-question-v53{box-shadow:0 5px 18px rgb
  #studyOS .os-topbar,#studyOS #osTopbarPeekV65,#studyOS #osNavToggle{transition-duration:.01ms!important;will-change:auto!important}
 }
 </style>
-<script id="study-os-v84-device-profile">
+<script id="study-os-v85-device-profile">
 (()=>{
   const root=document.documentElement;
+  const MODE_KEY='studyOSDeviceModeManualV85';
+  const validModes=['auto','desktop','tablet','phone'];
+  const labels={auto:'تشخیص خودکار',desktop:'سیستم',tablet:'تبلت',phone:'گوشی'};
+  const readMode=()=>{try{const v=localStorage.getItem(MODE_KEY);return validModes.includes(v)?v:'auto'}catch(e){return 'auto'}};
+  let selectedMode=readMode();
   const ua=navigator.userAgent||'';
   const touch=(Number(navigator.maxTouchPoints||0)>0)||('ontouchstart' in window);
   const tabletModel=/(?:TB-[A-Z0-9]+|Lenovo\s*TB|iPad|Tablet)/i.test(ua);
   const ipadDesktop=/Macintosh/i.test(ua)&&touch;
   const mobileUA=/(?:Android.*Mobile|iPhone|iPod|Windows Phone|IEMobile)/i.test(ua);
-  function classify(){
-    const sw=Math.max(1,Number(screen.width||innerWidth||1));
-    const sh=Math.max(1,Number(screen.height||innerHeight||1));
+  function detectedMode(){
+    const sw=Math.max(1,Number((window.screen&&window.screen.width)||innerWidth||1));
+    const sh=Math.max(1,Number((window.screen&&window.screen.height)||innerHeight||1));
     const short=Math.min(sw,sh),long=Math.max(sw,sh);
     const androidTablet=/Android/i.test(ua)&&!mobileUA&&touch&&short>=560&&long>=760;
     const dimensionTablet=/(?:Android|iPad|Tablet)/i.test(ua)&&!mobileUA&&touch&&short>=600&&long>=850;
     const isTablet=touch&&(tabletModel||ipadDesktop||(!mobileUA&&(androidTablet||dimensionTablet)));
     const isPhone=!isTablet&&(mobileUA||(touch&&short<600&&/(?:Android|iPhone|iPod|Mobile)/i.test(ua)));
-    const isDesktop=!isTablet&&!isPhone;
+    return isTablet?'tablet':isPhone?'phone':'desktop';
+  }
+  function applyProfile(mode, persist){
+    if(validModes.includes(mode))selectedMode=mode;
+    if(persist){try{if(selectedMode==='auto')localStorage.removeItem(MODE_KEY);else localStorage.setItem(MODE_KEY,selectedMode)}catch(e){}}
+    const actual=selectedMode==='auto'?detectedMode():selectedMode;
+    const isTablet=actual==='tablet',isPhone=actual==='phone',isDesktop=actual==='desktop';
     const portrait=window.matchMedia?window.matchMedia('(orientation: portrait)').matches:innerHeight>=innerWidth;
     const orientation=portrait?'portrait':'landscape';
+    const classes=['sos-device-tablet','sos-device-phone','sos-device-desktop','sos-tablet-portrait','sos-tablet-landscape','sos-phone-portrait','sos-phone-landscape'];
     root.classList.toggle('sos-device-tablet',isTablet);
     root.classList.toggle('sos-device-phone',isPhone);
     root.classList.toggle('sos-device-desktop',isDesktop);
@@ -4264,18 +4311,31 @@ html.prism-power-off-v65 #studyOS .review-question-v53{box-shadow:0 5px 18px rgb
     root.classList.toggle('sos-tablet-landscape',isTablet&&!portrait);
     root.classList.toggle('sos-phone-portrait',isPhone&&portrait);
     root.classList.toggle('sos-phone-landscape',isPhone&&!portrait);
-    root.dataset.sosDevice=isTablet?'tablet':isPhone?'phone':'desktop';
+    root.dataset.sosDevice=actual;
     root.dataset.sosOrientation=orientation;
-    if(document.body){
-      ['sos-device-tablet','sos-device-phone','sos-device-desktop','sos-tablet-portrait','sos-tablet-landscape','sos-phone-portrait','sos-phone-landscape'].forEach(c=>document.body.classList.toggle(c,root.classList.contains(c)));
+    root.dataset.sosMode=selectedMode;
+    root.dataset.sosManual=selectedMode==='auto'?'false':'true';
+    if(document.body){classes.forEach(c=>document.body.classList.toggle(c,root.classList.contains(c)));}
+    const menu=document.getElementById('deviceProfileMenuV85');
+    if(menu){menu.querySelectorAll('[data-device-profile-v85]').forEach(btn=>btn.setAttribute('aria-pressed',String(btn.dataset.deviceProfileV85===selectedMode)));}
+    const toggle=document.getElementById('deviceProfileToggleV85');
+    if(toggle){
+      const current=labels[selectedMode]||labels.auto;
+      toggle.title='چیدمان: '+current;
+      toggle.setAttribute('aria-label','انتخاب چیدمان؛ وضعیت فعلی: '+current);
+      toggle.dataset.currentMode=selectedMode;
     }
-    return isTablet;
+    try{document.dispatchEvent(new CustomEvent('studyos:deviceprofilechange',{detail:{mode:selectedMode,device:actual,orientation,manual:selectedMode!=='auto'}}));}catch(e){}
+    return actual;
   }
-  classify();
-  window.addEventListener('resize',classify,{passive:true});
-  window.addEventListener('orientationchange',()=>setTimeout(classify,180),{passive:true});
-  document.addEventListener('DOMContentLoaded',classify,{once:true});
-  window.addEventListener('pageshow',classify,{passive:true});
+  window.StudyOSDeviceProfileV85={getMode:()=>selectedMode,getDevice:()=>root.dataset.sosDevice,setMode:mode=>applyProfile(mode,true),refresh:()=>applyProfile(selectedMode,false)};
+  applyProfile(selectedMode,false);
+  let resizeQueued=false;
+  const refreshSoon=()=>{if(resizeQueued)return;resizeQueued=true;requestAnimationFrame(()=>{resizeQueued=false;applyProfile(selectedMode,false)});};
+  window.addEventListener('resize',refreshSoon,{passive:true});
+  window.addEventListener('orientationchange',()=>setTimeout(refreshSoon,180),{passive:true});
+  document.addEventListener('DOMContentLoaded',refreshSoon,{once:true});
+  window.addEventListener('pageshow',refreshSoon,{passive:true});
 })();
 </script>
 
@@ -4598,10 +4658,10 @@ html.ui-is-scrolling #studyOS .review-chapter-v53:hover,html.ui-is-scrolling #st
 </style>
 
 <script>
-(()=>{if(!('serviceWorker' in navigator)||!/^https?:$/.test(location.protocol))return;window.addEventListener('load',()=>{navigator.serviceWorker.register('./sw.js?v=84',{scope:'./'}).catch(err=>console.warn('Study OS offline setup:',err));});})();
+(()=>{if(!('serviceWorker' in navigator)||!/^https?:$/.test(location.protocol))return;window.addEventListener('load',()=>{navigator.serviceWorker.register('./sw.js?v=85',{scope:'./'}).catch(err=>console.warn('Study OS offline setup:',err));});})();
 </script>
 
-<script src="./cloud-sync.js?v=84"></script>
+<script src="./cloud-sync.js?v=85"></script>
 
 <style id="study-os-v84-responsive-profiles">
 /* Three isolated device profiles:
@@ -4928,5 +4988,35 @@ html.sos-device-tablet.prism-power-off-v65 #subtestManager::before {
 })();
 </script>
 
+
+<script id="study-os-v85-device-profile-picker">
+(()=>{
+ const picker=document.getElementById('deviceProfilePickerV85');
+ const toggle=document.getElementById('deviceProfileToggleV85');
+ const menu=document.getElementById('deviceProfileMenuV85');
+ if(!picker||!toggle||!menu)return;
+ const profile=window.StudyOSDeviceProfileV85;
+ const setExpanded=value=>toggle.setAttribute('aria-expanded',String(!!value));
+ const close=()=>{menu.hidden=true;setExpanded(false)};
+ const open=()=>{
+   menu.hidden=false;setExpanded(true);
+   const active=menu.querySelector('[aria-pressed="true"]');
+   if(active)active.focus();
+ };
+ toggle.addEventListener('click',ev=>{ev.preventDefault();ev.stopPropagation();menu.hidden?open():close();});
+ menu.addEventListener('click',ev=>{
+   const option=ev.target.closest('[data-device-profile-v85]');
+   if(!option)return;
+   const mode=option.getAttribute('data-device-profile-v85');
+   if(profile&&typeof profile.setMode==='function')profile.setMode(mode);
+   close();
+   try{window.dispatchEvent(new Event('resize'));}catch(e){}
+ });
+ document.addEventListener('click',ev=>{if(!picker.contains(ev.target))close();});
+ document.addEventListener('keydown',ev=>{if(ev.key==='Escape'&&!menu.hidden){close();toggle.focus();}});
+ window.addEventListener('orientationchange',close,{passive:true});
+ if(profile&&typeof profile.refresh==='function')profile.refresh();
+})();
+</script>
 </body>
 </html>
