@@ -13,7 +13,7 @@
 <link rel="manifest" href="manifest.webmanifest"/>
 <link rel="icon" href="icon-192.png" type="image/png"/>
 <link rel="apple-touch-icon" href="icon-192.png"/>
-<title>Study OS — نسخهٔ ۹۰ · انتخاب دستگاه و تایمر یکپارچه</title>
+<title>Study OS — نسخهٔ ۹۱ · اصلاح انتخاب‌گر دستگاه</title>
 <style>
 
 :root{--bg:#f4f7fb;--card:#fff;--ink:#1d2a3a;--muted:#64748b;--line:#dce5ef;--accent:#3769d6;--accent2:#eaf0ff;--good:#18845b;--bad:#c44545;--gold:#b7791f}
@@ -4868,6 +4868,11 @@ html.prism-power-off-v65 #studyOS .review-question-v53{box-shadow:0 5px 18px rgb
 @media(prefers-reduced-motion:reduce){
  #studyOS .os-topbar,#studyOS #osTopbarPeekV65,#studyOS #osNavToggle{transition-duration:.01ms!important;will-change:auto!important}
 }
+/* v91: locked selector visibility must win in both the answer and Study OS headers. */
+html body .device-profile-picker-v85[data-device-profile-locked="true"],
+#studyOS .os-top-actions .device-profile-picker-v85[data-device-profile-locked="true"]{
+  display:none!important;visibility:hidden!important;pointer-events:none!important;
+}
 </style>
 <script id="study-os-v85-device-profile">
 (()=>{
@@ -4919,7 +4924,14 @@ html.prism-power-off-v65 #studyOS .review-question-v53{box-shadow:0 5px 18px rgb
     root.dataset.sosMode=selectedMode;
     root.dataset.sosManual=selectedMode==='auto'?'false':'true';
     const picker=document.getElementById('deviceProfilePickerV85');
-    if(picker)picker.dataset.deviceProfileLocked=confirmed?'true':'false';
+    if(picker){
+      picker.dataset.deviceProfileLocked=confirmed?'true':'false';
+      // Apply visibility directly to the single picker node so stronger
+      // header-specific rules cannot keep it visible after it moves to Study OS.
+      picker.style.setProperty('display',confirmed?'none':'inline-flex','important');
+      picker.style.setProperty('visibility',confirmed?'hidden':'visible','important');
+      picker.style.setProperty('pointer-events',confirmed?'none':'auto','important');
+    }
     if(document.body){classes.forEach(c=>document.body.classList.toggle(c,root.classList.contains(c)));}
     document.querySelectorAll('.device-profile-menu-v85').forEach(menu=>{
       menu.querySelectorAll('[data-device-profile-v85]').forEach(btn=>btn.setAttribute('aria-pressed',String(btn.dataset.deviceProfileV85===selectedMode)));
