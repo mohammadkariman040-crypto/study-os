@@ -13,7 +13,7 @@
 <link rel="manifest" href="manifest.webmanifest"/>
 <link rel="icon" href="icon-192.png" type="image/png"/>
 <link rel="apple-touch-icon" href="icon-192.png"/>
-<title>Study OS — نسخه ۸۷ · طراحی اختصاصی دستگاه‌های لمسی</title>
+<title>Study OS — نسخهٔ ۹۰ · انتخاب دستگاه و تایمر یکپارچه</title>
 <style>
 
 :root{--bg:#f4f7fb;--card:#fff;--ink:#1d2a3a;--muted:#64748b;--line:#dce5ef;--accent:#3769d6;--accent2:#eaf0ff;--good:#18845b;--bad:#c44545;--gold:#b7791f}
@@ -763,9 +763,18 @@ html.sos-device-tablet.sos-tablet-landscape #studyNavPortalV67 #sTabs .rail-labe
 #studyOS .os-top-actions .device-profile-menu-v85{top:calc(100% + 8px)!important;inset-inline-end:0!important;z-index:100500!important}
 .answer-app-actions-v63 .device-profile-picker-v85{display:inline-flex!important;visibility:visible!important;opacity:1!important}
 </style>
+
+<style id="study-os-v90-device-and-timer-polish">
+/* A selected device profile is remembered locally; hide the one-time picker. */
+html body .device-profile-picker-v85[data-device-profile-locked="true"]{display:none!important}
+#osPrismSettings .device-profile-reselect-v90{width:100%;min-height:34px;padding:7px 10px;border:1px solid var(--prism-ui-line,#43506a);border-radius:9px;background:var(--prism-ui-panel2,#202a42)!important;color:var(--prism-ui-text,#edf2ff)!important;font:inherit;font-size:.68rem;font-weight:700;cursor:pointer}
+#osPrismSettings .device-profile-reselect-v90:focus-visible{outline:2px solid #74c8ee;outline-offset:2px}
+.answer-rgb-icon-v63.power-svg-v90 svg,#studyOS .os-icon-btn.power-svg-v90 svg{display:block;width:18px;height:18px;overflow:visible;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#timerDisplay,#fullscreenTimerDisplay,#swElapsed,#swRemaining{direction:ltr;font-variant-numeric:tabular-nums;unicode-bidi:isolate}
+</style>
 </head>
 <body>
-<header class="answer-app-header-v63"><div class="wrap answer-app-header-wrap-v63"><h1>پاسخ‌برگ دیجیتال کنکور</h1><div class="answer-app-actions-v63"><button aria-label="نورپردازی: روشن" aria-pressed="true" class="answer-rgb-icon-v63 answer-prism-power-v65" id="answerPrismPowerToggle" title="خاموش کردن نورپردازی" type="button">⏻</button><button aria-label="حرکت نور رنگی" aria-pressed="true" class="answer-rgb-icon-v63" id="answerPrismMotionToggle" title="حرکت نور" type="button">≈</button><button aria-label="تنظیم نورپردازی" aria-expanded="false" class="answer-rgb-icon-v63" id="answerPrismSettingsToggle" title="تنظیم نور" type="button">◉</button><div class="device-profile-picker-v85" id="deviceProfilePickerV85">
+<header class="answer-app-header-v63"><div class="wrap answer-app-header-wrap-v63"><h1>پاسخ‌برگ دیجیتال کنکور</h1><div class="answer-app-actions-v63"><button aria-label="نورپردازی: روشن" aria-pressed="true" class="answer-rgb-icon-v63 answer-prism-power-v65" id="answerPrismPowerToggle" title="خاموش کردن نورپردازی" type="button"> <svg data-power-icon-v90 aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3v8"></path><path d="M6.3 6.8a8 8 0 1 0 11.4 0"></path></svg></button><button aria-label="حرکت نور رنگی" aria-pressed="true" class="answer-rgb-icon-v63" id="answerPrismMotionToggle" title="حرکت نور" type="button">≈</button><button aria-label="تنظیم نورپردازی" aria-expanded="false" class="answer-rgb-icon-v63" id="answerPrismSettingsToggle" title="تنظیم نور" type="button">◉</button><div class="device-profile-picker-v85" id="deviceProfilePickerV85">
 <button aria-label="انتخاب چیدمان دستگاه" aria-controls="deviceProfileMenuV85" aria-expanded="false" class="answer-rgb-icon-v63 device-profile-toggle-v85" id="deviceProfileToggleV85" title="انتخاب چیدمان دستگاه" type="button">
 <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.7" y="4" width="13.5" height="10" rx="1.7"></rect><path d="M7 18.8h5.2M9.6 14v4.8"></path><rect x="17.3" y="8" width="4.2" height="9.2" rx="1.1"></rect></svg>
 </button>
@@ -827,14 +836,14 @@ html.sos-device-tablet.sos-tablet-landscape #studyNavPortalV67 #sTabs .rail-labe
 <div class="stat"><strong id="percentStat">—</strong><span>درصد (با کلید)</span></div>
 </div>
 <div class="card" style="background:#fbfcff;box-shadow:none;margin-bottom:14px">
-<div class="row"><div><h3 style="margin:0">⏱ زمان آزمون</h3><div class="muted" id="timerMode">مدت پیشنهادی براساس تعداد سؤال‌ها</div></div><div class="timer" id="timerDisplay">00:00</div></div>
+<div class="row"><div><h3 style="margin:0">⏱ زمان آزمون</h3><div class="muted" id="timerMode">مدت پیشنهادی براساس تعداد سؤال‌ها</div></div><div class="timer" id="timerDisplay">۰۰:۰۰</div></div>
 <div class="toolbar"><button id="timerStart">شروع / ادامه</button><button class="secondary" id="timerPause">توقف</button><button class="secondary" id="timerReset">بازنشانی</button><button class="secondary" id="toggleAuto">شروع خودکار: خاموش</button><div class="timer-adjust-controls"><button class="secondary" id="addMinute" title="افزودن یک دقیقه به زمان آزمون" type="button">＋۱</button><button class="secondary" id="subtractMinute" title="کم کردن یک دقیقه از زمان آزمون" type="button">−۱</button></div></div>
 <div class="toolbar"><button class="secondary" id="toggleHistory" type="button">📊 تاریخچهٔ جلسات</button><button class="secondary" id="shuffleQuestions" type="button">🔀 ترتیب تصادفی: خاموش</button></div><div class="card hidden" id="historyPanel" style="box-shadow:none;background:var(--accent2);margin-bottom:12px"><h3 style="margin-top:0">جلسات ثبت‌شده</h3><div class="muted" id="historyContent"></div></div>
 </div>
 <div id="answerWorkspace">
 <div class="answer-fullscreen-topbar-v75">
 <div class="answer-workspace-head"><h3>پاسخ‌برگ</h3><button aria-label="بازگرداندن پنل" class="secondary" id="restoreAnswerDock" style="display:none" title="بازگرداندن پنل" type="button">↗</button></div>
-<div aria-label="برای شروع یا توقف زمان یک بار کلیک کن؛ برای بازنشانی دابل‌کلیک کن" aria-live="off" class="fullscreen-timer" id="fullscreenTimer" role="button" tabindex="0" title="کلیک: شروع/توقف • دابل‌کلیک: بازنشانی"><strong id="fullscreenTimerDisplay">00:00</strong></div>
+<div aria-label="برای شروع یا توقف زمان یک بار کلیک کن؛ برای بازنشانی دابل‌کلیک کن" aria-live="off" class="fullscreen-timer" id="fullscreenTimer" role="button" tabindex="0" title="کلیک: شروع/توقف • دابل‌کلیک: بازنشانی"><strong id="fullscreenTimerDisplay">۰۰:۰۰</strong></div>
 <div class="toolbar" id="answerToolbar">
 <button class="secondary" id="showAll">همهٔ سؤال‌ها</button><button class="secondary" id="showWrong">غلط‌ها</button><button class="secondary" id="showBlank">نزده‌ها</button><button class="secondary" id="showImportant">مهم‌ها ⭐</button>
 <button class="danger" id="clearAnswers">پاک‌کردن پاسخ‌ها</button><button aria-label="تمام‌صفحه" aria-pressed="false" class="secondary fullscreen-toggle-toolbar" id="toggleAnswerFullscreen" title="تمام‌صفحه" type="button">⛶</button><button aria-label="کوچک‌کردن پنل" aria-pressed="false" class="secondary dock-toggle-toolbar" id="toggleAnswerDock" title="کوچک‌کردن پنل" type="button">▁</button>
@@ -1241,7 +1250,7 @@ function renderKey(){
 }
 
 function renderTimer(){const e=activeExam()?.exam;if(!e)return;remaining=Math.max(0,remaining);$('timerDisplay').textContent=fmt(remaining);const ft=$('fullscreenTimerDisplay');if(ft)ft.textContent=fmt(remaining);const total=activeSubtestId?scopedDuration(e):e.duration;$('timerMode').textContent=`زمان پیشنهادی: ${fmt(total)} • ${running?'در حال اجرا':remaining===0?'پایان‌یافته':'متوقف'}`}
-function fmt(sec){sec=Math.max(0,Math.floor(sec||0));return String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0')}
+function fmt(sec){sec=Math.max(0,Math.floor(sec||0));return fa(Math.floor(sec/60)).padStart(2,'۰')+':'+fa(sec%60).padStart(2,'۰')}
 function playTimerEndChime(){
  try{
   const AudioCtx=window.AudioContext||window.webkitAudioContext;if(!AudioCtx)return;
@@ -1851,7 +1860,7 @@ label{color:#c7d0e1!important;font-size:.82rem!important}
 <header class="os-topbar">
 <div class="os-brand"><span class="os-brand-mark">◈</span><span>محیط مطالعه</span><span class="os-save" id="osSaveStatus"><i></i> ذخیره شد</span></div>
 <div class="os-top-actions">
-<button aria-label="نورپردازی: روشن" aria-pressed="true" class="os-icon-btn os-prism-power-v65" id="osPrismPowerToggle" title="خاموش کردن نورپردازی" type="button">⏻</button><button aria-label="حرکت رنگ‌ها: روشن" aria-pressed="true" class="os-icon-btn os-motion-toggle" id="osMotionToggle" title="حرکت رنگ‌ها: روشن" type="button">≈</button>
+<button aria-label="نورپردازی: روشن" aria-pressed="true" class="os-icon-btn os-prism-power-v65" id="osPrismPowerToggle" title="خاموش کردن نورپردازی" type="button"> <svg data-power-icon-v90 aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3v8"></path><path d="M6.3 6.8a8 8 0 1 0 11.4 0"></path></svg></button><button aria-label="حرکت رنگ‌ها: روشن" aria-pressed="true" class="os-icon-btn os-motion-toggle" id="osMotionToggle" title="حرکت رنگ‌ها: روشن" type="button">≈</button>
 <button aria-label="تنظیم نور رنگی" aria-expanded="false" class="os-icon-btn" id="osPrismSettingsToggle" title="تنظیم نور" type="button">◉</button>
 <div class="prism-settings" id="osPrismSettings" hidden>
   <div class="prism-settings-head-v61"><span>نورپردازی</span><div class="prism-presets-v61" role="group" aria-label="پیش‌تنظیم نور"><button type="button" data-prism-preset-v61="calm">آرام</button><button type="button" data-prism-preset-v61="balanced">متعادل</button><button type="button" data-prism-preset-v61="vivid">زنده</button></div></div>
@@ -1865,6 +1874,8 @@ label{color:#c7d0e1!important;font-size:.82rem!important}
   <div class="prism-settings-divider-v61"></div>
   <div class="prism-setting-row"><label for="osPrismHoverV61">واکنش</label><select id="osPrismHoverV61"><option value="off">خاموش</option><option value="soft">نرم</option><option value="vivid">درخشان</option></select></div>
   <div class="prism-setting-row"><label for="osPrismLiftV61">بالاآمدن</label><input id="osPrismLiftV61" type="range" min="0" max="6" step="0.5" value="3"><output id="osPrismLiftValueV61">۳</output></div>
+  <div class="prism-settings-divider-v61"></div>
+  <button type="button" class="device-profile-reselect-v90" id="deviceProfileReselectV90">تغییر چیدمان این دستگاه</button>
 </div>
 <button aria-label="تغییر پوسته" class="os-icon-btn" id="themeMode" title="تغییر حالت روشن و تاریک" type="button">◐</button>
 <button aria-label="پشتیبان کامل" class="os-icon-btn" id="sExport" title="پشتیبان کامل" type="button">↓</button>
@@ -1909,7 +1920,7 @@ const weekStart=s=>{const d=dateObj(s);d.setDate(d.getDate()-((d.getDay()+1)%7))
 const dayName=s=>DAYS[(dateObj(s).getDay()+1)%7];
 const dateLabel=s=>dateObj(s).toLocaleDateString('fa-IR',{day:'numeric',month:'short'});
 const dateFull=s=>dateObj(s).toLocaleDateString('fa-IR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-const fmt=sec=>{sec=Math.max(0,Math.floor(Number(sec)||0));const h=Math.floor(sec/3600),m=Math.floor(sec%3600/60),s=sec%60;return h?`${fa(h)}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`:`${fa(m)}:${String(s).padStart(2,'0')}`};
+const fmt=sec=>{sec=Math.max(0,Math.floor(Number(sec)||0));const h=Math.floor(sec/3600),m=Math.floor(sec%3600/60),s=sec%60,two=n=>fa(n).padStart(2,'۰');return h?`${fa(h)}:${two(m)}:${two(s)}`:`${two(m)}:${two(s)}`};
 const minuteText=m=>m>=60?`${fa(Math.floor(m/60))} ساعت${m%60?` و ${fa(m%60)} دقیقه`:''}`:`${fa(m)} دقیقه`;
 const startOfWeekDates=s=>Array.from({length:7},(_,i)=>addDays(weekStart(s),i));
 const timeOptions=()=>Array.from({length:35},(_,i)=>{let mins=6*60+i*30;return `${String(Math.floor(mins/60)).padStart(2,'0')}:${String(mins%60).padStart(2,'0')}`});
@@ -4862,10 +4873,14 @@ html.prism-power-off-v65 #studyOS .review-question-v53{box-shadow:0 5px 18px rgb
 (()=>{
   const root=document.documentElement;
   const MODE_KEY='studyOSDeviceModeManualV85';
+  const CONFIRM_KEY='studyOSDeviceModeConfirmedV90';
   const validModes=['auto','desktop','tablet','phone'];
   const labels={auto:'تشخیص خودکار',desktop:'سیستم',tablet:'تبلت',phone:'گوشی'};
   const readMode=()=>{try{const v=localStorage.getItem(MODE_KEY);return validModes.includes(v)?v:'auto'}catch(e){return 'auto'}};
+  const readConfirmed=()=>{try{return localStorage.getItem(CONFIRM_KEY)==='1'}catch(e){return false}};
   let selectedMode=readMode();
+  let confirmed=readConfirmed()||selectedMode!=='auto';
+  if(confirmed){try{localStorage.setItem(CONFIRM_KEY,'1')}catch(e){}}
   const ua=navigator.userAgent||'';
   const touch=(Number(navigator.maxTouchPoints||0)>0)||('ontouchstart' in window);
   const tabletModel=/(?:TB-[A-Z0-9]+|Lenovo\s*TB|iPad|Tablet)/i.test(ua);
@@ -4883,7 +4898,10 @@ html.prism-power-off-v65 #studyOS .review-question-v53{box-shadow:0 5px 18px rgb
   }
   function applyProfile(mode, persist){
     if(validModes.includes(mode))selectedMode=mode;
-    if(persist){try{if(selectedMode==='auto')localStorage.removeItem(MODE_KEY);else localStorage.setItem(MODE_KEY,selectedMode)}catch(e){}}
+    if(persist){
+      try{if(selectedMode==='auto')localStorage.removeItem(MODE_KEY);else localStorage.setItem(MODE_KEY,selectedMode);localStorage.setItem(CONFIRM_KEY,'1')}catch(e){}
+      confirmed=true;
+    }
     const actual=selectedMode==='auto'?detectedMode():selectedMode;
     const isTablet=actual==='tablet',isPhone=actual==='phone',isDesktop=actual==='desktop';
     const portrait=window.matchMedia?window.matchMedia('(orientation: portrait)').matches:innerHeight>=innerWidth;
@@ -4900,6 +4918,8 @@ html.prism-power-off-v65 #studyOS .review-question-v53{box-shadow:0 5px 18px rgb
     root.dataset.sosOrientation=orientation;
     root.dataset.sosMode=selectedMode;
     root.dataset.sosManual=selectedMode==='auto'?'false':'true';
+    const picker=document.getElementById('deviceProfilePickerV85');
+    if(picker)picker.dataset.deviceProfileLocked=confirmed?'true':'false';
     if(document.body){classes.forEach(c=>document.body.classList.toggle(c,root.classList.contains(c)));}
     document.querySelectorAll('.device-profile-menu-v85').forEach(menu=>{
       menu.querySelectorAll('[data-device-profile-v85]').forEach(btn=>btn.setAttribute('aria-pressed',String(btn.dataset.deviceProfileV85===selectedMode)));
@@ -4913,7 +4933,14 @@ html.prism-power-off-v65 #studyOS .review-question-v53{box-shadow:0 5px 18px rgb
     try{document.dispatchEvent(new CustomEvent('studyos:deviceprofilechange',{detail:{mode:selectedMode,device:actual,orientation,manual:selectedMode!=='auto'}}));}catch(e){}
     return actual;
   }
-  window.StudyOSDeviceProfileV85={getMode:()=>selectedMode,getDevice:()=>root.dataset.sosDevice,setMode:mode=>applyProfile(mode,true),refresh:()=>applyProfile(selectedMode,false)};
+  window.StudyOSDeviceProfileV85={
+    getMode:()=>selectedMode,
+    getDevice:()=>root.dataset.sosDevice,
+    isConfirmed:()=>confirmed,
+    setMode:mode=>applyProfile(mode,true),
+    refresh:()=>applyProfile(selectedMode,false),
+    reopenPicker:()=>{confirmed=false;try{localStorage.removeItem(CONFIRM_KEY)}catch(e){};applyProfile(selectedMode,false);}
+  };
   applyProfile(selectedMode,false);
   let resizeQueued=false;
   const refreshSoon=()=>{if(resizeQueued)return;resizeQueued=true;requestAnimationFrame(()=>{resizeQueued=false;applyProfile(selectedMode,false)});};
@@ -4930,15 +4957,14 @@ html.prism-power-off-v65 #studyOS .review-question-v53{box-shadow:0 5px 18px rgb
  const topPeek=$('osTopbarPeekV65'),navToggle=$('osNavToggle'),panel=$('osPrismSettings');
  const powerButtons=[$('osPrismPowerToggle'),$('answerPrismPowerToggle')].filter(Boolean);
  const POWER_KEY='pasokhBargPrismPowerV65';
- const POWER_ICON_SVG='<svg data-power-icon-v84 aria-hidden=\"true\" viewBox=\"0 0 24 24\"><path d=\"M12 2.5v8.7\"/><path d=\"M6.35 6.7a8 8 0 1 0 11.3 0\"/></svg>';
+ const POWER_ICON_SVG='<svg data-power-icon-v90 aria-hidden=\"true\" viewBox=\"0 0 24 24\"><path d=\"M12 3v8\"/><path d=\"M6.3 6.8a8 8 0 1 0 11.4 0\"/></svg>';
  const read=(key,fallback)=>{try{return localStorage.getItem(key)??fallback}catch(e){return fallback}};
  const write=(key,value)=>{try{localStorage.setItem(key,value)}catch(e){}};
  let rgbOn=read(POWER_KEY,'on')!=='off';
  function renderPowerGlyph(btn){
   if(!btn)return;
-  const tablet=document.documentElement.classList.contains('sos-device-tablet');
-  if(tablet){if(!btn.querySelector('[data-power-icon-v84]'))btn.innerHTML=POWER_ICON_SVG;btn.classList.add('power-svg-v84');}
-  else{if(btn.querySelector('[data-power-icon-v84]'))btn.textContent='⏻';btn.classList.remove('power-svg-v84');}
+  if(!btn.querySelector('[data-power-icon-v90]'))btn.innerHTML=POWER_ICON_SVG;
+  btn.classList.add('power-svg-v90');
  }
  function setPower(on,persist=true){
   rgbOn=!!on;document.documentElement.classList.toggle('prism-power-off-v65',!rgbOn);
@@ -5243,10 +5269,10 @@ html.ui-is-scrolling #studyOS .review-chapter-v53:hover,html.ui-is-scrolling #st
 </style>
 
 <script>
-(()=>{if(!('serviceWorker' in navigator)||!/^https?:$/.test(location.protocol))return;window.addEventListener('load',()=>{navigator.serviceWorker.register('./sw.js?v=89b',{scope:'./'}).catch(err=>console.warn('Study OS offline setup:',err));});})();
+(()=>{if(!('serviceWorker' in navigator)||!/^https?:$/.test(location.protocol))return;window.addEventListener('load',()=>{navigator.serviceWorker.register('./sw.js?v=90',{scope:'./'}).catch(err=>console.warn('Study OS offline setup:',err));});})();
 </script>
 
-<script src="./cloud-sync.js?v=89b"></script>
+<script src="./cloud-sync.js?v=90"></script>
 
 
 <script id="study-os-v84-theme-portal-sync">
@@ -5290,6 +5316,12 @@ html.ui-is-scrolling #studyOS .review-chapter-v53:hover,html.ui-is-scrolling #st
  document.addEventListener('click',ev=>{if(!picker.contains(ev.target))close();});
  document.addEventListener('keydown',ev=>{if(ev.key==='Escape'&&!menu.hidden){close();toggle.focus();}});
  window.addEventListener('orientationchange',close,{passive:true});
+ document.getElementById('deviceProfileReselectV90')?.addEventListener('click',ev=>{
+  ev.preventDefault();
+  if(profile&&typeof profile.reopenPicker==='function')profile.reopenPicker();
+  close();
+  requestAnimationFrame(()=>toggle.click());
+ });
  const answerActions=document.querySelector('.answer-app-actions-v63');
  const studyActions=document.querySelector('#studyOS .os-top-actions');
  const answerAnchor=document.getElementById('themeToggle');
