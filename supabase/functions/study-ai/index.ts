@@ -1,6 +1,6 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
-const appOrigin = Deno.env.get('APP_ORIGIN') || 'https://mohammadkariman040-crypto.github.io';
+const appOrigin = Deno.env.get('APP_ORIGIN') || ''; // Staging must set its exact origin; never fall back to production.
 const corsHeaders = {
   'Access-Control-Allow-Origin': appOrigin,
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -12,6 +12,7 @@ const json = (body: unknown, status = 200) => new Response(JSON.stringify(body),
 });
 
 Deno.serve(async (req) => {
+  if (!appOrigin) return new Response(JSON.stringify({ error: 'APP_ORIGIN is not configured' }), { status: 503, headers: { 'Content-Type': 'application/json; charset=utf-8' } });
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405);
   const origin = req.headers.get('origin');
@@ -24,8 +25,8 @@ Deno.serve(async (req) => {
   const serviceKey = secretMap.default || Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || Deno.env.get('SUPABASE_SECRET_KEY');
   const openAiKey = Deno.env.get('OPENAI_API_KEY');
   const primaryAdminId = Deno.env.get('STUDY_OS_ADMIN_USER_ID');
-  const model = Deno.env.get('OPENAI_MODEL') || 'gpt-6.2-sol';
-  if (!supabaseUrl || !anonKey || !serviceKey || !openAiKey) return json({ error: 'Server secrets are not configured' }, 503);
+  const model = Deno.env.get('OPENAI_MODEL') || '';
+  if (!supabaseUrl || !anonKey || !serviceKey || !openAiKey || !model) return json({ error: 'Server secrets or an available OPENAI_MODEL are not configured' }, 503);
 
   const auth = req.headers.get('authorization') || '';
   const token = auth.replace(/^Bearer\s+/i, '');

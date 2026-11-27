@@ -1,6 +1,6 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
-const appOrigin = Deno.env.get('APP_ORIGIN') || 'https://mohammadkariman040-crypto.github.io';
+const appOrigin = Deno.env.get('APP_ORIGIN') || ''; // Staging must set its exact origin; never fall back to production.
 const corsHeaders = {
   'Access-Control-Allow-Origin': appOrigin,
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -10,6 +10,7 @@ const corsHeaders = {
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json; charset=utf-8' } });
 
 Deno.serve(async (req) => {
+  if (!appOrigin) return new Response(JSON.stringify({ error: 'APP_ORIGIN is not configured' }), { status: 503, headers: { 'Content-Type': 'application/json; charset=utf-8' } });
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405);
   const origin = req.headers.get('origin');
