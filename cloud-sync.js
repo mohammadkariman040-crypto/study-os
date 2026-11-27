@@ -1,4 +1,4 @@
-/* Study OS cloud sync v92 — shared learning data only, device-local preferences, realtime-first sync. */
+/* Study OS cloud sync v86 (layout-only update; sync logic unchanged) — safe automatic remote updates, local-first Supabase sync. */
 (function () {
   'use strict';
   var CONFIG_KEY = 'studyOSCloudConfigV79';
@@ -9,15 +9,14 @@
     url: 'https://mekwowszoevgyrsguhxo.supabase.co',
     key: 'sb_publishable_GbzAB9CnD-zeVG3rF3RYHg__6-f9Plu'
   };
-  // Only learning records are shared. Appearance, layout, sound and per-device UI state stay local.
-  var DATA_KEYS = ['pasokhBargDigitalV2', 'pasokhBargStudyOS_v2'];
-  var STUDY_DATA_KEY = 'pasokhBargStudyOS_v2';
-  // These fields describe this device's view/preferences, not the learner's shared academic record.
-  var DEVICE_LOCAL_STUDY_SETTINGS = [
-    'selectedDate', 'focusRangeV68', 'focusFromV68', 'focusToV68',
-    'plannerSubject', 'taskSubject', 'selectedGoal', 'sessionKind', 'alarmEnabled'
+  var DATA_KEYS = [
+    'pasokhBargDigitalV2', 'pasokhBargStudyOS_v2',
+    'pasokhBargLiveCorrectMode', 'pasokhBargTheme', 'pasokhBargSidebarCollapsed',
+    'pasokhBargAmbientMotion_v1', 'pasokhBargPrismModeV60', 'pasokhBargPrismStrengthV60',
+    'pasokhBargPrismSpeedV60', 'pasokhBargPrismPaletteV61', 'pasokhBargPrismHoverV61',
+    'pasokhBargPrismLiftV61', 'pasokhBargPrismPaletteV63', 'pasokhBargPrismCustomV63',
+    'pasokhBargPrismThicknessV63', 'pasokhBargPrismGlowV63', 'pasokhBargPrismPowerV65'
   ];
-  var DEVICE_LOCAL_GOAL_SETTINGS = ['focusGoalModeV68'];
   var state = { session: null, syncing: false, dirty: false, applying: false, panelOpen: false, installPrompt: null, poll: null, localRevision: 0, lastLocalChangeAt: 0, queuedRemote: null, realtime: null, realtimeReady: false, realtimeTopic: null, joinRef: null, heartbeat: null, reconnectTimer: null, reconnectAttempt: 0, stopRealtime: false };
 
   function byId(id) { return document.getElementById(id); }
@@ -27,67 +26,9 @@
   function getSession() { return readJSON(SESSION_KEY, null); }
   function getMeta() { return readJSON(META_KEY, { lastRemoteUpdatedAt: null, initialized: false, dirty: false, basePayload: null, lastLocalChangeAt: 0 }); }
   function setMeta(patch) { var m = getMeta(); Object.keys(patch).forEach(function (k) { m[k] = patch[k]; }); writeJSON(META_KEY, m); }
-  function safeParse(raw, fallback) {
-    try { return raw == null ? fallback : JSON.parse(raw); } catch (e) { return fallback; }
-  }
-  function cloneJSON(value) {
-    if (value == null || typeof value !== 'object') return value;
-    try { return JSON.parse(JSON.stringify(value)); } catch (e) { return value; }
-  }
-  function stripDeviceLocalStudyFields(value) {
-    var data = cloneJSON(value);
-    if (!data || typeof data !== 'object' || Array.isArray(data)) return data;
-    if (data.settings && typeof data.settings === 'object') {
-      DEVICE_LOCAL_STUDY_SETTINGS.forEach(function (key) { delete data.settings[key]; });
-    }
-    if (data.goals && typeof data.goals === 'object') {
-      DEVICE_LOCAL_GOAL_SETTINGS.forEach(function (key) { delete data.goals[key]; });
-    }
-    return data;
-  }
-  function preserveDeviceLocalStudyFields(incomingRaw, currentRaw) {
-    var incoming = safeParse(incomingRaw, {}), current = safeParse(currentRaw, {});
-    if (!incoming || typeof incoming !== 'object' || Array.isArray(incoming)) incoming = {};
-    if (!current || typeof current !== 'object' || Array.isArray(current)) current = {};
-    incoming = cloneJSON(incoming);
-    incoming.settings = incoming.settings && typeof incoming.settings === 'object' ? incoming.settings : {};
-    var currentSettings = current.settings && typeof current.settings === 'object' ? current.settings : {};
-    DEVICE_LOCAL_STUDY_SETTINGS.forEach(function (key) {
-      if (Object.prototype.hasOwnProperty.call(currentSettings, key)) incoming.settings[key] = cloneJSON(currentSettings[key]);
-      else delete incoming.settings[key];
-    });
-    incoming.goals = incoming.goals && typeof incoming.goals === 'object' ? incoming.goals : {};
-    var currentGoals = current.goals && typeof current.goals === 'object' ? current.goals : {};
-    DEVICE_LOCAL_GOAL_SETTINGS.forEach(function (key) {
-      if (Object.prototype.hasOwnProperty.call(currentGoals, key)) incoming.goals[key] = cloneJSON(currentGoals[key]);
-      else delete incoming.goals[key];
-    });
-    return JSON.stringify(incoming);
-  }
-  function normalizeSyncPayload(payload) {
-    var out = {};
-    if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return out;
-    DATA_KEYS.forEach(function (key) {
-      if (!Object.prototype.hasOwnProperty.call(payload, key)) return;
-      if (key === STUDY_DATA_KEY) {
-        var parsed = safeParse(payload[key], null);
-        out[key] = parsed && typeof parsed === 'object' ? JSON.stringify(stripDeviceLocalStudyFields(parsed)) : String(payload[key]);
-      } else {
-        out[key] = String(payload[key]);
-      }
-    });
-    return out;
-  }
   function snapshot() {
     var obj = {};
-    DATA_KEYS.forEach(function (key) {
-      var value = localStorage.getItem(key);
-      if (value === null) return;
-      if (key === STUDY_DATA_KEY) {
-        var parsed = safeParse(value, null);
-        obj[key] = parsed && typeof parsed === 'object' ? JSON.stringify(stripDeviceLocalStudyFields(parsed)) : value;
-      } else obj[key] = value;
-    });
+    DATA_KEYS.forEach(function (k) { var v = localStorage.getItem(k); if (v !== null) obj[k] = v; });
     return obj;
   }
   function hasMeaningfulLocalData() {
@@ -300,16 +241,12 @@
     return result;
   }
   function payloadEqual(a, b) {
-    a = normalizeSyncPayload(a || {}); b = normalizeSyncPayload(b || {});
+    a = a || {}; b = b || {};
     return DATA_KEYS.every(function (key) {
       var av = Object.prototype.hasOwnProperty.call(a, key) ? parseStoredValue(a[key]) : undefined;
       var bv = Object.prototype.hasOwnProperty.call(b, key) ? parseStoredValue(b[key]) : undefined;
       return equalValue(av, bv);
     });
-  }
-  function payloadHasLegacyDeviceSettings(payload) {
-    if (!payload || typeof payload !== 'object') return false;
-    return Object.keys(payload).some(function (key) { return DATA_KEYS.indexOf(key) === -1; });
   }
   function writeLocalPayload(payload, updatedAt) {
     var changed = [];
@@ -319,8 +256,6 @@
       DATA_KEYS.forEach(function (key) {
         var next = Object.prototype.hasOwnProperty.call(payload || {}, key) ? String(payload[key]) : null;
         var current = localStorage.getItem(key);
-        // Keep device-specific navigation/timer defaults and preferences when applying remote study data.
-        if (key === STUDY_DATA_KEY && next !== null) next = preserveDeviceLocalStudyFields(next, current);
         if (current === next) return;
         if (next === null) localStorage.removeItem(key); else localStorage.setItem(key, next);
         changed.push(key);
@@ -332,11 +267,11 @@
     return changed;
   }
   function updateSyncedMeta(remote) {
-    var payload = remote && remote.payload ? normalizeSyncPayload(remote.payload) : snapshot();
+    var payload = remote && remote.payload ? remote.payload : snapshot();
     setMeta({ lastRemoteUpdatedAt: remote && remote.updated_at || null, initialized: true, dirty: false, basePayload: payload, lastLocalChangeAt: 0 });
     state.dirty = false;
     setStatus('همگام است', 'ok');
-    note('اطلاعات آموزشی همگام شدند؛ تنظیمات ظاهری و صدای این دستگاه محلی باقی می‌مانند.');
+    note('تغییرات همهٔ دستگاه‌ها به‌صورت خودکار هماهنگ شدند.');
   }
   function reconcileRemote(remote, attempt) {
     attempt = attempt || 0;
@@ -348,12 +283,12 @@
       // The row may have been removed or temporarily hidden. Re-create from the local copy instead of discarding it.
       note('رکورد ابری در دسترس نیست؛ نسخهٔ محلی حفظ و برای بازیابی ارسال می‌شود.', true);
     }
-    var base = meta.initialized && meta.basePayload ? normalizeSyncPayload(meta.basePayload) : {};
-    var remotePayload = remote && remote.payload && typeof remote.payload === 'object' ? normalizeSyncPayload(remote.payload) : (meta.initialized && meta.basePayload ? normalizeSyncPayload(meta.basePayload) : {});
+    var base = meta.initialized && meta.basePayload ? meta.basePayload : {};
+    var remotePayload = remote && remote.payload && typeof remote.payload === 'object' ? remote.payload : (meta.initialized && meta.basePayload ? meta.basePayload : {});
     var merged = mergePayload(base, localAtStart, remotePayload, localTime, remoteTime);
     writeLocalPayload(merged, remote && remote.updated_at);
     var localNow = snapshot();
-    if (remote && payloadEqual(localNow, normalizeSyncPayload(remote.payload)) && !payloadHasLegacyDeviceSettings(remote.payload)) {
+    if (remote && payloadEqual(localNow, remote.payload)) {
       updateSyncedMeta(remote);
       if (state.localRevision !== revisionAtStart) { state.dirty = true; setMeta({ dirty: true }); setTimeout(function () { runSync(false); }, 120); }
       return Promise.resolve(remote);
@@ -363,14 +298,14 @@
       if (result.conflict) return getRemote().then(function (latest) { return reconcileRemote(latest, attempt + 1); });
       var savedRow = result.row || { payload: localNow, updated_at: null };
       var currentChanged = state.localRevision !== revisionAtStart;
-      setMeta({ lastRemoteUpdatedAt: savedRow.updated_at, initialized: true, dirty: currentChanged, basePayload: normalizeSyncPayload(savedRow.payload || localNow), lastLocalChangeAt: currentChanged ? (state.lastLocalChangeAt || Date.now()) : 0 });
+      setMeta({ lastRemoteUpdatedAt: savedRow.updated_at, initialized: true, dirty: currentChanged, basePayload: savedRow.payload || localNow, lastLocalChangeAt: currentChanged ? (state.lastLocalChangeAt || Date.now()) : 0 });
       state.dirty = currentChanged;
       if (currentChanged) {
         setStatus('تغییر تازه در صف ارسال', 'warn');
         setTimeout(function () { runSync(false); }, 120);
       } else {
         setStatus('همگام است', 'ok');
-        note('اطلاعات آموزشی همگام شدند؛ تنظیمات ظاهری و صدای این دستگاه محلی باقی می‌مانند.');
+        note('تغییرات همهٔ دستگاه‌ها به‌صورت خودکار هماهنگ شدند.');
       }
       return savedRow;
     });
@@ -468,7 +403,6 @@
           state.realtimeReady = true; setStatus('همگام‌سازی زنده فعال', 'ok');
         } else if (message.payload.status === 'error') {
           state.realtimeReady = false; note('کانال زنده موقتاً قطع شد؛ همگام‌سازی پشتیبان ادامه دارد.');
-          try { ws.close(); } catch (e) {}
         }
       }
     };
@@ -476,7 +410,6 @@
     ws.onclose = function () {
       if (state.heartbeat) clearInterval(state.heartbeat); state.heartbeat = null;
       if (state.realtime === ws) { state.realtime = null; state.realtimeReady = false; }
-      if (getSession() && navigator.onLine) setStatus('همگام‌سازی پشتیبان فعال است', 'warn');
       scheduleRealtimeReconnect();
     };
   }
@@ -488,22 +421,19 @@
   }
   function queueSync() {
     if (state.applying) return;
-    if (!getSession()) return;
-    var metaBeforeQueue = getMeta();
-    if (metaBeforeQueue.initialized && payloadEqual(snapshot(), normalizeSyncPayload(metaBeforeQueue.basePayload || {}))) return;
     state.localRevision += 1;
     state.lastLocalChangeAt = Date.now();
+    if (!getSession()) return;
     state.dirty = true; setMeta({ dirty: true, lastLocalChangeAt: state.lastLocalChangeAt });
     setStatus(navigator.onLine ? 'در حال ارسال تغییر…' : 'آفلاین؛ ذخیرهٔ محلی', 'warn');
     clearTimeout(queueSync.timer);
-    queueSync.timer = setTimeout(function () { runSync(false); }, 60);
+    queueSync.timer = setTimeout(function () { runSync(false); }, 120);
   }
   function beginPolling() {
     if (state.poll) clearInterval(state.poll);
-    // Realtime is the primary path. Poll only as a recovery path while the socket is unavailable.
     state.poll = setInterval(function () {
-      if (!state.realtimeReady && document.visibilityState !== 'hidden' && navigator.onLine && getSession()) runSync(false);
-    }, 18000);
+      if (document.visibilityState !== 'hidden' && navigator.onLine && getSession()) runSync(false);
+    }, 12000);
   }
   function clearPendingRemote() { state.queuedRemote = null; }
   function refreshAccountUI() {
@@ -600,7 +530,7 @@
     document.head.appendChild(css);
     var markup = '<button id="sosCloudPill" type="button" aria-expanded="false" aria-label="وضع همگام‌سازی"><span id="sosCloudDot" class="sos-cloud-dot"></span><span class="sos-cloud-glyph" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7.2 18h9.6a4.4 4.4 0 0 0 .7-8.75 5.7 5.7 0 0 0-11.1 1.2A3.8 3.8 0 0 0 7.2 18Z"/></svg></span></button>' +
       '<section id="sosCloudPanel" hidden aria-label="همگام‌سازی ابری"><div class="sos-cloud-top"><div><h3>همگام‌سازی Study OS</h3><div id="sosCloudStatusText" class="sos-cloud-small">فقط روی این دستگاه</div></div><button id="sosCloudClose" class="secondary" type="button">بستن</button></div>' +
-      '<p>آزمون‌ها، پاسخ‌ها، شمارش تست، برنامه‌ها، کارها، مرورها و جلسه‌های مطالعه بین دستگاه‌ها همگام می‌شوند. تم، نورپردازی، چیدمان، موسیقی و تنظیمات نمایشی فقط روی همین دستگاه می‌مانند.</p>' +
+      '<p>اطلاعات ابتدا روی همین دستگاه ذخیره می‌شوند. با اتصال اینترنت، تغییرات بین دستگاه‌ها هماهنگ می‌شود.</p>' +
       '<label for="sosCloudUrl">نشانی پروژهٔ Supabase</label><input id="sosCloudUrl" inputmode="url" autocomplete="url" placeholder="https://your-project.supabase.co">' +
       '<label for="sosCloudKey">کلید عمومی (anon / publishable)</label><input id="sosCloudKey" type="password" autocomplete="off" placeholder="کلید عمومی پروژه">' +
       '<div class="sos-cloud-actions"><button id="sosCloudSaveConfig" type="button">ذخیرهٔ تنظیمات پروژه</button><button id="sosInstallApp" type="button" class="secondary">افزودن به صفحهٔ اصلی</button></div>' +
