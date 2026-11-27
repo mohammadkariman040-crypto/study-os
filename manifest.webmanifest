@@ -1,8 +1,8 @@
 {
   "id": "./",
-  "name": "Study OS",
+  "name": "Study OS | محیط مطالعه",
   "short_name": "Study OS",
-  "description": "محیط یکپارچهٔ برنامه‌ریزی، مطالعه، مرور و آزمون",
+  "description": "محیط یکپارچهٔ مطالعه، آزمون، برنامه‌ریزی و مرور",
   "lang": "fa",
   "dir": "rtl",
   "start_url": "./",

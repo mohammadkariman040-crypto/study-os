@@ -1,0 +1,46 @@
+Study OS v93 beta — QA status (2026-11-27, updated)
+
+AUTOMATED STATIC / LOGIC CHECKS: 20/20 PASSED
+1. App extension, cloud sync and service worker JavaScript parse.
+2. Persian timer digit-formatting and timer formatter are unchanged compared with stable v91 source.
+3. Manual tests are not double-counted in AI's aggregate context.
+4. A +5 to +10 percentage-point practice target is withheld until three comparable results exist.
+5. Imported test-date counts and weekday patterns match the supplied schedules (23 Kanoon, 17 Maz, 17 Arman); the Kanoon winter online exam is 4 Dey 1405, as shown in the source PDF.
+6. Cloud sync uses the two existing educational stores and strips device-local study/goal settings.
+7. The 10-second goal prompt does not add paused seconds to measured study time and auto-resumes when no action is taken.
+8. A multi-day report is a single aggregate report; exactly seven selected days produce seven separately opened daily reports.
+9. Answer/key card updates target only the changed question card.
+10. External-review items respect subject, source and chapter filters.
+11. Focus-music choices, user-initiated playback, IFrame volume/pause messages and external YouTube fallback are wired.
+12. Shared account data requires owner consent, audit logging; summary access returns aggregate counts only.
+13. AI calls require guardian approval in the browser plus a server-side approved-user allowlist; attached files require a separate PII-removal confirmation.
+14. Music preference falls back to a real selection and displayed durations are explicit.
+15. Daily PDF source includes sessions, plans, tasks and subject-wise test detail.
+16. AI prompt requests source-grounded topic-level analysis only where data is present and suppresses identifying information.
+17. Admin and AI Edge Functions fail closed if primary-admin profile initialization fails.
+18. All 17 inline JavaScript blocks parse; required assets exist and manifest JSON parses.
+19. SQL migration is additive and does not alter/drop/truncate the existing study_os_sync table; quota execution is restricted to service_role.
+20. Appearance, layout and media preference keys are not included in the cloud sync allowlist.
+
+ADDITIONAL STATIC CHECKS PASSED
+- study-os-v93.js, cloud-sync.js and sw.js pass `node --check`.
+- Both Supabase Edge Function TypeScript files pass `tsc --noEmit` using local Deno/Supabase declarations (this is type/syntax validation, not deployed-edge runtime validation).
+- Stable v91 timer digit/formatter functions are compared against the v93 main HTML source.
+
+NOT YET VERIFIED / REQUIRES ENVIRONMENT OR HUMAN TEST
+- No interactive browser test in real Chrome was completed in this runtime; the browser harness could not open local preview URLs.
+- No physical testing was possible on Windows Chrome or the Lenovo tablet. Portrait/landscape layout, PWA/service-worker update behavior and screen-specific UI still require the manual checklist.
+- The print-to-PDF output has not been visually rendered from an actual Chrome print dialog. The HTML print templates are statically checked only.
+- SQL has not been run against a disposable Supabase project; migration/runtime permissions still need a safe staging test.
+- The AI and admin Edge Functions are not deployed. They need Supabase migration/functions/secrets. The `STUDY_OS_AI_GUARDIAN_APPROVED_USER_IDS` allowlist must remain empty until a legal guardian approves its use and cost. Never put secret keys in GitHub/public browser code.
+- `store:false` disables Responses application-state storage but does not itself enable Zero Data Retention. Default API abuse-monitoring logs may retain content up to 30 days; API inputs are not used for training by default unless the organization opts in.
+- No post-browser-closed push notification service is included; reminders are checked while the app is open/active.
+- YouTube playback is dependent on availability, browser support and network access. The app does not bypass any network restriction.
+- The current cloud layer remains v92 snapshot-based realtime sync, not per-record/event-based sync. Shared learning records and local device preferences remain separated within the current two-store model.
+- The calendar dates are transcribed from source documents. Some very small/ambiguous Kanoon page ranges are deliberately not invented; Kanoon events retain source-column references, and Arman uses the readable biology budget only. The supplied Arman schedule's other-subject budgets are not safely extractable from its visible page.
+- No weekly school/teacher class dates were invented; these must be entered by the user.
+- No Kanoon sample report card has been uploaded. Available Maz and Arman report samples are not copied with personal identifiers into the calendar or app seed data.
+
+PRODUCTION SAFETY
+- This is an offline beta package. No GitHub, GitHub Pages, Supabase production schema, account, or live data has been changed by this build.
+- Do not test live cloud sync with real data before completing manual tests with a disposable account/record and retaining the user's JSON backup.

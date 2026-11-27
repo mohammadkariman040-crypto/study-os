@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#111c33"/><stop offset="1" stop-color="#263b67"/></linearGradient><linearGradient id="book" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#e7f3ff"/><stop offset="1" stop-color="#83c8f2"/></linearGradient><linearGradient id="accent" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#7be0cb"/><stop offset="1" stop-color="#68bdf2"/></linearGradient></defs>
+<rect x="20" y="20" width="472" height="472" rx="116" fill="url(#bg)"/>
+<path d="M256 382c-44-27-103-44-155-40V150c56-5 112 11 155 39 43-28 99-44 155-39v192c-52-4-111 13-155 40Z" fill="none" stroke="url(#book)" stroke-width="20" stroke-linejoin="round"/>
+<path d="M256 189v193M101 150v192M411 150v192" fill="none" stroke="url(#accent)" stroke-width="13" stroke-linecap="round"/>
+<path d="M124 183c42 0 79 12 111 32M388 183c-42 0-79 12-111 32" fill="none" stroke="#ffffff" stroke-opacity=".52" stroke-width="10" stroke-linecap="round"/>
+<circle cx="376" cy="112" r="22" fill="#ffd36b"/><path d="M376 72v-18M376 170v-18M336 112h-18M434 112h-18M348 84l-13-13M417 153l-13-13" stroke="#ffd36b" stroke-width="9" stroke-linecap="round"/>
+<circle cx="143" cy="112" r="9" fill="#7be0cb"/><circle cx="164" cy="92" r="5" fill="#7be0cb"/><circle cx="127" cy="91" r="4" fill="#7be0cb"/>
+</svg>
