@@ -1,15 +1,17 @@
-/* Study OS cloud sync v92 — shared learning data only, device-local preferences, realtime-first sync. */
+/* Study OS cloud sync v94 — production: educational data sync only; device-local preferences retained locally. */
 (function () {
   'use strict';
+  // Production compatibility: retain the existing v79 config/session/meta keys so current accounts stay signed in.
   var CONFIG_KEY = 'studyOSCloudConfigV79';
   var SESSION_KEY = 'studyOSCloudSessionV79';
   var META_KEY = 'studyOSCloudMetaV79';
-  // Public browser key only; RLS protects each user's private row.
+  // Public publishable browser key only; RLS protects each user's private row. Never put service_role/secret keys here.
   var DEFAULT_CONFIG = {
     url: 'https://mekwowszoevgyrsguhxo.supabase.co',
     key: 'sb_publishable_GbzAB9CnD-zeVG3rF3RYHg__6-f9Plu'
   };
-  // Only learning records are shared. Appearance, layout, sound and per-device UI state stay local.
+  // Only the two educational stores are shared. Previous v79 session/config keys remain compatible.
+  // Legacy preference keys in old remote snapshots are filtered and removed on the next successful sync.
   var DATA_KEYS = ['pasokhBargDigitalV2', 'pasokhBargStudyOS_v2'];
   var STUDY_DATA_KEY = 'pasokhBargStudyOS_v2';
   // These fields describe this device's view/preferences, not the learner's shared academic record.
@@ -135,7 +137,7 @@
     if (el) { el.textContent = msg; el.className = 'sos-cloud-note' + (isError ? ' error' : ''); }
   }
   function setBusy(busy) {
-    ['sosCloudSignup','sosCloudLogin','sosCloudSyncNow','sosCloudSaveConfig'].forEach(function (id) {
+    ['sosCloudSignup','sosCloudLogin','sosCloudSyncNow','sosCloudSaveConfig','sosCloudSetPassword'].forEach(function (id) {
       var el = byId(id); if (el) el.disabled = !!busy;
     });
   }
@@ -509,18 +511,37 @@
   function refreshAccountUI() {
     var logged = !!(getSession() && getSession().access_token);
     var auth = byId('sosCloudAuthFields'), logout = byId('sosCloudLogout'), login = byId('sosCloudLogin'), signup = byId('sosCloudSignup'), sync = byId('sosCloudSyncNow');
+    var inviteSetup = byId('sosCloudInviteSetup');
+    var invitePending = readJSON('studyOSCloudInvitePendingV79', false) === true;
     if (auth) auth.hidden = logged;
+    if (inviteSetup) inviteSetup.hidden = !(logged && invitePending);
     if (logout) logout.hidden = !logged;
     if (login) login.hidden = logged;
     if (signup) signup.hidden = logged;
     if (sync) sync.hidden = !logged;
     if (logged) setStatus('حساب متصل', 'ok'); else setStatus('فقط روی این دستگاه', 'idle');
   }
+  function setInvitePassword() {
+    var c = getConfig(), session = getSession(), password = (byId('sosCloudInvitePassword').value || '');
+    if (!session || !session.access_token) return Promise.reject(new Error('لینک دعوت منقضی شده است؛ دوباره از مدیر اصلی دعوت بخواه.'));
+    if (password.length < 8) return Promise.reject(new Error('گذرواژه باید حداقل ۸ نویسه داشته باشد.'));
+    return fetch(c.url + '/auth/v1/user', {
+      method: 'PUT',
+      headers: { apikey: c.key, Authorization: 'Bearer ' + session.access_token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: password })
+    }).then(parseResponse).then(function () {
+      byId('sosCloudInvitePassword').value = '';
+      localStorage.removeItem('studyOSCloudInvitePendingV79');
+      refreshAccountUI();
+      note('گذرواژه ثبت شد؛ همگام‌سازی حساب آغاز می‌شود.');
+      return startSync(true);
+    });
+  }
   function logout() {
     stopRealtime();
     var c = getConfig(), s = getSession();
     var req = s ? fetch(c.url + '/auth/v1/logout', { method: 'POST', headers: { apikey: c.key, Authorization: 'Bearer ' + s.access_token } }).catch(function () {}) : Promise.resolve();
-    return req.then(function () { localStorage.removeItem(SESSION_KEY); state.session = null; state.dirty = false; refreshAccountUI(); setStatus('فقط روی این دستگاه', 'idle'); note('از حساب ابری خارج شدی؛ اطلاعات محلی این دستگاه پاک نشده است.'); });
+    return req.then(function () { localStorage.removeItem(SESSION_KEY); localStorage.removeItem('studyOSCloudInvitePendingV79'); state.session = null; state.dirty = false; refreshAccountUI(); setStatus('فقط روی این دستگاه', 'idle'); note('از حساب ابری خارج شدی؛ اطلاعات محلی این دستگاه پاک نشده است.'); });
   }
   function saveConfig() {
     var url = cleanUrl(byId('sosCloudUrl').value), key = (byId('sosCloudKey').value || '').trim();
@@ -604,17 +625,18 @@
       '<label for="sosCloudUrl">نشانی پروژهٔ Supabase</label><input id="sosCloudUrl" inputmode="url" autocomplete="url" placeholder="https://your-project.supabase.co">' +
       '<label for="sosCloudKey">کلید عمومی (anon / publishable)</label><input id="sosCloudKey" type="password" autocomplete="off" placeholder="کلید عمومی پروژه">' +
       '<div class="sos-cloud-actions"><button id="sosCloudSaveConfig" type="button">ذخیرهٔ تنظیمات پروژه</button><button id="sosInstallApp" type="button" class="secondary">افزودن به صفحهٔ اصلی</button></div>' +
-      '<div id="sosCloudAuthFields"><label for="sosCloudEmail">ایمیل حساب</label><input id="sosCloudEmail" type="email" autocomplete="username" placeholder="name@example.com"><label for="sosCloudPassword">گذرواژه</label><input id="sosCloudPassword" type="password" autocomplete="current-password" placeholder="حداقل ۸ نویسه"><div class="sos-cloud-actions"><button id="sosCloudLogin" type="button">ورود</button><button id="sosCloudSignup" type="button" class="secondary">ساخت حساب</button></div></div>' +
+      '<div id="sosCloudAuthFields"><label for="sosCloudEmail">ایمیل حساب</label><input id="sosCloudEmail" type="email" autocomplete="username" placeholder="ایمیل حساب"><label for="sosCloudPassword">گذرواژه</label><input id="sosCloudPassword" type="password" autocomplete="current-password" placeholder="گذرواژه"><div class="sos-cloud-actions"><button id="sosCloudLogin" type="button">ورود</button><span class="sos-cloud-small" id="sosCloudInviteOnly">ثبت‌نام فقط با دعوت مدیر اصلی انجام می‌شود.</span></div></div>' +
+      '<section id="sosCloudInviteSetup" hidden><label for="sosCloudInvitePassword">برای تکمیل دعوت، گذرواژهٔ جدید بساز</label><input id="sosCloudInvitePassword" type="password" autocomplete="new-password" placeholder="حداقل ۸ نویسه"><button id="sosCloudSetPassword" type="button">ثبت گذرواژه و ورود</button></section>' +
       '<div class="sos-cloud-actions"><button id="sosCloudSyncNow" type="button" hidden>همگام‌سازی همین حالا</button><button id="sosCloudLogout" type="button" class="secondary" hidden>خروج از حساب</button></div>' +
       '<div id="sosCloudChoice" class="sos-cloud-choice" hidden></div><div id="sosCloudNote" class="sos-cloud-note">هنوز به فضای ابری وصل نشده‌ای.</div>' +
       '<div class="sos-cloud-warning">فقط کلید عمومی پروژه را وارد کن؛ کلید service_role محرمانه است و نباید در برنامه قرار بگیرد.</div>' +
-      '<div class="sos-cloud-small">نشانی و کلید عمومی پروژهٔ Study OS از قبل تنظیم شده‌اند. فقط حساب خودت را بساز یا وارد شو. برنامه ابتدا محلی ذخیره می‌کند و با اینترنت همگام می‌شود.</div></section>';
+      '<div class="sos-cloud-small">اتصال پروژهٔ Study OS از قبل تنظیم شده است. ورود با حساب موجود یا دعوت مدیر اصلی انجام می‌شود. داده‌ها ابتدا محلی ذخیره و سپس با اینترنت همگام می‌شوند.</div></section>';
     document.body.insertAdjacentHTML('beforeend', markup);
     byId('sosCloudPill').onclick = function () { showPanel(!state.panelOpen); };
     byId('sosCloudClose').onclick = function () { showPanel(false); };
     byId('sosCloudSaveConfig').onclick = function () { try { saveConfig(); } catch (e) { note(e.message, true); } };
-    byId('sosCloudSignup').onclick = function () { setBusy(true); signup().catch(function (e) { note('ساخت حساب انجام نشد: ' + e.message, true); }).then(function () { setBusy(false); }); };
     byId('sosCloudLogin').onclick = function () { setBusy(true); login().catch(function (e) { note('ورود انجام نشد: ' + e.message, true); }).then(function () { setBusy(false); }); };
+    byId('sosCloudSetPassword').onclick = function () { setBusy(true); setInvitePassword().catch(function (e) { note('ثبت گذرواژه انجام نشد: ' + e.message, true); }).then(function () { setBusy(false); }); };
     byId('sosCloudSyncNow').onclick = function () { runSync(true); };
     byId('sosCloudLogout').onclick = logout;
     byId('sosInstallApp').onclick = installApp;
@@ -645,14 +667,55 @@
   }
   function registerWorker() {
     if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
-      window.addEventListener('load', function () { navigator.serviceWorker.register('./sw.js', { scope: './' }).catch(function (err) { console.warn('Study OS offline setup:', err); }); });
+      window.addEventListener('load', function () { navigator.serviceWorker.register('./sw.js?v=94', { scope: './' }).catch(function (err) { console.warn('Study OS offline setup:', err); }); });
     }
   }
+  function captureAuthCallback() {
+    // Supabase invite/confirmation links may return an implicit-flow token in the URL fragment.
+    // Persist only the standard session fields, then remove tokens from the visible address bar.
+    var hash = String(window.location.hash || '').replace(/^#/, '');
+    if (!hash) return null;
+    var params;
+    try { params = new URLSearchParams(hash); } catch (e) { return null; }
+    var authError = params.get('error_description') || params.get('error');
+    if (authError) { try { localStorage.setItem('studyOSCloudAuthCallbackErrorV79', String(authError).slice(0, 500)); } catch (e) {} }
+    var access = params.get('access_token');
+    if (!access) return null;
+    var expiresIn = Math.max(60, Number(params.get('expires_in')) || 3600);
+    var user = null;
+    try {
+      var parts = access.split('.');
+      if (parts.length >= 2) {
+        var payload = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+        user = JSON.parse(decodeURIComponent(escape(atob(payload))));
+      }
+    } catch (e) { user = null; }
+    var session = {
+      access_token: access,
+      refresh_token: params.get('refresh_token') || null,
+      token_type: params.get('token_type') || 'bearer',
+      expires_at: Date.now() + expiresIn * 1000,
+      user: user ? { id: user.sub || null, email: user.email || null } : null
+    };
+    writeJSON(SESSION_KEY, session);
+    if (params.get('type') === 'invite' || params.get('type') === 'recovery') writeJSON('studyOSCloudInvitePendingV79', true);
+    try { window.history.replaceState({}, document.title, window.location.pathname + window.location.search); } catch (e) {}
+    return session;
+  }
   function init() {
-    buildUI(); installHooks(); registerWorker();
+    captureAuthCallback();
+    buildUI();
+    var callbackError = localStorage.getItem('studyOSCloudAuthCallbackErrorV79');
+    if (callbackError) { note('تأیید دعوت کامل نشد: ' + callbackError, true); localStorage.removeItem('studyOSCloudAuthCallbackErrorV79'); }
+    installHooks(); registerWorker();
     if (getSession()) {
       state.session = getSession();
-      if (navigator.onLine) startSync(false); else setStatus('آفلاین؛ اطلاعات محلی محفوظ است', 'warn');
+      if (readJSON('studyOSCloudInvitePendingV79', false) === true) {
+        setStatus('دعوت تأیید شد؛ گذرواژه را ثبت کن', 'warn');
+        note('برای تکمیل دعوت ایمیلی، یک گذرواژهٔ جدید بساز. تا آن زمان همگام‌سازی شروع نمی‌شود.');
+        refreshAccountUI();
+      } else if (navigator.onLine) startSync(false);
+      else setStatus('آفلاین؛ اطلاعات محلی محفوظ است', 'warn');
     }
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
