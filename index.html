@@ -1529,10 +1529,15 @@ $('importFile').onchange=async ev=>{const f=ev.target.files[0];if(!f)return;try{
 window.addEventListener('beforeunload',()=>{const e=activeExam()?.exam;if(e){e.remaining=remaining;persist()}});
 // V89 live-cloud bridge: merge incoming exam data into the current in-memory DB without leaving the active screen.
 let cloudExamRefreshQueuedV89=false;
+let cloudExamDataPendingV92=false;
 function refreshExamAfterCloudV89(){
  if(cloudExamRefreshQueuedV89)return;
  const active=document.activeElement;
  if(active&&active.matches&&active.matches('input,textarea,select,[contenteditable="true"]')){cloudExamRefreshQueuedV89=true;return;}
+ if(cloudExamDataPendingV92){
+  try{const raw=localStorage.getItem(STORE);db=normalizeDB(raw?JSON.parse(raw):{books:[],dailyTestLog:[]});cloudExamDataPendingV92=false;}
+  catch(err){console.warn('Cloud exam data could not be parsed:',err);return;}
+ }
  const isExamVisible=!document.body.classList.contains('study-os-active-v63')&&!$('examArea').classList.contains('hidden')&&getComputedStyle($('examArea')).display!=='none';
  const qScroll=$('questions')?.scrollTop||0,keyScroll=$('answerKey')?.scrollTop||0,wsScroll=$('answerWorkspace')?.scrollTop||0;
  const keepQ=currentQuestionNumberV58,keepK=currentKeyQuestionNumberV70;
@@ -1540,16 +1545,19 @@ function refreshExamAfterCloudV89(){
   renderExam();renderKey();renderStats();renderDailyTests();if(historyVisible)renderHistory();
   currentQuestionNumberV58=keepQ;currentKeyQuestionNumberV70=keepK;
   requestAnimationFrame(()=>{if($('questions'))$('questions').scrollTop=qScroll;if($('answerKey'))$('answerKey').scrollTop=keyScroll;if($('answerWorkspace'))$('answerWorkspace').scrollTop=wsScroll;});
- }else if(!isExamVisible){renderSelectors();renderDailyTests();}
+ }else if(!isExamVisible){
+  renderSelectors();renderDailyTests();
+  if(document.body.classList.contains('study-os-active-v63'))window.dispatchEvent(new CustomEvent('studyos:cloud-exam-updated'));
+ }
  cloudExamRefreshQueuedV89=false;
 }
 window.__refreshExamAfterCloudV89=refreshExamAfterCloudV89;
 window.addEventListener('studyos:cloud-data-updated',ev=>{
  const keys=ev.detail?.changedKeys||[];if(!keys.includes(STORE))return;
- try{const raw=localStorage.getItem(STORE);if(raw)db=normalizeDB(JSON.parse(raw));else db=normalizeDB({books:[],dailyTestLog:[]});}catch(err){console.warn('Cloud exam data could not be parsed:',err);return;}
+ cloudExamDataPendingV92=true;
  refreshExamAfterCloudV89();
 });
-document.addEventListener('focusout',()=>{if(cloudExamRefreshQueuedV89)requestAnimationFrame(refreshExamAfterCloudV89)},true);
+document.addEventListener('focusout',()=>{if(cloudExamRefreshQueuedV89)requestAnimationFrame(()=>{cloudExamRefreshQueuedV89=false;refreshExamAfterCloudV89()})},true);
 
 // Sidebar controls: keep the panel toggle independent from exam data and answer storage.
 const mainLayout=document.querySelector('main');
@@ -2912,14 +2920,19 @@ const checkClockBeforeFocusV68=checkClock;
 checkClock=function(){checkClockBeforeFocusV68();if(activeTab==='dash')updateFocusNumbersV68();};
 // V89 live-cloud bridge: refresh study data in place, preserving the active tab and scroll position.
 let cloudStudyRefreshQueuedV89=false;
+let cloudStudyDataPendingV92=false;
 function refreshStudyAfterCloudV89(){
  if(cloudStudyRefreshQueuedV89)return;
  const active=document.activeElement;
  if(active&&active.matches&&active.matches('input,textarea,select,[contenteditable="true"]')){cloudStudyRefreshQueuedV89=true;return;}
+ if(cloudStudyDataPendingV92){
+  try{const raw=localStorage.getItem(STORAGE);data=normalizeData(raw?JSON.parse(raw):defaultData());cloudStudyDataPendingV92=false;}
+  catch(err){console.warn('Cloud study data could not be parsed:',err);return;}
+ }
  const root=$('studyOS');
  const visible=!!root&&getComputedStyle(root).display!=='none'&&document.body.classList.contains('study-os-active-v63');
  const panelScroll=panel?panel.scrollTop:0;
- if(visible&&activeTab!=='stopwatch'){
+ if(visible){
   render();
   requestAnimationFrame(()=>{if(panel)panel.scrollTop=panelScroll;});
  }
@@ -2927,10 +2940,11 @@ function refreshStudyAfterCloudV89(){
 }
 window.addEventListener('studyos:cloud-data-updated',ev=>{
  const keys=ev.detail?.changedKeys||[];if(!keys.includes(STORAGE))return;
- try{const raw=localStorage.getItem(STORAGE);data=normalizeData(raw?JSON.parse(raw):defaultData());}catch(err){console.warn('Cloud study data could not be parsed:',err);return;}
+ cloudStudyDataPendingV92=true;
  refreshStudyAfterCloudV89();
 });
-document.addEventListener('focusout',()=>{if(cloudStudyRefreshQueuedV89)requestAnimationFrame(refreshStudyAfterCloudV89)},true);
+window.addEventListener('studyos:cloud-exam-updated',()=>refreshStudyAfterCloudV89());
+document.addEventListener('focusout',()=>{if(cloudStudyRefreshQueuedV89)requestAnimationFrame(()=>{cloudStudyRefreshQueuedV89=false;refreshStudyAfterCloudV89()})},true);
 
 
 })();
@@ -5281,10 +5295,10 @@ html.ui-is-scrolling #studyOS .review-chapter-v53:hover,html.ui-is-scrolling #st
 </style>
 
 <script>
-(()=>{if(!('serviceWorker' in navigator)||!/^https?:$/.test(location.protocol))return;window.addEventListener('load',()=>{navigator.serviceWorker.register('./sw.js?v=90',{scope:'./'}).catch(err=>console.warn('Study OS offline setup:',err));});})();
+(()=>{if(!('serviceWorker' in navigator)||!/^https?:$/.test(location.protocol))return;window.addEventListener('load',()=>{navigator.serviceWorker.register('./sw.js?v=92',{scope:'./'}).catch(err=>console.warn('Study OS offline setup:',err));});})();
 </script>
 
-<script src="./cloud-sync.js?v=90"></script>
+<script src="./cloud-sync.js?v=92"></script>
 
 
 <script id="study-os-v84-theme-portal-sync">
