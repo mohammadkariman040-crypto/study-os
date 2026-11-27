@@ -13,7 +13,7 @@
 <link rel="manifest" href="manifest.webmanifest"/>
 <link rel="icon" href="icon-192.png" type="image/png"/>
 <link rel="apple-touch-icon" href="icon-192.png"/>
-<title>Study OS — نسخهٔ ۹۱ · اصلاح انتخاب‌گر دستگاه</title>
+<title>Study OS — نسخهٔ ۹۴ · انتشار نامزد</title>
 <style>
 
 :root{--bg:#f4f7fb;--card:#fff;--ink:#1d2a3a;--muted:#64748b;--line:#dce5ef;--accent:#3769d6;--accent2:#eaf0ff;--good:#18845b;--bad:#c44545;--gold:#b7791f}
@@ -935,7 +935,9 @@ function syncDailyTestAutoMarks(date=localDateKey()){
  const next=[...effective];if(next.length!==row.keys.length||next.some(k=>!row.keys.includes(k))){row.keys=next;persist();}
 }
 function toggleDailyTest(examId,questionNum){const row=dailyTestRow(),key=`${examId}:${questionNum}`,directMarks=new Set([...(row.autoAnswerKeys||[]),...(row.manualKeys||[])].filter(k=>!row.excludedKeys.includes(k)&&k.startsWith(examId+':')).map(k=>Number(k.split(':')[1]))),autoIsOn=(row.autoAnswerKeys||[]).includes(key)||([questionNum-1,questionNum-2].some(n=>directMarks.has(n))&&[questionNum+1,questionNum+2].some(n=>directMarks.has(n))),marked=row.keys.includes(key);if(marked){row.manualKeys=row.manualKeys.filter(k=>k!==key);if(autoIsOn&&!row.excludedKeys.includes(key))row.excludedKeys.push(key);}else{row.excludedKeys=row.excludedKeys.filter(k=>k!==key);if(!autoIsOn&&!row.manualKeys.includes(key))row.manualKeys.push(key);}syncDailyTestAutoMarks();captureDailyTestSnapshots();persist();renderDailyTests();renderExam();renderKey();renderStats();}
-function renderDailyTests(){syncDailyTestAutoMarks();const countEl=$('dailyTestCount'),historyEl=$('dailyTestHistory'),recordEl=$('dailyTestRecord');if(!countEl||!historyEl)return;db.dailyTestLog=Array.isArray(db.dailyTestLog)?db.dailyTestLog:[];const today=localDateKey(),todayRow=db.dailyTestLog.find(x=>x.date===today),todayCount=todayRow?.keys?.length||0;countEl.textContent=fa(todayCount);const maxCount=Math.max(0,...db.dailyTestLog.map(x=>Array.isArray(x.keys)?x.keys.length:0));if(recordEl)recordEl.textContent=fa(maxCount);const rows=[...db.dailyTestLog].filter(x=>Array.isArray(x.keys)&&x.keys.length).sort((a,b)=>b.date.localeCompare(a.date));historyEl.innerHTML=rows.map(x=>`<div class="daily-test-history-row"><span>${new Date(x.date+'T12:00:00').toLocaleDateString('fa-IR')}</span><strong>${fa(x.keys.length)} تست</strong></div>`).join('')||'<div class="muted" style="padding:6px 0">هنوز رکوردی نیست</div>';}
+function renderDailyTests(){syncDailyTestAutoMarks();const countEl=$('dailyTestCount'),historyEl=$('dailyTestHistory'),recordEl=$('dailyTestRecord');if(!countEl||!historyEl)return;db.dailyTestLog=Array.isArray(db.dailyTestLog)?db.dailyTestLog:[];const today=localDateKey(),studyData=(()=>{try{return JSON.parse(localStorage.getItem('pasokhBargStudyOS_v2')||'{}')}catch{return {}}})(),external=Array.isArray(studyData.externalTests)?studyData.externalTests:[],extByDate={};external.forEach(x=>{if(x&&/^\d{4}-\d{2}-\d{2}$/.test(String(x.date||'')))extByDate[x.date]=(extByDate[x.date]||0)+Math.max(0,Number(x.total)||0)});const baseByDate=Object.fromEntries(db.dailyTestLog.map(x=>[x.date,Array.isArray(x.keys)?x.keys.length:0]));const todayCount=(baseByDate[today]||0)+(extByDate[today]||0);countEl.textContent=fa(todayCount);const dates=[...new Set([...Object.keys(baseByDate),...Object.keys(extByDate)])];const maxCount=Math.max(0,...dates.map(d=>(baseByDate[d]||0)+(extByDate[d]||0)));if(recordEl)recordEl.textContent=fa(maxCount);const rows=dates.map(date=>({date,count:(baseByDate[date]||0)+(extByDate[date]||0)})).filter(x=>x.count).sort((a,b)=>b.date.localeCompare(a.date));historyEl.innerHTML=rows.map(x=>`<div class="daily-test-history-row"><span>${new Date(x.date+'T12:00:00').toLocaleDateString('fa-IR')}</span><strong>${fa(x.count)} تست</strong></div>`).join('')||'<div class="muted" style="padding:6px 0">هنوز رکوردی نیست</div>'; }
+let v93DailyCountRefreshGuard=false;
+document.addEventListener('study-os-external-tests-updated',()=>{if(v93DailyCountRefreshGuard)return;v93DailyCountRefreshGuard=true;try{renderDailyTests()}catch(e){console.warn('daily test counter refresh',e)}finally{v93DailyCountRefreshGuard=false}});
 function uid(){return 'x'+Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function selectedBook(){return db.books.find(b=>b.id===$('bookSelect').value)}
@@ -944,16 +946,16 @@ function activeExam(){for(const b of db.books)for(const c of b.chapters){const e
 function timePerQuestion(seconds){return Math.max(1,Number(seconds)||60)}
 function subjectName(s){return db.subjects.find(x=>x.id===s)?.name||({bio:'زیست‌شناسی',earth:'زمین‌شناسی',chem:'شیمی',physics:'فیزیک',math:'ریاضی'})[s]||s}
 function stopTimer(){if(timerHandle)clearInterval(timerHandle);timerHandle=null;running=false}
-function renderSelectors(){
- const oldB=$('bookSelect').value, oldC=$('chapterSelect').value, subject=$('subjectFilter').value;
- $('subjectFilter').innerHTML=db.subjects.map(x=>`<option value="${esc(x.id)}">${esc(x.name)}</option>`).join('');
- if(db.subjects.some(x=>x.id===subject))$('subjectFilter').value=subject;
+function renderSelectors(preserve=true){
+ const oldB=preserve?$('bookSelect').value:'', oldC=preserve?$('chapterSelect').value:'', subject=preserve?$('subjectFilter').value:'';
+ $('subjectFilter').innerHTML='<option value="">انتخاب درس…</option>'+db.subjects.map(x=>`<option value="${esc(x.id)}">${esc(x.name)}</option>`).join('');
+ if(subject&&db.subjects.some(x=>x.id===subject))$('subjectFilter').value=subject;else $('subjectFilter').value='';
  const currentSubject=$('subjectFilter').value;
- const books=db.books.filter(b=>(b.subject||'other')===currentSubject);
- $('bookSelect').innerHTML=books.length?books.map(b=>`<option value="${b.id}">${esc(b.name)}</option>`).join(''):'<option value="">برای این درس هنوز کتابی ثبت نشده</option>';
- if(books.some(b=>b.id===oldB))$('bookSelect').value=oldB;
- const b=selectedBook();$('chapterSelect').innerHTML=b&&b.chapters.length?b.chapters.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join(''):'<option value="">فصلی وجود ندارد</option>';
- if(b&&b.chapters.some(c=>c.id===oldC))$('chapterSelect').value=oldC;
+ const books=currentSubject?db.books.filter(b=>(b.subject||'other')===currentSubject):[];
+ $('bookSelect').innerHTML='<option value="">'+(currentSubject?'انتخاب منبع…':'ابتدا درس را انتخاب کن')+'</option>'+(books.length?books.map(b=>`<option value="${esc(b.id)}">${esc(b.name)}</option>`).join(''):'');
+ if(oldB&&books.some(b=>b.id===oldB))$('bookSelect').value=oldB;else $('bookSelect').value='';
+ const b=selectedBook();$('chapterSelect').innerHTML='<option value="">'+(b?'انتخاب فصل…':'ابتدا منبع را انتخاب کن')+'</option>'+(b&&b.chapters.length?b.chapters.map(c=>`<option value="${esc(c.id)}">${esc(c.name)}</option>`).join(''):'');
+ if(b&&oldC&&b.chapters.some(c=>c.id===oldC))$('chapterSelect').value=oldC;else $('chapterSelect').value='';
  renderExamList();
 }
 function renderExamList(){
@@ -975,6 +977,7 @@ function renderExamList(){
 function openExam(id){renderDailyTests();
  stopTimer();activeId=id;currentQuestionNumberV58=null;currentKeyQuestionNumberV70=null;filter='all';shuffleEnabled=false;shuffleOrder=[];$('shuffleQuestions').textContent='🔀 ترتیب تصادفی: خاموش';const found=activeExamById(id);if(!found)return;
  const e=found.exam;activeSubtestId=null;editingSubtestId=null;remaining=e.remaining==null?e.duration:e.remaining;timerExamId=id;
+ $('subjectFilter').value=found.book.subject||e.subject||'';renderSelectors(false);$('bookSelect').value=found.book.id;$('bookSelect').dispatchEvent(new Event('change'));$('chapterSelect').value=found.chapter.id;
  $('welcome').classList.add('hidden');$('examArea').classList.remove('hidden');
  $('activeExamTitle').textContent=e.name;
  $('activeExamMeta').textContent=`${found.book.name} ← ${found.chapter.name} • ${subjectName(e.subject)} • سؤال ${e.start} تا ${e.end}`;
@@ -1050,13 +1053,13 @@ function handleAnswerKeyShortcutsV70(ev,eventDoc,target){
  const n=Number(currentKeyQuestionNumberV70),q=getQ(n);if(!q)return true;
  if(rawKey==='delete'||code==='Delete'||rawKey==='backspace'||code==='Backspace'){
   ev.preventDefault();
-  if(q.key!=null){q.key=null;persist();renderKey();renderExam();renderStats();captureDailyTestSnapshots();updateCurrentKeyQuestionV70(n,true,eventDoc);}
+  if(q.key!=null){q.key=null;persist();refreshKeyCardV93(n,eventDoc);refreshQuestionCardV93(n,eventDoc);if(filter==='wrong')renderExam();renderStats();captureDailyTestSnapshots();updateCurrentKeyQuestionV70(n,true,eventDoc);}
   return true;
  }
  if(option){
   ev.preventDefault();const idx=cards.findIndex(card=>Number(card.dataset.keyCard)===n);const next=idx>=0&&cards[idx+1]?Number(cards[idx+1].dataset.keyCard):n;
-  q.key=q.key===Number(option)?null:Number(option);persist();renderKey();
-  if(activeExam()?.exam&&(activeExam().exam.resultsApplied||liveCorrectMode)){renderExam();renderStats();captureDailyTestSnapshots();}
+  q.key=q.key===Number(option)?null:Number(option);persist();refreshKeyCardV93(n,eventDoc);
+  if(activeExam()?.exam&&(activeExam().exam.resultsApplied||liveCorrectMode)){refreshQuestionCardV93(n,eventDoc);if(filter==='wrong')renderExam();renderStats();captureDailyTestSnapshots();}
   const after=[...grid.querySelectorAll('[data-key-card]')];const targetN=after.some(card=>Number(card.dataset.keyCard)===next)?next:n;
   updateCurrentKeyQuestionV70(targetN,true,eventDoc);return true;
  }
@@ -1129,11 +1132,53 @@ function questionVisualStateV74(q,e){
   correctState:revealCorrect&&hasAttempt&&!isWrong
  };
 }
+function questionMatchesFilterV93(q,exam,mode=filter){if(!q||!exam)return false;if(mode==='wrong')return q.key!=null&&q.answer!=null&&q.answer!==q.key;if(mode==='blank')return q.answer==null;if(mode==='important')return !!q.important;return true;}
+function refreshQuestionCardV93(questionNumber,doc=document){
+ const exam=activeExam()?.exam,q=exam?.questions?.find(item=>Number(item.n)===Number(questionNumber));
+ const box=(doc&&doc.getElementById?doc.getElementById('questions'):null)||$('questions');
+ const card=box?.querySelector(`[data-q-card="${Number(questionNumber)}"]`);
+ if(!q||!exam||!card)return false;
+ const visual=questionVisualStateV74(q,exam);
+ card.classList.toggle('important',!!q.important);
+ card.classList.toggle('wrong',!!visual.isWrong);
+ card.classList.toggle('unanswered',!!visual.unanswered);
+ card.classList.toggle('answered-ungraded',!!visual.answeredUngraded);
+ card.classList.toggle('answer-correct-state',!!visual.correctState);
+ card.classList.toggle('marked-for-review',!!q.marked);
+ card.querySelectorAll('[data-a]').forEach(opt=>{
+  const option=Number(opt.dataset.a);
+  opt.classList.toggle('selected',q.answer===option);
+  opt.classList.toggle('answer-correct',!!visual.revealCorrect&&q.key===option);
+  opt.classList.toggle('answer-wrong',!!visual.revealCorrect&&visual.isWrong&&q.answer===option);
+ });
+ const mark=card.querySelector(`[data-daily-mark="${Number(questionNumber)}"]`);
+ if(mark){mark.classList.toggle('active',!!visual.dailyMarked);mark.textContent=visual.dailyMarked?'✓':'○';}
+ return true;
+}
+function refreshKeyCardV93(questionNumber,doc=document){
+ const exam=activeExam()?.exam,q=exam?.questions?.find(item=>Number(item.n)===Number(questionNumber));
+ const grid=(doc&&doc.getElementById?doc.getElementById('answerKey'):null)||$('answerKey');
+ const card=grid?.querySelector(`[data-key-card="${Number(questionNumber)}"]`);
+ if(!q||!exam||!card)return false;
+ const visual=questionVisualStateV74(q,exam);
+ card.classList.toggle('important',!!q.important);
+ card.classList.toggle('wrong',!!visual.isWrong);
+ card.classList.toggle('unanswered',!!visual.unanswered);
+ card.classList.toggle('answered-ungraded',!!visual.answeredUngraded);
+ card.classList.toggle('answer-correct-state',!!visual.correctState);
+ card.classList.toggle('marked-for-review',!!q.marked);
+ card.querySelectorAll('[data-key-a]').forEach(opt=>opt.classList.toggle('selected',q.key===Number(opt.dataset.keyA)));
+ return true;
+}
 function toggleQuestionFlagV74(questionNumber,flag,source='exam',doc=document){
  const q=getQ(Number(questionNumber));if(!q)return;
  q[flag]=!q[flag];
  persist();
- renderExam();renderKey();renderStats();
+ // The current question and its key tile are refreshed in place; only a filter whose membership changed needs a full list rebuild.
+ if(flag==='important'&&filter==='important')renderExam();
+ else refreshQuestionCardV93(Number(questionNumber),doc);
+ refreshKeyCardV93(Number(questionNumber),doc);
+ renderStats();
  const desktopFocus=document.documentElement.dataset.sosDevice==='desktop';
  if(source==='key')updateCurrentKeyQuestionV70(Number(questionNumber),desktopFocus,doc);
  else updateCurrentQuestionV58(Number(questionNumber),desktopFocus,doc);
@@ -1149,7 +1194,9 @@ function clearQuestionAnswerV74(questionNumber,doc=document){
  row.autoAnswerKeys=row.autoAnswerKeys.filter(k=>k!==key);
  row.excludedKeys=Array.isArray(row.excludedKeys)?row.excludedKeys.filter(k=>k!==key):[];
  syncDailyTestAutoMarks();captureDailyTestSnapshots();persist();
- renderExam();renderKey();renderStats();renderDailyTests();
+ const liveCard=doc.querySelector(`[data-q-card="${Number(questionNumber)}"]`),liveExam=activeExam()?.exam;
+ if(liveCard&&liveExam){const visual=questionVisualStateV74(q,liveExam);liveCard.classList.toggle('wrong',!!visual.isWrong);liveCard.classList.toggle('unanswered',!!visual.unanswered);liveCard.classList.toggle('answered-ungraded',!!visual.answeredUngraded);liveCard.classList.toggle('answer-correct-state',!!visual.correctState);liveCard.querySelectorAll('[data-a]').forEach(opt=>{const n=Number(opt.dataset.a);opt.classList.toggle('selected',q.answer===n);opt.classList.toggle('answer-correct',!!visual.revealCorrect&&q.key===n);opt.classList.toggle('answer-wrong',!!visual.revealCorrect&&visual.isWrong&&q.answer===n);});}
+ refreshKeyCardV93(Number(questionNumber),doc);if(filter==='wrong')renderExam();renderStats();renderDailyTests();
  updateCurrentQuestionV58(Number(questionNumber),desktopFocus,doc);
  return true;
 }
@@ -1183,6 +1230,7 @@ function renderExam(){
   const nextNumber=beforeIndex>=0&&beforeCards[beforeIndex+1]?Number(beforeCards[beforeIndex+1].dataset.qCard):null;
   currentQuestionNumberV58=questionNumber;
   const q=getQ(questionNumber);if(!q)return;
+  const wasVisibleInFilter=questionMatchesFilterV93(q,activeExam()?.exam,filter);
   q.answer=q.answer===+btn.dataset.a?null:+btn.dataset.a;
   const row=dailyTestRow(),key=`${activeExam().exam.id}:${q.n}`;
   row.autoAnswerKeys=Array.isArray(row.autoAnswerKeys)?row.autoAnswerKeys:[];
@@ -1190,8 +1238,12 @@ function renderExam(){
   else if(q.answer==null)row.autoAnswerKeys=row.autoAnswerKeys.filter(k=>k!==key);
   row.excludedKeys=Array.isArray(row.excludedKeys)?row.excludedKeys.filter(k=>k!==key):[];
   syncDailyTestAutoMarks();captureDailyTestSnapshots();persist();
-  renderExam();renderKey();renderStats();renderDailyTests();
-  // Answer edits update visible feedback and stats but never create a history record.
+  const liveCard=box.querySelector(`[data-q-card="${questionNumber}"]`),liveExam=activeExam()?.exam;
+  if(liveCard&&liveExam){const visual=questionVisualStateV74(q,liveExam);liveCard.classList.toggle('wrong',!!visual.isWrong);liveCard.classList.toggle('unanswered',!!visual.unanswered);liveCard.classList.toggle('answered-ungraded',!!visual.answeredUngraded);liveCard.classList.toggle('answer-correct-state',!!visual.correctState);liveCard.querySelectorAll('[data-a]').forEach(opt=>{const n=Number(opt.dataset.a);opt.classList.toggle('selected',q.answer===n);opt.classList.toggle('answer-correct',!!visual.revealCorrect&&q.key===n);opt.classList.toggle('answer-wrong',!!visual.revealCorrect&&visual.isWrong&&q.answer===n);});}
+  refreshKeyCardV93(questionNumber);renderStats();renderDailyTests();
+  // Only this question's visual state and its matching key tile are refreshed in place.
+  const remainsVisibleInFilter=questionMatchesFilterV93(q,activeExam()?.exam,filter);
+  if(wasVisibleInFilter!==remainsVisibleInFilter)renderExam();
   if(!window.__suppressAnswerAutoAdvanceV66){
    const afterCards=[...$('questions').querySelectorAll('[data-q-card]')];
    let target=nextNumber!=null&&afterCards.some(card=>Number(card.dataset.qCard)===nextNumber)?nextNumber:null;
@@ -1240,9 +1292,9 @@ function renderKey(){
  }));
  grid.querySelectorAll('[data-key-q]').forEach(btn=>btn.onclick=()=>{
   const n=Number(btn.dataset.keyQ),q=getQ(n);if(!q)return;
-  currentKeyQuestionNumberV70=n;q.key=q.key===Number(btn.dataset.keyA)?null:Number(btn.dataset.keyA);
-  persist();renderKey();
-  if(e.resultsApplied||liveCorrectMode){renderExam();renderStats();captureDailyTestSnapshots(localDateKey(),e.id);}
+  currentKeyQuestionNumberV70=n;const wasVisibleInFilter=questionMatchesFilterV93(q,e,filter);q.key=q.key===Number(btn.dataset.keyA)?null:Number(btn.dataset.keyA);
+  persist();refreshKeyCardV93(n);
+  if(e.resultsApplied||liveCorrectMode){refreshQuestionCardV93(n);if(wasVisibleInFilter!==questionMatchesFilterV93(q,e,filter))renderExam();renderStats();captureDailyTestSnapshots(localDateKey(),e.id);}
   updateCurrentKeyQuestionV70(n,document.documentElement.dataset.sosDevice==='desktop');
  });
  if(currentKeyQuestionNumberV70==null||!scopedQuestions(e).some(q=>q.n===Number(currentKeyQuestionNumberV70)))currentKeyQuestionNumberV70=scopedQuestions(e)[0]?.n??null;
@@ -1254,13 +1306,18 @@ function fmt(sec){sec=Math.max(0,Math.floor(sec||0));return fa(Math.floor(sec/60
 function playTimerEndChime(){
  try{
   const AudioCtx=window.AudioContext||window.webkitAudioContext;if(!AudioCtx)return;
-  const ctx=timerAudioContext||(timerAudioContext=new AudioCtx());if(ctx.state==='suspended')ctx.resume();const now=ctx.currentTime;
-  [[659.25,0],[783.99,.22],[987.77,.44]].forEach(([freq,delay])=>{
-   const osc=ctx.createOscillator(),gain=ctx.createGain();osc.type='sine';osc.frequency.value=freq;
-   gain.gain.setValueAtTime(.0001,now+delay);gain.gain.exponentialRampToValueAtTime(.12,now+delay+.035);gain.gain.exponentialRampToValueAtTime(.0001,now+delay+.42);
-   osc.connect(gain);gain.connect(ctx.destination);osc.start(now+delay);osc.stop(now+delay+.45);
+  const ctx=timerAudioContext||(timerAudioContext=new AudioCtx());if(ctx.state==='suspended')ctx.resume();
+  const prefs=window.StudyOSMediaV93?.prefs?.()||{};
+  const volume=Math.max(.025,Math.min(.13,Number(prefs.alertVolume)||.085));
+  const mode=prefs.alertTone||'bright';
+  const notes=mode==='soft'?[[523.25,0,.38],[659.25,.30,.42],[783.99,.64,.55]]:mode==='playful'?[[659.25,0,.18],[783.99,.19,.18],[987.77,.38,.30],[783.99,.75,.20],[987.77,.96,.34]]:[[587.33,0,.25],[739.99,.20,.25],[880,.40,.32],[739.99,.72,.24],[987.77,.96,.34]];
+  const now=ctx.currentTime;
+  notes.forEach(([freq,delay,duration])=>{
+   const osc=ctx.createOscillator(),gain=ctx.createGain();osc.type=mode==='playful'?'triangle':'sine';osc.frequency.value=freq;
+   gain.gain.setValueAtTime(.0001,now+delay);gain.gain.exponentialRampToValueAtTime(volume,now+delay+.035);gain.gain.exponentialRampToValueAtTime(.0001,now+delay+duration);
+   osc.connect(gain);gain.connect(ctx.destination);osc.start(now+delay);osc.stop(now+delay+duration+.02);
   });
-  
+  window.StudyOSMediaV93?.duck?.(notes.reduce((m,n)=>Math.max(m,n[1]+n[2]),0)*1000+500);
  }catch(err){console.warn('پخش صدای پایان آزمون ممکن نشد:',err)}
 }
 function startTimer(){const x=activeExam();if(!x||running||remaining<=0)return;try{const AC=window.AudioContext||window.webkitAudioContext;if(AC&&!timerAudioContext)timerAudioContext=new AC();if(timerAudioContext?.state==='suspended')timerAudioContext.resume()}catch(e){}running=true;timerExamId=x.exam.id;renderTimer();timerHandle=setInterval(()=>{if(!activeExam()||activeExam().exam.id!==timerExamId){stopTimer();return}remaining--;const e=activeExam().exam;if(activeSubtestId)e.subtestRemaining={...(e.subtestRemaining||{}),[activeSubtestId]:remaining};else e.remaining=remaining;persist();renderTimer();if(remaining<=0){stopTimer();renderTimer();playTimerEndChime();alert('زمان آزمون به پایان رسید.');}},1000)}
@@ -1529,10 +1586,15 @@ $('importFile').onchange=async ev=>{const f=ev.target.files[0];if(!f)return;try{
 window.addEventListener('beforeunload',()=>{const e=activeExam()?.exam;if(e){e.remaining=remaining;persist()}});
 // V89 live-cloud bridge: merge incoming exam data into the current in-memory DB without leaving the active screen.
 let cloudExamRefreshQueuedV89=false;
+let cloudExamDataPendingV92=false;
 function refreshExamAfterCloudV89(){
  if(cloudExamRefreshQueuedV89)return;
  const active=document.activeElement;
  if(active&&active.matches&&active.matches('input,textarea,select,[contenteditable="true"]')){cloudExamRefreshQueuedV89=true;return;}
+ if(cloudExamDataPendingV92){
+  try{const raw=localStorage.getItem(STORE);db=normalizeDB(raw?JSON.parse(raw):{books:[],dailyTestLog:[]});cloudExamDataPendingV92=false;}
+  catch(err){console.warn('Cloud exam data could not be parsed:',err);return;}
+ }
  const isExamVisible=!document.body.classList.contains('study-os-active-v63')&&!$('examArea').classList.contains('hidden')&&getComputedStyle($('examArea')).display!=='none';
  const qScroll=$('questions')?.scrollTop||0,keyScroll=$('answerKey')?.scrollTop||0,wsScroll=$('answerWorkspace')?.scrollTop||0;
  const keepQ=currentQuestionNumberV58,keepK=currentKeyQuestionNumberV70;
@@ -1540,16 +1602,19 @@ function refreshExamAfterCloudV89(){
   renderExam();renderKey();renderStats();renderDailyTests();if(historyVisible)renderHistory();
   currentQuestionNumberV58=keepQ;currentKeyQuestionNumberV70=keepK;
   requestAnimationFrame(()=>{if($('questions'))$('questions').scrollTop=qScroll;if($('answerKey'))$('answerKey').scrollTop=keyScroll;if($('answerWorkspace'))$('answerWorkspace').scrollTop=wsScroll;});
- }else if(!isExamVisible){renderSelectors();renderDailyTests();}
+ }else if(!isExamVisible){
+  renderSelectors();renderDailyTests();
+  if(document.body.classList.contains('study-os-active-v63'))window.dispatchEvent(new CustomEvent('studyos:cloud-exam-updated'));
+ }
  cloudExamRefreshQueuedV89=false;
 }
 window.__refreshExamAfterCloudV89=refreshExamAfterCloudV89;
 window.addEventListener('studyos:cloud-data-updated',ev=>{
  const keys=ev.detail?.changedKeys||[];if(!keys.includes(STORE))return;
- try{const raw=localStorage.getItem(STORE);if(raw)db=normalizeDB(JSON.parse(raw));else db=normalizeDB({books:[],dailyTestLog:[]});}catch(err){console.warn('Cloud exam data could not be parsed:',err);return;}
+ cloudExamDataPendingV92=true;
  refreshExamAfterCloudV89();
 });
-document.addEventListener('focusout',()=>{if(cloudExamRefreshQueuedV89)requestAnimationFrame(refreshExamAfterCloudV89)},true);
+document.addEventListener('focusout',()=>{if(cloudExamRefreshQueuedV89)requestAnimationFrame(()=>{cloudExamRefreshQueuedV89=false;refreshExamAfterCloudV89()})},true);
 
 // Sidebar controls: keep the panel toggle independent from exam data and answer storage.
 const mainLayout=document.querySelector('main');
@@ -1565,8 +1630,8 @@ function setSidebarCollapsed(collapsed){
 collapseSidebar.addEventListener('click',()=>setSidebarCollapsed(true));
 showSidebar.addEventListener('click',()=>setSidebarCollapsed(false));
 try{setSidebarCollapsed(localStorage.getItem('pasokhBargSidebarCollapsed')==='1')}catch(e){setSidebarCollapsed(false)}
-if(db.books.length && !db.books.some(b=>b.subject==='bio')){const first=db.books[0].subject||'other';$('subjectFilter').value=first;}
-renderDailyTests();renderSelectors();
+
+renderDailyTests();renderSelectors(false);
 window.addEventListener('pasokh-open-exam',ev=>{
  const payload=ev.detail||{},id=(typeof payload==='object'?(payload.id||''):payload),question=typeof payload==='object'?Number(payload.question):NaN;
  if(!id)return;activeId=id;openExam(id);
@@ -1928,7 +1993,7 @@ const defaultData=()=>({version:3,plans:{},tasks:{},sessions:[],reviewed:{},sett
 function normalizeData(raw){
  const d=raw&&typeof raw==='object'?raw:defaultData();
  d.version=3;d.plans=d.plans&&typeof d.plans==='object'?d.plans:{};d.tasks=d.tasks&&typeof d.tasks==='object'?d.tasks:{};
- d.sessions=Array.isArray(d.sessions)?d.sessions:[];d.reviewed=d.reviewed&&typeof d.reviewed==='object'?d.reviewed:{};d.settings=d.settings&&typeof d.settings==='object'?d.settings:{};d.legacy=d.legacy&&typeof d.legacy==='object'?d.legacy:{};d.reviewSchedule=d.reviewSchedule&&typeof d.reviewSchedule==='object'?d.reviewSchedule:{};d.goals=d.goals&&typeof d.goals==='object'?d.goals:{};
+ d.sessions=Array.isArray(d.sessions)?d.sessions:[];d.reviewed=d.reviewed&&typeof d.reviewed==='object'?d.reviewed:{};d.settings=d.settings&&typeof d.settings==='object'?d.settings:{};d.legacy=d.legacy&&typeof d.legacy==='object'?d.legacy:{};d.reviewSchedule=d.reviewSchedule&&typeof d.reviewSchedule==='object'?d.reviewSchedule:{};d.goals=d.goals&&typeof d.goals==='object'?d.goals:{};d.externalTests=Array.isArray(d.externalTests)?d.externalTests:[];d.externalReviewItems=Array.isArray(d.externalReviewItems)?d.externalReviewItems:[];d.calendarEvents=Array.isArray(d.calendarEvents)?d.calendarEvents:[];d.recurringClasses=Array.isArray(d.recurringClasses)?d.recurringClasses:[];
  for(const [date,list] of Object.entries(d.tasks)){d.tasks[date]=Array.isArray(list)?list.filter(x=>x&&typeof x==='object').map((x,i)=>({...x,id:x.id||`task-${date}-${i}`,title:String(x.title||'کار روزانه'),done:!!x.done})):[]}
  for(const [date,list] of Object.entries(d.plans)){d.plans[date]=Array.isArray(list)?list.filter(x=>x&&typeof x==='object').map((x,i)=>({...x,id:x.id||`plan-${date}-${i}`,title:String(x.title||'مطالعه'),kind:x.kind||'study',subject:x.subject||'عمومی',start:x.start||'08:00',minutes:Math.max(5,Number(x.minutes)||60),done:!!x.done,actualSeconds:Math.max(0,Number(x.actualSeconds)||0)})):[]}
  d.sessions=d.sessions.filter(x=>x&&typeof x==='object').map((x,i)=>({...x,id:x.id||`session-${i}`,date:x.date||today(),subject:x.subject||'عمومی',duration:Math.max(0,Number(x.duration)||0),createdAt:x.createdAt||x.endAt||new Date().toISOString()})).filter(x=>x.duration>0);const sessionIds=new Set();d.sessions=d.sessions.filter(x=>{if(sessionIds.has(x.id))return false;sessionIds.add(x.id);return true});const planIds=new Set();Object.values(d.plans).forEach(list=>list.forEach(p=>{if(planIds.has(p.id))p.id=makeId();planIds.add(p.id)}));const taskIds=new Set();Object.values(d.tasks).forEach(list=>list.forEach(t=>{if(taskIds.has(t.id))t.id=makeId();taskIds.add(t.id)}));
@@ -1978,17 +2043,50 @@ function updateAlarmUI(){const b=$('swPlayAlarm');if(b)b.classList.toggle('hidde
 function playChime(){
  return new Promise(resolve=>{
   try{
-   const AC=window.AudioContext||window.webkitAudioContext;
-   if(!AC){alarmNeedsClick=true;updateAlarmUI();resolve(false);return}
+   const AC=window.AudioContext||window.webkitAudioContext;if(!AC){alarmNeedsClick=true;updateAlarmUI();resolve(false);return;}
+   const prefs=window.StudyOSMediaV93?.prefs?.()||{};const volume=Math.max(0.025,Math.min(0.13,Number(prefs.alertVolume)||0.085));const mode=prefs.alertTone||'bright';
    audioContext=audioContext||new AC();
-   const run=()=>{try{const now=audioContext.currentTime;[[587.33,0],[739.99,.18],[880,.36],[739.99,.68],[987.77,.88]].forEach(([f,dt])=>{const osc=audioContext.createOscillator(),gain=audioContext.createGain();osc.type='sine';osc.frequency.value=f;gain.gain.setValueAtTime(.0001,now+dt);gain.gain.exponentialRampToValueAtTime(.095,now+dt+.025);gain.gain.exponentialRampToValueAtTime(.0001,now+dt+.28);osc.connect(gain);gain.connect(audioContext.destination);osc.start(now+dt);osc.stop(now+dt+.3)});alarmNeedsClick=false;updateAlarmUI();resolve(true)}catch(e){alarmNeedsClick=true;updateAlarmUI();resolve(false)}};
-   if(audioContext.state==='suspended'){audioContext.resume().then(run).catch(()=>{alarmNeedsClick=true;updateAlarmUI();resolve(false)})}
-   else run();
+   const run=()=>{try{const now=audioContext.currentTime;const notes=mode==='soft'?[[523.25,0,.38],[659.25,.30,.42],[783.99,.64,.55]]:mode==='playful'?[[659.25,0,.18],[783.99,.19,.18],[987.77,.38,.3],[783.99,.75,.2],[987.77,.96,.34]]:[[587.33,0,.25],[739.99,.2,.25],[880,.4,.32],[739.99,.72,.24],[987.77,.96,.34]];notes.forEach(([f,dt,dur])=>{const osc=audioContext.createOscillator(),gain=audioContext.createGain();osc.type=mode==='playful'?'triangle':'sine';osc.frequency.value=f;gain.gain.setValueAtTime(.0001,now+dt);gain.gain.exponentialRampToValueAtTime(volume,now+dt+.035);gain.gain.exponentialRampToValueAtTime(.0001,now+dt+dur);osc.connect(gain);gain.connect(audioContext.destination);osc.start(now+dt);osc.stop(now+dt+dur+.02)});alarmNeedsClick=false;updateAlarmUI();window.StudyOSMediaV93?.duck?.(notes.reduce((m,n)=>Math.max(m,n[1]+n[2]),0)*1000+500);resolve(true)}catch(e){alarmNeedsClick=true;updateAlarmUI();resolve(false)}};
+   if(audioContext.state==='suspended'){audioContext.resume().then(run).catch(()=>{alarmNeedsClick=true;updateAlarmUI();resolve(false)})}else run();
   }catch(e){alarmNeedsClick=true;updateAlarmUI();resolve(false)}
  });
 }
-function notifyGoal(){const t=data.settings.stopwatch;if(!t||t.alarmPlayed||!t.targetSeconds||elapsed(t)<t.targetSeconds)return;t.alarmPlayed=true;save();playChime().then(ok=>{alarmNeedsClick=!ok;updateAlarmUI()});if(document.hidden&&'Notification'in window&&Notification.permission==='granted'){try{new Notification('زمان هدف مطالعه رسید',{body:`${t.subject} · ${minuteText(Math.round(t.targetSeconds/60))}`})}catch(e){}}}
-function checkClock(){const t=data.settings.stopwatch;if(!t)return;const sec=elapsed(t);if(t.targetSeconds&&sec>=t.targetSeconds&&!t.alarmPlayed)notifyGoal();const el=$('swElapsed');if(el)el.textContent=fmt(sec);const status=$('swStatus');if(status)status.textContent=t.running?'در حال اندازه‌گیری': 'متوقف';const progress=$('swProgress');if(progress){let p=t.targetSeconds?Math.min(100,sec/t.targetSeconds*100):0;progress.style.background=`conic-gradient(var(--os-purple) ${p}%,var(--os-panel-2) ${p}% 100%)`;}const rem=$('swRemaining');if(rem&&t.targetSeconds)rem.textContent=sec>=t.targetSeconds?'زمان هدف رسید':`تا هدف ${fmt(t.targetSeconds-sec)}`;if(alarmNeedsClick){const b=$('swPlayAlarm');if(b)b.classList.remove('hidden')}
+function resumeAfterGoalPrompt(){
+ const t=data.settings.stopwatch;if(!t||!t.autoPausedForGoal)return false;
+ t.autoPausedForGoal=false;t.goalPromptUntil=null;t.running=true;t.startedAt=Date.now();
+ window.__studyOSGoalPromptUntilV93=0;save();renderStopwatch();startClock();return true;
+}
+function keepGoalPaused(){
+ const t=data.settings.stopwatch;if(!t||!t.autoPausedForGoal)return;
+ t.autoPausedForGoal=false;t.goalPromptUntil=null;t.running=false;t.startedAt=null;
+ window.__studyOSGoalPromptUntilV93=0;save();clearClock();renderStopwatch();
+}
+function notifyGoal(){
+ const t=data.settings.stopwatch;if(!t||t.alarmPlayed||!t.targetSeconds||elapsed(t)<t.targetSeconds)return;
+ t.accumulatedSeconds=elapsed(t);t.startedAt=null;t.running=false;t.alarmPlayed=true;t.autoPausedForGoal=true;t.goalPromptUntil=Date.now()+10000;
+ window.__studyOSGoalPromptUntilV93=t.goalPromptUntil;save();
+ playChime().then(ok=>{alarmNeedsClick=!ok;updateAlarmUI()});
+ if(document.hidden&&'Notification'in window&&Notification.permission==='granted'){
+  try{new Notification('زمان هدف مطالعه رسید',{body:`${t.subject} · ${minuteText(Math.round(t.targetSeconds/60))} · ۱۰ ثانیه برای تصمیم`})}catch(e){}
+ }
+ renderStopwatch();
+}
+function checkClock(){
+ const t=data.settings.stopwatch;if(!t)return;
+ if(t.autoPausedForGoal){
+  const left=Math.max(0,Math.ceil((Number(t.goalPromptUntil||0)-Date.now())/1000));
+  const rem=$('swRemaining');if(rem)rem.textContent=left?`هدف رسید · ${fa(left)} ثانیه برای تصمیم`:'در حال ادامهٔ زمان‌سنج';
+  const alarm=$('swGoalPromptCountdown');if(alarm)alarm.textContent=left?`${fa(left)} ثانیه`:'ادامه…';
+  if(left<=0)resumeAfterGoalPrompt();
+  return;
+ }
+ const sec=elapsed(t);
+ if(t.targetSeconds&&sec>=t.targetSeconds&&!t.alarmPlayed){notifyGoal();return;}
+ const el=$('swElapsed');if(el)el.textContent=fmt(sec);
+ const status=$('swStatus');if(status)status.textContent=t.running?'در حال اندازه‌گیری':'متوقف';
+ const progress=$('swProgress');if(progress){const p=t.targetSeconds?Math.min(100,sec/t.targetSeconds*100):0;progress.style.background=`conic-gradient(var(--os-purple) ${p}%,var(--os-panel-2) ${p}% 100%)`;}
+ const rem=$('swRemaining');if(rem&&t.targetSeconds)rem.textContent=sec<t.targetSeconds?`تا هدف ${fmt(t.targetSeconds-sec)}`:'هدف رسید؛ زمان‌سنج ادامه دارد';
+ if(alarmNeedsClick){const b=$('swPlayAlarm');if(b)b.classList.remove('hidden');}
 }
 function startClock(){if(clockHandle)clearInterval(clockHandle);clockHandle=setInterval(checkClock,500);checkClock()}
 function clearClock(){if(clockHandle){clearInterval(clockHandle);clockHandle=null}}
@@ -1996,11 +2094,19 @@ function startStopwatch(config={}){
  let t=data.settings.stopwatch;
  if(t&&t.running){if(config.planId&&t.planId!==config.planId){alert('اول جلسهٔ فعلی را ذخیره یا متوقف کن.');return}setTab('stopwatch');return}
  try{const AC=window.AudioContext||window.webkitAudioContext;if(AC){audioContext=audioContext||new AC();if(audioContext.state==='suspended')audioContext.resume()}}catch(e){}
- if(!t){t={id:makeId(),subject:config.subject||$('swSubject')?.value||getSubjects()[0],targetSeconds:config.targetSeconds??Number(data.settings.selectedGoal??3600),accumulatedSeconds:0,startedAt:Date.now(),firstStartedAt:new Date().toISOString(),running:true,alarmPlayed:false,planId:config.planId||null,planTitle:config.planTitle||'',planWasDone:!!(config.planId&&planFind(config.planId)?.item.done)};data.settings.stopwatch=t;}
- else{if(config.planId&&t.planId!==config.planId){alert('یک جلسهٔ دیگر هنوز ذخیره نشده است. اول همان جلسه را تمام کن.');return;}t.startedAt=Date.now();t.running=true;}
- save();setTab('stopwatch');startClock();
+ if(!t){t={id:makeId(),subject:config.subject||$('swSubject')?.value||getSubjects()[0],targetSeconds:config.targetSeconds??Number(data.settings.selectedGoal??3600),accumulatedSeconds:0,startedAt:Date.now(),firstStartedAt:new Date().toISOString(),running:true,alarmPlayed:false,autoPausedForGoal:false,planId:config.planId||null,planTitle:config.planTitle||'',planWasDone:!!(config.planId&&planFind(config.planId)?.item.done),kind:config.kind||data.settings.sessionKind||'study'};data.settings.stopwatch=t;}
+ else{
+  if(config.planId&&t.planId!==config.planId){alert('یک جلسهٔ دیگر هنوز ذخیره نشده است. اول همان جلسه را تمام کن.');return;}
+  t.autoPausedForGoal=false;t.goalPromptUntil=null;t.startedAt=Date.now();t.running=true;
+ }
+ window.__studyOSGoalPromptUntilV93=0;save();setTab('stopwatch');startClock();
 }
-function pauseStopwatch(){const t=data.settings.stopwatch;if(!t||!t.running)return;t.accumulatedSeconds=elapsed(t);t.startedAt=null;t.running=false;save();clearClock();renderStopwatch()}
+function pauseStopwatch(){
+ const t=data.settings.stopwatch;if(!t)return;
+ if(t.autoPausedForGoal){keepGoalPaused();return;}
+ if(!t.running)return;
+ t.accumulatedSeconds=elapsed(t);t.startedAt=null;t.running=false;save();clearClock();renderStopwatch();
+}
 function finishStopwatch(){const t=data.settings.stopwatch;if(!t)return;const secs=elapsed(t);if(secs<5){if(!confirm('این جلسه خیلی کوتاه است. ذخیره شود؟'))return}
  const end=new Date(),start=new Date(t.firstStartedAt||end.getTime()-secs*1000);const session={id:makeId(),date:dateKey(start),subject:t.subject||'عمومی',duration:secs,createdAt:end.toISOString(),startAt:start.toISOString(),endAt:end.toISOString(),startTime:start.toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit'}),endTime:end.toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit'}),planId:t.planId||null,planTitle:t.planTitle||'',note:''};
  data.sessions.push(session);if(t.planId){const p=findPlan(t.planId);if(p){p.item.actualSeconds=(Number(p.item.actualSeconds)||0)+secs;if(p.item.doneBeforeSession===undefined)p.item.doneBeforeSession=!!t.planWasDone;p.item.done=true;p.item.doneBySession=true;}}
@@ -2013,10 +2119,21 @@ function metric(label,value,foot,glyph,glow){return `<div class="os-card metric"
 function testRows(){
  const db=getExamDB(),rows=Array.isArray(db.dailyTestLog)?db.dailyTestLog:[],exams=new Map();
  for(const b of db.books||[])for(const c of b.chapters||[])for(const e of c.exams||[])exams.set(e.id,{subject:(db.subjects||[]).find(s=>s.id===(b.subject||e.subject))?.name||e.subject||'سایر',name:e.name});
- return rows.map(r=>{const bySubject={},bySubjectStatus={},statuses={correct:0,wrong:0,blank:0,answered:0,unknown:0};
+ const merged=new Map();
+ const normal=rows.map(r=>{const bySubject={},bySubjectStatus={},statuses={correct:0,wrong:0,blank:0,answered:0,unknown:0};
   for(const key of r.keys||[]){const id=String(key).split(':')[0],snap=r.studySnapshots?.[key],sub=snap?.subjectName||exams.get(id)?.subject||'سایر',st=Object.prototype.hasOwnProperty.call(statuses,snap?.status)?snap.status:'unknown';bySubject[sub]=(bySubject[sub]||0)+1;bySubjectStatus[sub]=bySubjectStatus[sub]||{correct:0,wrong:0,blank:0,answered:0,unknown:0};bySubjectStatus[sub][st]++;statuses[st]++;}
   return {date:r.date,count:(r.keys||[]).length,bySubject,bySubjectStatus,statuses};
  }).filter(r=>r.count);
+ for(const row of normal)merged.set(row.date,row);
+ for(const x of (Array.isArray(data.externalTests)?data.externalTests:[])){
+  if(!x||!/^\d{4}-\d{2}-\d{2}$/.test(String(x.date||'')))continue;
+  const sub=String(x.subject||'سایر'),count=Math.max(0,Number(x.total)||0),st={correct:Math.max(0,Number(x.correct)||0),wrong:Math.max(0,Number(x.wrong)||0),blank:Math.max(0,Number(x.blank)||0),answered:0,unknown:0};
+  if(!count)continue;
+  let row=merged.get(x.date);if(!row){row={date:x.date,count:0,bySubject:{},bySubjectStatus:{},statuses:{correct:0,wrong:0,blank:0,answered:0,unknown:0}};merged.set(x.date,row)}
+  row.count+=count;row.bySubject[sub]=(row.bySubject[sub]||0)+count;row.bySubjectStatus[sub]=row.bySubjectStatus[sub]||{correct:0,wrong:0,blank:0,answered:0,unknown:0};
+  Object.keys(st).forEach(k=>{row.bySubjectStatus[sub][k]+=st[k];row.statuses[k]+=st[k]});
+ }
+ return [...merged.values()].filter(r=>r.count).sort((a,b)=>a.date.localeCompare(b.date));
 }
 function testsFor(date){return testRows().find(x=>x.date===date)||{date,count:0,bySubject:{},statuses:{correct:0,wrong:0,blank:0,answered:0,unknown:0}}}
 function getTotals(from,to,subject='all'){
@@ -2037,7 +2154,7 @@ function renderDash(){
  panel.innerHTML=`<div class="page-head"><div><span class="eyebrow">OVERVIEW</span><h2>امروز</h2><p>${dateFull(date)}</p></div><div class="quick-row"><input type="date" id="dashDate" value="${date}" aria-label="انتخاب روز" style="width:auto"><button class="os-btn primary" id="dashStart">شروع مطالعه</button></div></div>
  <div class="metric-grid">${metric('زمان مطالعه',fmt(sec),'امروز','◷','#74c8ee')}${metric('جلسه‌ها',fa(logs.length+(live?1:0)),live?'یک جلسه در حال ثبت است':'امروز','▤','#a99af6')}${metric('تست‌ها',fa(tests.count),`درست ${fa(tests.statuses.correct)} · غلط ${fa(tests.statuses.wrong)} · نزده ${fa(tests.statuses.blank)}`,'✓','#62d3a6')}${metric('کارهای انجام‌شده',`${fa(done)} از ${fa(tasks.length)}`,'چک‌لیست امروز','☷','#e8bf76')}</div>
  <div class="split-grid"><section class="os-card"><div class="section-head"><h3>مطالعه در هفته</h3><small>${minuteText(Math.round(weekTotal/60))}</small></div>${bars(weekBars)}</section><section class="os-card"><div class="section-head"><h3>تقسیم زمان بین درس‌ها</h3><small>۷ روز اخیر</small></div>${donut(subjectRows,fmt(weekTotal),'زمان مطالعه','هنوز زمان مطالعه‌ای ثبت نشده.')}</section></div>
- <div class="split-grid"><section class="os-card"><div class="section-head"><h3>برنامهٔ امروز</h3><button class="os-btn subtle" data-go="planner">برنامه</button></div>${plans.length?plans.slice().sort((a,b)=>a.start.localeCompare(b.start)).map(p=>`<div class="session-row"><span>${$safe(p.start)} · ${$safe(p.title)}</span><strong>${p.done?'✓':minuteText(p.minutes)}</strong></div>`).join(''):'<div class="empty-state">برای امروز برنامه‌ای ثبت نشده.</div>'}</section><section class="os-card"><div class="section-head"><h3>کارهای امروز</h3><button class="os-btn subtle" data-go="tasks">چک‌لیست</button></div>${tasks.length?tasks.slice(0,5).map(t=>`<div class="session-row"><span>${$safe(t.title)}</span><strong>${t.done?'✓':'○'}</strong></div>`).join(''):'<div class="empty-state">فهرست امروز خالی است.</div>'}</section></div>
+ <div class="split-grid"><section class="os-card"><div class="section-head"><h3>برنامهٔ امروز</h3><button class="os-btn subtle" data-go="planner">برنامه</button></div>${plans.length?plans.slice().sort((a,b)=>a.start.localeCompare(b.start)).map(p=>`<div class="session-row"><span>${p.timeFlexible?'بدون ساعت':$safe(p.start)} · ${$safe(p.title)}</span><strong>${p.done?'✓':minuteText(p.minutes)}</strong></div>`).join(''):'<div class="empty-state">برای امروز برنامه‌ای ثبت نشده.</div>'}</section><section class="os-card"><div class="section-head"><h3>کارهای امروز</h3><button class="os-btn subtle" data-go="tasks">چک‌لیست</button></div>${tasks.length?tasks.slice(0,5).map(t=>`<div class="session-row"><span>${$safe(t.title)}</span><strong>${t.done?'✓':'○'}</strong></div>`).join(''):'<div class="empty-state">فهرست امروز خالی است.</div>'}</section></div>
  <section class="os-card" style="margin-top:14px"><div class="section-head"><h3>جلسه‌های امروز</h3><small>${fa(logs.length)} جلسه</small></div>${logs.length?logs.slice().reverse().map(s=>`<div class="session-row"><span>${$safe(s.subject)} · ${$safe(s.startTime||'')} تا ${$safe(s.endTime||'')}</span><strong>${fmt(s.duration)}</strong></div>`).join(''):'<div class="empty-state">هنوز جلسه‌ای ثبت نشده.</div>'}</section>`;
  $('dashDate').onchange=e=>{saveSelectedDate(e.target.value);renderDash()};$('dashStart').onclick=()=>{startStopwatch({subject:getSubjects()[0],targetSeconds:data.settings.selectedGoal??3600});};panel.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>setTab(b.dataset.go));
 }
@@ -2052,13 +2169,13 @@ function movePlanToTime(id,targetDate,startMinutes){
  item.start=`${String(Math.floor(begin/60)).padStart(2,'0')}:${String(begin%60).padStart(2,'0')}`;
  save();dragPlanId=null;renderPlanner();
 }
-function openPlanEditor(item=null){editingPlanId=item?.id||null;customPlanOpen=true;renderPlanner();if(item){$('planKind').value=item.kind||'study';$('planSubject').value=item.subject||getSubjects()[0];$('planStart').value=item.start||'08:00';$('planDuration').value=String(item.minutes||60);if(item.kind==='other'){$('planCustomTitle').classList.remove('hidden');$('planCustomTitle').value=item.title||''}}}
+function openPlanEditor(item=null){editingPlanId=item?.id||null;customPlanOpen=true;renderPlanner();if(item){$('planKind').value=item.kind||'study';$('planSubject').value=item.subject||getSubjects()[0];$('planStart').value=item.start||'08:00';$('planDuration').value=String(item.minutes||60);if($('planFlexible')){$('planFlexible').checked=!!item.timeFlexible;$('planStart').disabled=!!item.timeFlexible;}if(item.kind==='other'){$('planCustomTitle').classList.remove('hidden');$('planCustomTitle').value=item.title||''}}}
 function closePlanEditor(){editingPlanId=null;customPlanOpen=false;renderPlanner()}
 function renderPlanner(){
- const dates=startOfWeekDates(selectedDate),start=dates[0],end=dates[6],selected=plansFor(selectedDate).slice().sort((a,b)=>a.start.localeCompare(b.start));
+ const dates=startOfWeekDates(selectedDate),start=dates[0],end=dates[6],selected=plansFor(selectedDate).slice().sort((a,b)=>(!!a.timeFlexible)-(!!b.timeFlexible)||String(a.start||'23:59').localeCompare(String(b.start||'23:59')));
  const daysMarkup=dates.map(d=>{const list=plansFor(d),done=list.filter(x=>x.done).length;return `<button class="week-day ${d===selectedDate?'selected':''} ${d===today()?'today':''}" data-pick-date="${d}" data-drop-date="${d}"><span class="day-name">${dayName(d)}</span><strong class="day-number">${dateLabel(d).split(' ')[0]}</strong><span class="day-meta">${fa(done)}/${fa(list.length)}</span></button>`}).join('');
  const timeOpts=timeOptions().map(t=>`<option value="${t}" ${t==='08:00'?'selected':''}>${t}</option>`).join('');
- const itemMarkup=selected.map(p=>`<article class="plan-item ${p.done?'done':''}" draggable="true" data-plan-id="${p.id}"><div class="plan-time">${$safe(p.start)}<br><small>${fa(p.minutes)}د</small></div><div class="plan-main"><input class="plan-check" type="checkbox" data-plan-done="${p.id}" ${p.done?'checked':''} aria-label="انجام شد"><div><div class="plan-title">${$safe(p.title)}</div><div class="plan-meta">${$safe(p.subject)} · ${$safe(p.kind==='test'?'تست‌زنی':p.kind==='review'?'مرور':p.kind==='analysis'?'تحلیل آزمون':p.kind==='language'?'زبان':'مطالعه')}${p.actualSeconds?` · واقعی ${fmt(p.actualSeconds)}`:''}</div></div></div><div class="plan-actions"><button class="os-btn subtle" data-plan-start="${p.id}" title="شروع این فعالیت">▶</button><button class="os-btn subtle" data-plan-edit="${p.id}" title="ویرایش">✎</button><button class="os-btn danger" data-plan-delete="${p.id}" title="حذف">×</button><span class="move-grip" title="برای جابه‌جایی بکش">⠿</span></div></article>`).join('');
+ const itemMarkup=selected.map(p=>`<article class="plan-item ${p.done?'done':''}" draggable="true" data-plan-id="${p.id}"><div class="plan-time">${p.timeFlexible?'بدون ساعت':$safe(p.start)}<br><small>${fa(p.minutes)}د</small></div><div class="plan-main"><input class="plan-check" type="checkbox" data-plan-done="${p.id}" ${p.done?'checked':''} aria-label="انجام شد"><div><div class="plan-title">${$safe(p.title)}</div><div class="plan-meta">${$safe(p.subject)} · ${$safe(p.kind==='test'?'تست‌زنی':p.kind==='review'?'مرور':p.kind==='analysis'?'تحلیل آزمون':p.kind==='language'?'زبان':'مطالعه')}${p.actualSeconds?` · واقعی ${fmt(p.actualSeconds)}`:''}</div></div></div><div class="plan-actions"><button class="os-btn subtle" data-plan-start="${p.id}" title="شروع این فعالیت">▶</button><button class="os-btn subtle" data-plan-edit="${p.id}" title="ویرایش">✎</button><button class="os-btn danger" data-plan-delete="${p.id}" title="حذف">×</button><span class="move-grip" title="برای جابه‌جایی بکش">⠿</span></div></article>`).join('');
  const timelineEnd=Math.max(24*60,...selected.map(p=>Number(p.start.slice(0,2))*60+Number(p.start.slice(3))+p.minutes));
  const timelineHourCount=Math.max(18,Math.ceil((timelineEnd-360)/60));
  const timelineHours=Array.from({length:timelineHourCount+1},(_,i)=>6+i);
@@ -2066,17 +2183,17 @@ function renderPlanner(){
  const laneCount=Math.max(1,laneEnds.length);
  const timelineGrid=timelineHours.slice(0,-1).map((h,i)=>`<div class="timeline-row" data-drop-time="${String(h).padStart(2,'0')}:00" style="top:${i*52}px"><span>${fa(h)}:۰۰</span></div>`).join('');
  const timelineEvents=timelinePlaced.map(({p,lane,top,height})=>`<button class="timeline-event ${p.done?'done':''}" data-timeline-edit="${p.id}" style="top:${top}px;height:${height}px;right:calc(${lane*100/laneCount}% + 4px);width:calc(${100/laneCount}% - 8px)"><b>${$safe(p.title)}</b><small>${$safe(p.start)} · ${fa(p.minutes)}د</small></button>`).join('');
- const timelineMarkup=`<div class="timeline-wrap"><div class="timeline-times">${timelineHours.map(h=>`<span>${fa(h)}:۰۰</span>`).join('')}</div><div class="timeline-track" style="height:${timelineHourCount*52}px;--timeline-hours:${timelineHourCount}">${timelineGrid}${timelineEvents}</div></div>`;
- const editor=`<div class="plan-editor ${customPlanOpen?'':'hidden'}" id="planEditor"><div class="section-head"><h3>${editingPlanId?'ویرایش فعالیت':'افزودن فعالیت'}</h3><button class="os-btn subtle" id="planClose">×</button></div><div class="plan-form"><div class="control"><label>کار</label><select id="planKind">${PLAN_KINDS.map(([v,l])=>`<option value="${v}">${l}</option>`).join('')}</select><input id="planCustomTitle" class="hidden" placeholder="عنوان کار"></div><div class="control"><label>درس</label>${makeSubjectSelect('planSubject',getSubjects()[0])}</div><div class="control"><label>شروع</label><select id="planStart">${timeOpts}</select></div><div class="control"><label>مدت</label><select id="planDuration">${[25,45,60,75,90,120,150,180].map(x=>`<option value="${x}" ${x===60?'selected':''}>${minuteText(x)}</option>`).join('')}</select></div><div class="form-actions"><button class="os-btn primary" id="planSave">ذخیره</button><button class="os-btn subtle" id="planCancel">لغو</button></div></div></div>`;
+ const timelineMarkup=''; // Flexible task order replaces the rigid time-of-day chart.
+ const editor=`<div class="plan-editor ${customPlanOpen?'':'hidden'}" id="planEditor"><div class="section-head"><h3>${editingPlanId?'ویرایش فعالیت':'افزودن فعالیت'}</h3><button class="os-btn subtle" id="planClose">×</button></div><div class="plan-form"><div class="control"><label>کار</label><select id="planKind">${PLAN_KINDS.map(([v,l])=>`<option value="${v}">${l}</option>`).join('')}</select><input id="planCustomTitle" class="hidden" placeholder="عنوان کار"></div><div class="control"><label>درس</label>${makeSubjectSelect('planSubject',getSubjects()[0])}</div><div class="control"><label>شروع (اختیاری)</label><select id="planStart">${timeOpts}</select><label class="v93-checkline"><input type="checkbox" id="planFlexible"> زمان انعطاف‌پذیر؛ بدون ساعت ثابت</label></div><div class="control"><label>مدت</label><select id="planDuration">${[25,45,60,75,90,120,150,180].map(x=>`<option value="${x}" ${x===60?'selected':''}>${minuteText(x)}</option>`).join('')}</select></div><div class="form-actions"><button class="os-btn primary" id="planSave">ذخیره</button><button class="os-btn subtle" id="planCancel">لغو</button></div></div></div>`;
  panel.innerHTML=`<div class="page-head"><div><span class="eyebrow">WEEKLY PLAN</span><h2>برنامه هفتگی</h2><p>${dateLabel(start)} تا ${dateLabel(end)}</p></div><div class="week-nav"><button class="os-btn subtle" id="weekPrev">‹</button><span class="week-label">${dateLabel(start)} – ${dateLabel(end)}</span><button class="os-btn subtle" id="weekNext">›</button><button class="os-btn subtle" id="weekToday">امروز</button></div></div>
  <div class="week-days">${daysMarkup}</div><div class="planner-toolbar"><div><b>${dateFull(selectedDate)}</b><small class="muted"> · ${minuteText(planDateTotal(selectedDate))} برنامه</small></div><div class="quick-row"><button class="os-btn subtle" id="copyNextWeek">تکرار هفته بعد</button><button class="os-btn primary" id="planAdd">＋ فعالیت</button></div></div>
- ${editor}<section class="os-card" style="margin-bottom:14px"><div class="section-head"><h3>نمای زمان‌بندی</h3><small>برای جابه‌جایی، فعالیت را روی ساعت دلخواه بکش.</small></div>${timelineMarkup}</section><section class="os-card" data-drop-date="${selectedDate}"><div class="section-head"><h3>فعالیت‌های این روز</h3><small>${fa(selected.filter(x=>x.done).length)} از ${fa(selected.length)} انجام‌شده</small></div><div class="plan-list" id="planList">${itemMarkup||'<div class="empty-state">برای این روز برنامه‌ای نداری. با «فعالیت» یک مورد اضافه کن.</div>'}</div></section>`;
+ ${editor}<section class="os-card v93-plan-note" style="margin-bottom:14px"><div class="section-head"><h3>ترتیب روز</h3><small>فعالیت‌های ساعت‌دار و بدون ساعت ثابت کنار هم مدیریت می‌شوند.</small></div><p>برنامه به ترتیب انتخاب و اولویت تو نمایش داده می‌شود؛ تعیین ساعت برای هیچ فعالیتی اجباری نیست.</p></section><section class="os-card" data-drop-date="${selectedDate}"><div class="section-head"><h3>فعالیت‌های این روز</h3><small>${fa(selected.filter(x=>x.done).length)} از ${fa(selected.length)} انجام‌شده</small></div><div class="plan-list" id="planList">${itemMarkup||'<div class="empty-state">برای این روز برنامه‌ای نداری. با «فعالیت» یک مورد اضافه کن.</div>'}</div></section>`;
  $('weekPrev').onclick=()=>{saveSelectedDate(addDays(selectedDate,-7));renderPlanner()};$('weekNext').onclick=()=>{saveSelectedDate(addDays(selectedDate,7));renderPlanner()};$('weekToday').onclick=()=>{saveSelectedDate(today());renderPlanner()};
  panel.querySelectorAll('[data-pick-date]').forEach(b=>{b.onclick=()=>{saveSelectedDate(b.dataset.pickDate);renderPlanner()};b.addEventListener('dragover',ev=>{ev.preventDefault();b.classList.add('drop-target')});b.addEventListener('dragleave',()=>b.classList.remove('drop-target'));b.addEventListener('drop',ev=>{ev.preventDefault();b.classList.remove('drop-target');movePlan(dragPlanId,b.dataset.dropDate,null)})});
  $('planAdd').onclick=()=>openPlanEditor();if($('planClose'))$('planClose').onclick=closePlanEditor;if($('planCancel'))$('planCancel').onclick=closePlanEditor;
- if($('planKind'))$('planKind').onchange=()=>{$('planCustomTitle').classList.toggle('hidden',$('planKind').value!=='other')};
- if($('planSave'))$('planSave').onclick=()=>{const kind=$('planKind').value,subject=$('planSubject').value,startTime=$('planStart').value,minutes=Number($('planDuration').value),title=kind==='other'?$('planCustomTitle').value.trim():({'study':'مطالعه','test':'تست‌زنی','review':'مرور','analysis':'تحلیل آزمون','language':'زبان'}[kind]);if(!title){$('planCustomTitle').focus();return}const begin=Number(startTime.slice(0,2))*60+Number(startTime.slice(3)),finish=begin+minutes;const overlap=plansFor(selectedDate).some(p=>p.id!==editingPlanId&&begin<(Number(p.start.slice(0,2))*60+Number(p.start.slice(3))+p.minutes)&&finish>(Number(p.start.slice(0,2))*60+Number(p.start.slice(3))));if(overlap&&!confirm('این زمان با فعالیت دیگری تداخل دارد. با همین زمان ذخیره شود؟'))return;
-  const list=plansFor(selectedDate);if(editingPlanId){const found=planFind(editingPlanId);if(found){found.item.title=title;found.item.kind=kind;found.item.subject=subject;found.item.start=startTime;found.item.minutes=minutes;}}else list.push({id:makeId(),title,kind,subject,start:startTime,minutes,done:false,actualSeconds:0,createdAt:new Date().toISOString()});save();customPlanOpen=false;editingPlanId=null;renderPlanner()};
+ if($('planKind'))$('planKind').onchange=()=>{$('planCustomTitle').classList.toggle('hidden',$('planKind').value!=='other')};if($('planFlexible'))$('planFlexible').onchange=()=>{$('planStart').disabled=$('planFlexible').checked};
+ if($('planSave'))$('planSave').onclick=()=>{const kind=$('planKind').value,subject=$('planSubject').value,startTime=$('planStart').value,timeFlexible=!!$('planFlexible')?.checked,minutes=Number($('planDuration').value),title=kind==='other'?$('planCustomTitle').value.trim():({'study':'مطالعه','test':'تست‌زنی','review':'مرور','analysis':'تحلیل آزمون','language':'زبان'}[kind]);if(!title){$('planCustomTitle').focus();return}const begin=Number(startTime.slice(0,2))*60+Number(startTime.slice(3)),finish=begin+minutes;const overlap=!timeFlexible&&plansFor(selectedDate).some(p=>!p.timeFlexible&&p.id!==editingPlanId&&begin<(Number(p.start.slice(0,2))*60+Number(p.start.slice(3))+p.minutes)&&finish>(Number(p.start.slice(0,2))*60+Number(p.start.slice(3))));if(overlap&&!confirm('این زمان با فعالیت دیگری تداخل دارد. با همین زمان ذخیره شود؟'))return;
+  const list=plansFor(selectedDate);if(editingPlanId){const found=planFind(editingPlanId);if(found){found.item.title=title;found.item.kind=kind;found.item.subject=subject;found.item.start=startTime;found.item.timeFlexible=timeFlexible;found.item.minutes=minutes;}}else list.push({id:makeId(),title,kind,subject,start:startTime,timeFlexible,minutes,done:false,actualSeconds:0,createdAt:new Date().toISOString()});save();customPlanOpen=false;editingPlanId=null;renderPlanner()};
  panel.querySelectorAll('[data-plan-done]').forEach(c=>c.onchange=()=>{const found=planFind(c.dataset.planDone);if(found){found.item.done=c.checked;found.item.doneBySession=false;found.item.completedAt=c.checked?new Date().toISOString():null;save();renderPlanner()}});
  panel.querySelectorAll('[data-plan-delete]').forEach(b=>b.onclick=()=>{if(!confirm('این فعالیت حذف شود؟'))return;const f=planFind(b.dataset.planDelete);if(f){data.plans[f.date]=data.plans[f.date].filter(x=>x.id!==b.dataset.planDelete);save();renderPlanner()}});
  panel.querySelectorAll('[data-plan-edit]').forEach(b=>b.onclick=()=>{const f=planFind(b.dataset.planEdit);if(f)openPlanEditor(f.item)});
@@ -2115,20 +2232,43 @@ function aggregateWeeklyRows(rows){const map=new Map();rows.forEach(x=>{const ke
 function compareBars(dataRows){if(!dataRows.some(x=>x.value>0||x.planned>0))return '<div class="empty-state">برای مقایسه، برنامه و زمان مطالعه ثبت کن.</div>';const max=Math.max(1,...dataRows.flatMap(x=>[x.value,x.planned*60]));return `<div class="paired-chart"><div class="paired-legend"><span><i class="plan-key"></i>برنامه</span><span><i class="actual-key"></i>مطالعه واقعی</span></div><div class="paired-bars">${dataRows.map(x=>`<div class="pair-col" title="${$safe(x.label)} · برنامه ${minuteText(x.planned)} · مطالعه ${minuteText(Math.round(x.value/60))}"><div class="pair-sticks"><i class="plan-stick" style="height:${Math.max(x.planned?3:0,x.planned*60/max*100)}%"></i><i class="actual-stick" style="height:${Math.max(x.value?3:0,x.value/max*100)}%"></i></div><span>${$safe(x.short||x.label)}</span></div>`).join('')}</div></div>`}
 function renderReports(){
  const from=addDays(today(),-6),to=today();panel.innerHTML=`<div class="page-head"><div><span class="eyebrow">REPORTS & ANALYTICS</span><h2>گزارش و نمودار</h2><p>زمان مطالعه، برنامه، کارها و تست‌های ثبت‌شده</p></div></div><div class="filter-row"><div class="control"><label>از</label><input type="date" id="reportFrom" value="${from}"></div><div class="control"><label>تا</label><input type="date" id="reportTo" value="${to}"></div><div class="control"><label>درس</label><select id="reportSubject"><option value="all">همه درس‌ها</option>${getSubjects().map(x=>`<option value="${$safe(x)}">${$safe(x)}</option>`).join('')}</select></div><div class="quick-row"><button class="quick-chip active" data-period="7">۷ روز</button><button class="quick-chip" data-period="30">۳۰ روز</button><button class="quick-chip" data-period="month">این ماه</button><button class="quick-chip" data-period="all">همه</button></div></div><div id="reportBody"></div>`;
- const refresh=()=>{const oldExportState=Object.fromEntries(['exSessions','exPlans','exTasks','exTests','exDaily'].map(k=>[k,$(k)?.checked]));const r=getReportRange(),rows=reportRows(r),total=r.sessions.reduce((a,x)=>a+x.duration,0),planned=r.plans.reduce((a,x)=>a+x.minutes,0),testTotal=r.tests.reduce((a,x)=>a+x.count,0),daysUsed=new Set([...r.sessions,...r.plans,...r.tasks,...r.tests].map(x=>x.date)).size,subjects={};r.sessions.forEach(x=>subjects[x.subject]=(subjects[x.subject]||0)+x.duration);const subRows=Object.entries(subjects).sort((a,b)=>b[1]-a[1]).map(([label,value])=>({label,value}));const testSubjects={};r.tests.forEach(t=>Object.entries(t.bySubject||{}).forEach(([sub,n])=>testSubjects[sub]=(testSubjects[sub]||0)+n));const testSubRows=Object.entries(testSubjects).sort((a,b)=>b[1]-a[1]).map(([label,value])=>({label,value}));const chartRows=rows.length>14?aggregateWeeklyRows(rows):rows;const dayBars=chartRows.map(x=>({label:x.label||dateLabel(x.date),short:x.short||dateObj(x.date).toLocaleDateString('fa-IR',{weekday:'narrow'}),value:x.study}));const testDayBars=chartRows.map(x=>({label:x.label||dateLabel(x.date),short:x.short||dateObj(x.date).toLocaleDateString('fa-IR',{weekday:'narrow'}),value:x.tests}));const kindTotals={};r.sessions.forEach(x=>{const k=x.kind||'study';kindTotals[k]=(kindTotals[k]||0)+(Number(x.duration)||0)});const kindRows=Object.entries(kindTotals).sort((a,b)=>b[1]-a[1]).map(([k,value])=>({label:kindLabelV51(k),value}));const statusTotals={correct:0,wrong:0,blank:0,answered:0,unknown:0};r.tests.forEach(t=>Object.keys(statusTotals).forEach(k=>statusTotals[k]+=t.statuses?.[k]||0));const outcomeRows=[['درست',statusTotals.correct],['غلط',statusTotals.wrong],['نزده',statusTotals.blank],['پاسخ‌داده بدون تصحیح',statusTotals.answered],['نامشخص',statusTotals.unknown]].filter(x=>x[1]>0).map(([label,value])=>({label,value}));$('reportBody').innerHTML=`<div class="metric-grid">${metric('زمان مطالعه',fmt(total),`${fa(daysUsed)} روز فعال · میانگین ${minuteText(Math.round(total/60/Math.max(1,daysUsed)))}`,'◷','#74c8ee')}${metric('جلسه‌ها',fa(r.sessions.length),'در بازه','▤','#a99af6')}${metric('تست‌ها',fa(testTotal),'ثبت‌شده در پاسخ‌برگ','✓','#62d3a6')}${metric('زمان برنامه',minuteText(planned),'فعالیت‌های برنامه‌ریزی‌شده','▦','#e8bf76')}</div><div class="split-grid"><section class="os-card"><div class="section-head"><h3>زمان مطالعه در روزها</h3><small>${minuteText(Math.round(total/60))}</small></div>${bars(dayBars)}</section><section class="os-card"><div class="section-head"><h3>برنامه در برابر مطالعه</h3><small>واقعی در برابر برنامه</small></div>${compareBars(chartRows.map(x=>({...x,value:x.study||0})))}</section><section class="os-card"><div class="section-head"><h3>سهم هر درس از زمان</h3><small>مطالعه</small></div>${donut(subRows,fmt(total),'زمان مطالعه','هنوز زمان مطالعه‌ای ثبت نشده.')}</section><section class="os-card"><div class="section-head"><h3>نوع فعالیت</h3><small>تفکیک زمان جلسه‌ها</small></div>${donut(kindRows,fmt(total),'زمان فعالیت','هنوز جلسه‌ای ثبت نشده.')}</section></div><section class="os-card"><div class="section-head"><h3>تعداد تست در روزها</h3><small>${fa(testTotal)} تست</small></div>${countBars(testDayBars)}</section><section class="os-card"><div class="section-head"><h3>نتیجه تست‌ها</h3><small>براساس کلید پاسخ</small></div>${donut(outcomeRows,fa(testTotal),'نتیجه تست','نتیجه‌ای برای نمایش نداریم.')}</section><section class="os-card" style="margin-top:14px"><div class="section-head"><h3>تعداد تست به تفکیک درس</h3><small>${fa(testTotal)} تست</small></div>${donut(testSubRows,fa(testTotal),'تعداد تست','هنوز تستی ثبت نشده.')}</section><section class="os-card" style="margin-top:14px"><div class="section-head"><h3>گزارش روزانه</h3><small>برنامه در برابر عملکرد</small></div><div class="report-table-wrap"><table><thead><tr><th>روز</th><th>مطالعه</th><th>برنامه</th><th>جلسه</th><th>کارها</th><th>تست</th><th>درست</th><th>غلط</th><th>نزده</th><th>پاسخ‌داده</th><th>نامشخص</th></tr></thead><tbody>${rows.slice().reverse().map(x=>`<tr><td>${dateLabel(x.date)}</td><td>${fmt(x.study)}</td><td>${minuteText(x.planned)}</td><td>${fa(x.sessions)}</td><td>${fa(x.tasksDone)}/${fa(x.tasks)}</td><td>${fa(x.tests)}</td><td>${fa(x.correct)}</td><td>${fa(x.wrong)}</td><td>${fa(x.blank)}</td><td>${fa(x.answered)}</td><td>${fa(x.unknown)}</td></tr>`).join('')}</tbody></table></div></section><section class="os-card" style="margin-top:14px"><div class="section-head"><h3>جلسه‌های ثبت‌شده</h3><small>${fa(r.sessions.length)} جلسه</small></div>${r.sessions.length?r.sessions.slice().sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||'')).map(x=>`<div class="session-row"><span>${$safe(x.date)} · ${$safe(x.subject)} · ${fmt(x.duration)}</span><button class="os-btn danger" data-delete-session="${x.id}">حذف</button></div>`).join(''):'<div class="empty-state">جلسه‌ای در این بازه ثبت نشده.</div>'}</section><section class="os-card" style="margin-top:14px"><div class="section-head"><h3>خروجی گزارش</h3><small>بازه و بخش‌ها را انتخاب کن</small></div><div class="export-fields"><label><input type="checkbox" id="exSessions" checked> جلسه‌ها</label><label><input type="checkbox" id="exPlans" checked> برنامه</label><label><input type="checkbox" id="exTasks" checked> کارها</label><label><input type="checkbox" id="exTests" checked> تست‌ها</label><label><input type="checkbox" id="exDaily" checked> خلاصه روزانه</label></div><div class="report-export"><button class="os-btn primary" id="exportExcel">خروجی Excel</button><button class="os-btn subtle" id="exportCSV">خروجی CSV</button><button class="os-btn subtle" id="exportPDF">ذخیره PDF</button><button class="os-btn subtle" id="exportJSON">پشتیبان کامل</button></div></section>`;
- ['exSessions','exPlans','exTasks','exTests','exDaily'].forEach(k=>{if($(k))$(k).checked=oldExportState[k]??true});$('exportExcel').onclick=exportExcel;$('exportCSV').onclick=exportCSV;$('exportPDF').onclick=printPDF;$('exportJSON').onclick=fullBackup;$('reportBody').querySelectorAll('[data-delete-session]').forEach(b=>b.onclick=()=>deleteSession(b.dataset.deleteSession));
+ const refresh=()=>{const oldExportState=Object.fromEntries(['exSessions','exPlans','exTasks','exTests','exDaily'].map(k=>[k,$(k)?.checked]));const r=getReportRange(),rows=reportRows(r),total=r.sessions.reduce((a,x)=>a+x.duration,0),planned=r.plans.reduce((a,x)=>a+x.minutes,0),testTotal=r.tests.reduce((a,x)=>a+x.count,0),daysUsed=new Set([...r.sessions,...r.plans,...r.tasks,...r.tests].map(x=>x.date)).size,subjects={};r.sessions.forEach(x=>subjects[x.subject]=(subjects[x.subject]||0)+x.duration);const subRows=Object.entries(subjects).sort((a,b)=>b[1]-a[1]).map(([label,value])=>({label,value}));const testSubjects={};r.tests.forEach(t=>Object.entries(t.bySubject||{}).forEach(([sub,n])=>testSubjects[sub]=(testSubjects[sub]||0)+n));const testSubRows=Object.entries(testSubjects).sort((a,b)=>b[1]-a[1]).map(([label,value])=>({label,value}));const chartRows=rows.length>14?aggregateWeeklyRows(rows):rows;const dayBars=chartRows.map(x=>({label:x.label||dateLabel(x.date),short:x.short||dateObj(x.date).toLocaleDateString('fa-IR',{weekday:'narrow'}),value:x.study}));const testDayBars=chartRows.map(x=>({label:x.label||dateLabel(x.date),short:x.short||dateObj(x.date).toLocaleDateString('fa-IR',{weekday:'narrow'}),value:x.tests}));const kindTotals={};r.sessions.forEach(x=>{const k=x.kind||'study';kindTotals[k]=(kindTotals[k]||0)+(Number(x.duration)||0)});const kindRows=Object.entries(kindTotals).sort((a,b)=>b[1]-a[1]).map(([k,value])=>({label:kindLabelV51(k),value}));const statusTotals={correct:0,wrong:0,blank:0,answered:0,unknown:0};r.tests.forEach(t=>Object.keys(statusTotals).forEach(k=>statusTotals[k]+=t.statuses?.[k]||0));const outcomeRows=[['درست',statusTotals.correct],['غلط',statusTotals.wrong],['نزده',statusTotals.blank],['پاسخ‌داده بدون تصحیح',statusTotals.answered],['نامشخص',statusTotals.unknown]].filter(x=>x[1]>0).map(([label,value])=>({label,value}));$('reportBody').innerHTML=`<div class="metric-grid">${metric('زمان مطالعه',fmt(total),`${fa(daysUsed)} روز فعال · میانگین ${minuteText(Math.round(total/60/Math.max(1,daysUsed)))}`,'◷','#74c8ee')}${metric('جلسه‌ها',fa(r.sessions.length),'در بازه','▤','#a99af6')}${metric('تست‌ها',fa(testTotal),'ثبت‌شده در پاسخ‌برگ','✓','#62d3a6')}${metric('زمان برنامه',minuteText(planned),'فعالیت‌های برنامه‌ریزی‌شده','▦','#e8bf76')}</div><div class="split-grid"><section class="os-card"><div class="section-head"><h3>زمان مطالعه در روزها</h3><small>${minuteText(Math.round(total/60))}</small></div>${bars(dayBars)}</section><section class="os-card"><div class="section-head"><h3>برنامه در برابر مطالعه</h3><small>واقعی در برابر برنامه</small></div>${compareBars(chartRows.map(x=>({...x,value:x.study||0})))}</section><section class="os-card"><div class="section-head"><h3>سهم هر درس از زمان</h3><small>مطالعه</small></div>${donut(subRows,fmt(total),'زمان مطالعه','هنوز زمان مطالعه‌ای ثبت نشده.')}</section><section class="os-card"><div class="section-head"><h3>نوع فعالیت</h3><small>تفکیک زمان جلسه‌ها</small></div>${donut(kindRows,fmt(total),'زمان فعالیت','هنوز جلسه‌ای ثبت نشده.')}</section></div><section class="os-card"><div class="section-head"><h3>تعداد تست در روزها</h3><small>${fa(testTotal)} تست</small></div>${countBars(testDayBars)}</section><section class="os-card"><div class="section-head"><h3>نتیجه تست‌ها</h3><small>براساس کلید پاسخ</small></div>${donut(outcomeRows,fa(testTotal),'نتیجه تست','نتیجه‌ای برای نمایش نداریم.')}</section><section class="os-card" style="margin-top:14px"><div class="section-head"><h3>تعداد تست به تفکیک درس</h3><small>${fa(testTotal)} تست</small></div>${donut(testSubRows,fa(testTotal),'تعداد تست','هنوز تستی ثبت نشده.')}</section><section class="os-card" style="margin-top:14px"><div class="section-head"><h3>گزارش روزانه</h3><small>برنامه در برابر عملکرد</small></div><div class="report-table-wrap"><table><thead><tr><th>روز</th><th>مطالعه</th><th>برنامه</th><th>جلسه</th><th>کارها</th><th>تست</th><th>درست</th><th>غلط</th><th>نزده</th><th>پاسخ‌داده</th><th>نامشخص</th></tr></thead><tbody>${rows.slice().reverse().map(x=>`<tr><td>${dateLabel(x.date)}</td><td>${fmt(x.study)}</td><td>${minuteText(x.planned)}</td><td>${fa(x.sessions)}</td><td>${fa(x.tasksDone)}/${fa(x.tasks)}</td><td>${fa(x.tests)}</td><td>${fa(x.correct)}</td><td>${fa(x.wrong)}</td><td>${fa(x.blank)}</td><td>${fa(x.answered)}</td><td>${fa(x.unknown)}</td></tr>`).join('')}</tbody></table></div></section><section class="os-card" style="margin-top:14px"><div class="section-head"><h3>جلسه‌های ثبت‌شده</h3><small>${fa(r.sessions.length)} جلسه</small></div>${r.sessions.length?r.sessions.slice().sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||'')).map(x=>`<div class="session-row"><span>${$safe(x.date)} · ${$safe(x.subject)} · ${fmt(x.duration)}</span><button class="os-btn danger" data-delete-session="${x.id}">حذف</button></div>`).join(''):'<div class="empty-state">جلسه‌ای در این بازه ثبت نشده.</div>'}</section><section class="os-card" style="margin-top:14px"><div class="section-head"><h3>خروجی گزارش</h3><small>بازه و بخش‌ها را انتخاب کن</small></div><div class="export-fields"><label><input type="checkbox" id="exSessions" checked> جلسه‌ها</label><label><input type="checkbox" id="exPlans" checked> برنامه</label><label><input type="checkbox" id="exTasks" checked> کارها</label><label><input type="checkbox" id="exTests" checked> تست‌ها</label><label><input type="checkbox" id="exDaily" checked> خلاصه روزانه</label></div><div class="report-export"><button class="os-btn primary" id="exportExcel">خروجی Excel</button><button class="os-btn subtle" id="exportCSV">خروجی CSV</button><button class="os-btn subtle" id="exportPDF">PDF روزانه / گزارش تجمیعی بازه</button><button class="os-btn subtle" id="exportDailyWeekPDF">۷ فایل PDF روزانه جداگانه</button><button class="os-btn subtle" id="exportJSON">پشتیبان کامل</button></div></section>`;
+ ['exSessions','exPlans','exTasks','exTests','exDaily'].forEach(k=>{if($(k))$(k).checked=oldExportState[k]??true});$('exportExcel').onclick=exportExcel;$('exportCSV').onclick=exportCSV;$('exportPDF').onclick=printPDF;$('exportDailyWeekPDF').onclick=printSevenDailyPDFsV93;$('exportJSON').onclick=fullBackup;$('reportBody').querySelectorAll('[data-delete-session]').forEach(b=>b.onclick=()=>deleteSession(b.dataset.deleteSession));
  };$('reportFrom').onchange=refresh;$('reportTo').onchange=refresh;$('reportSubject').onchange=refresh;panel.querySelectorAll('[data-period]').forEach(b=>b.onclick=()=>{let d=b.dataset.period;$('reportTo').value=today();$('reportFrom').value=d==='all'?'2020-01-01':d==='month'?`${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}-01`:addDays(today(),-(Number(d)-1));panel.querySelectorAll('[data-period]').forEach(x=>x.classList.toggle('active',x===b));refresh()});
  refresh();
 }
-function exportTables(){const r=getReportRange(),sheets=[];if($('exSessions')?.checked)sheets.push({name:'جلسه‌ها',rows:[['تاریخ','درس','مدت (ثانیه)','شروع','پایان','نوع فعالیت','فعالیت مرتبط'],...r.sessions.map(s=>[s.date,s.subject,s.duration,s.startTime||'',s.endTime||'',kindLabelV51(s.kind),s.planTitle||''])]});if($('exPlans')?.checked)sheets.push({name:'برنامه',rows:[['تاریخ','فعالیت','درس','ساعت شروع','مدت دقیقه','انجام‌شده','زمان واقعی ثانیه'],...r.plans.map(p=>[p.date,p.title,p.subject,p.start,p.minutes,p.done?'بله':'خیر',p.actualSeconds||0])]});if($('exTasks')?.checked)sheets.push({name:'کارها',rows:[['تاریخ','کار','درس','انجام‌شده'],...r.tasks.map(t=>[t.date,t.title,t.subject||'',t.done?'بله':'خیر'])]});if($('exTests')?.checked)sheets.push({name:'تست‌ها',rows:[['تاریخ','درس','تعداد','درست','غلط','نزده','پاسخ‌داده','نامشخص'],...r.tests.flatMap(t=>Object.entries(t.bySubject).map(([sub,count])=>{const st=t.bySubjectStatus?.[sub]||{};return [t.date,sub,count,st.correct||0,st.wrong||0,st.blank||0,st.answered||0,st.unknown||0]}))]});if($('exDaily')?.checked){const rows=reportRows(r);sheets.push({name:'خلاصه روزانه',rows:[['تاریخ','مطالعه ثانیه','برنامه دقیقه','تعداد جلسه','کار انجام‌شده','کل کار','تست','درست','غلط','نزده','پاسخ‌داده','نامشخص'],...rows.map(x=>[x.date,x.study,x.planned,x.sessions,x.tasksDone,x.tasks,x.tests,x.correct,x.wrong,x.blank,x.answered,x.unknown])]})}return sheets}
+function exportTables(){const r=getReportRange(),sheets=[];if($('exSessions')?.checked)sheets.push({name:'جلسه‌ها',rows:[['تاریخ','درس','مدت (ثانیه)','شروع','پایان','نوع فعالیت','فعالیت مرتبط'],...r.sessions.map(s=>[s.date,s.subject,s.duration,s.startTime||'',s.endTime||'',kindLabelV51(s.kind),s.planTitle||''])]});if($('exPlans')?.checked)sheets.push({name:'برنامه',rows:[['تاریخ','فعالیت','درس','ساعت شروع','مدت دقیقه','انجام‌شده','زمان واقعی ثانیه'],...r.plans.map(p=>[p.date,p.title,p.subject,p.timeFlexible?'بدون ساعت ثابت':p.start,p.minutes,p.done?'بله':'خیر',p.actualSeconds||0])]});if($('exTasks')?.checked)sheets.push({name:'کارها',rows:[['تاریخ','کار','درس','انجام‌شده'],...r.tasks.map(t=>[t.date,t.title,t.subject||'',t.done?'بله':'خیر'])]});if($('exTests')?.checked)sheets.push({name:'تست‌ها',rows:[['تاریخ','درس','تعداد','درست','غلط','نزده','پاسخ‌داده','نامشخص'],...r.tests.flatMap(t=>Object.entries(t.bySubject).map(([sub,count])=>{const st=t.bySubjectStatus?.[sub]||{};return [t.date,sub,count,st.correct||0,st.wrong||0,st.blank||0,st.answered||0,st.unknown||0]}))]});if($('exDaily')?.checked){const rows=reportRows(r);sheets.push({name:'خلاصه روزانه',rows:[['تاریخ','مطالعه ثانیه','برنامه دقیقه','تعداد جلسه','کار انجام‌شده','کل کار','تست','درست','غلط','نزده','پاسخ‌داده','نامشخص'],...rows.map(x=>[x.date,x.study,x.planned,x.sessions,x.tasksDone,x.tasks,x.tests,x.correct,x.wrong,x.blank,x.answered,x.unknown])]})}return sheets}
 function downloadFile(content,name,type){const blob=new Blob([content],{type}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500)}
 function exportCSV(){const sheets=exportTables();if(!sheets.length){alert('حداقل یک بخش برای خروجی انتخاب کن.');return}const rows=[['بخش','تاریخ','عنوان','درس','مقدار','وضعیت','جزئیات']];sheets.forEach(sh=>sh.rows.slice(1).forEach(r=>rows.push([sh.name,...r])));const csv='\ufeff'+rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\r\n');downloadFile(csv,'study-report.csv','text/csv;charset=utf-8')}
 function xmlEsc(v){return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 function exportExcel(){const sheets=exportTables();if(!sheets.length){alert('حداقل یک بخش برای خروجی انتخاب کن.');return}const xml=`<?xml version="1.0"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"><Styles><Style ss:ID="h"><Font ss:Bold="1"/><Interior ss:Color="#DDE3F5" ss:Pattern="Solid"/></Style></Styles>${sheets.map(sh=>`<Worksheet ss:Name="${xmlEsc(sh.name)}"><Table>${sh.rows.map((row,i)=>`<Row>${row.map(v=>{const num=typeof v==='number'&&Number.isFinite(v);return `<Cell ${i===0?'ss:StyleID="h"':''}><Data ss:Type="${num?'Number':'String'}">${xmlEsc(v)}</Data></Cell>`}).join('')}</Row>`).join('')}</Table></Worksheet>`).join('')}</Workbook>`;downloadFile(xml,'study-report.xls','application/vnd.ms-excel')}
-function printPDF(){const sheets=exportTables();if(!sheets.length){alert('حداقل یک بخش برای گزارش انتخاب کن.');return}const r=getReportRange(),w=window.open('','_blank');if(!w){alert('مرورگر اجازه بازکردن پنجره گزارش را نداد.');return}const sections=sheets.map(sh=>`<h2>${$safe(sh.name)}</h2><table><tbody>${sh.rows.map((row,i)=>`<tr>${row.map(v=>i===0?`<th>${$safe(v)}</th>`:`<td>${$safe(v)}</td>`).join('')}</tr>`).join('')}</tbody></table>`).join('');const html=`<!doctype html><html lang="fa" dir="rtl"><meta charset="utf-8"><title>گزارش مطالعه</title><style>body{font:14px Tahoma,"Segoe UI",Arial,sans-serif;padding:28px;color:#20283a}h1{font-size:22px}h2{font-size:16px;margin:26px 0 8px}p{color:#596579}table{width:100%;border-collapse:collapse;margin-top:8px;page-break-inside:auto}tr{page-break-inside:avoid}td,th{border:1px solid #d6dbe5;padding:8px;text-align:right}th{background:#eef0f7}.summary{display:flex;gap:12px;flex-wrap:wrap}.summary div{padding:12px;border:1px solid #dce1eb;border-radius:10px}@media print{body{padding:8px}}</style><h1>گزارش مطالعه</h1><p>از ${$safe(r.from)} تا ${$safe(r.to)}${r.subject!=='all'?' · '+$safe(r.subject):''}</p><div class="summary"><div>زمان مطالعه: ${fmt(r.sessions.reduce((a,x)=>a+x.duration,0))}</div><div>جلسه‌ها: ${fa(r.sessions.length)}</div><div>تست‌ها: ${fa(r.tests.reduce((a,x)=>a+x.count,0))}</div></div>${sections}<script>window.onload=()=>setTimeout(()=>window.print(),350)<\/script></html>`;w.document.open();w.document.write(html);w.document.close()}
+function printPDF(){const sheets=exportTables();if(!sheets.length){alert('حداقل یک بخش برای گزارش انتخاب کن.');return}const r=getReportRange(),w=window.open('','_blank');if(!w){alert('مرورگر اجازه بازکردن پنجره گزارش را نداد.');return}const dailyRows=reportRows(r);const dailySummary=`<h2>خلاصهٔ روزانهٔ بازه</h2><table><thead><tr><th>تاریخ</th><th>مطالعه</th><th>برنامه</th><th>جلسه</th><th>کار انجام‌شده</th><th>کل کار</th><th>تست</th><th>درست</th><th>غلط</th><th>نزده</th></tr></thead><tbody>${dailyRows.map(x=>`<tr><td>${$safe(x.date)}</td><td>${fmt(x.study)}</td><td>${minuteText(x.planned)}</td><td>${fa(x.sessions)}</td><td>${fa(x.tasksDone)}</td><td>${fa(x.tasks)}</td><td>${fa(x.tests)}</td><td>${fa(x.correct)}</td><td>${fa(x.wrong)}</td><td>${fa(x.blank)}</td></tr>`).join('')}</tbody></table>`;const sections=sheets.map(sh=>`<h2>${$safe(sh.name)}</h2><table><tbody>${sh.rows.map((row,i)=>`<tr>${row.map(v=>i===0?`<th>${$safe(v)}</th>`:`<td>${$safe(v)}</td>`).join('')}</tr>`).join('')}</tbody></table>`).join('');const html=`<!doctype html><html lang="fa" dir="rtl"><meta charset="utf-8"><title>گزارش مطالعه</title><style>body{font:13px Vazirmatn,Tahoma,"Segoe UI",Arial,sans-serif;padding:32px;color:#182235;background:#f8faff;direction:rtl}header{border-bottom:3px solid #6477c8;padding-bottom:14px;margin-bottom:18px}h1{font-size:24px;margin:0 0 8px}h2{font-size:17px;margin:24px 0 10px;color:#34446b}p{color:#596579}.summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:18px 0}.summary div{padding:14px;border:1px solid #dce1eb;border-radius:12px;background:#fff}table{width:100%;border-collapse:collapse;margin-top:8px;page-break-inside:auto;background:#fff}tr{page-break-inside:avoid}td,th{border:1px solid #d6dbe5;padding:9px;text-align:right}th{background:#eef0f7;color:#26385f}.report-footer{margin-top:26px;color:#64748b;font-size:11px}@page{size:A4;margin:14mm}@media print{body{padding:0;background:#fff}}</style><header><h1>گزارش Study OS</h1><p>${r.from===r.to?'گزارش روزانه':'گزارش تجمیعی بازه'} · از ${$safe(r.from)} تا ${$safe(r.to)}${r.subject!=='all'?' · '+$safe(r.subject):' · همهٔ درس‌ها'}</p></header><div class="summary"><div>زمان مطالعه: ${fmt(r.sessions.reduce((a,x)=>a+x.duration,0))}</div><div>جلسه‌ها: ${fa(r.sessions.length)}</div><div>تست‌ها: ${fa(r.tests.reduce((a,x)=>a+x.count,0))}</div></div>${r.from!==r.to?dailySummary:''}${sections}<div class="report-footer">تهیه‌شده با Study OS · ${new Date().toLocaleDateString('fa-IR')}</div><script>window.onload=()=>setTimeout(()=>window.print(),350)<\/script></html>`;w.document.open();w.document.write(html);w.document.close()}
+function printSevenDailyPDFsV93(){
+ const r=getReportRange();
+ const fromDate=new Date(`${r.from}T12:00:00`),toDate=new Date(`${r.to}T12:00:00`);
+ const selectedDays=Math.round((toDate-fromDate)/86400000)+1;
+ if(!Number.isFinite(selectedDays)||selectedDays!==7){alert('برای دریافت هفت PDF روزانهٔ مستقل، بازهٔ گزارش را دقیقاً روی هفت روز تنظیم کن.');return;}
+ const days=Array.from({length:7},(_,i)=>addDays(r.from,i));
+ const old=document.getElementById('v93DailyPdfChooser');if(old)old.remove();
+ const overlay=document.createElement('div');overlay.id='v93DailyPdfChooser';overlay.className='v93-media-overlay';
+ overlay.innerHTML=`<div class="v93-media-dialog" role="dialog" aria-modal="true" aria-labelledby="v93DailyPdfTitle"><div class="v93-media-head"><div><small>SEPARATE DAILY PDFS</small><h2 id="v93DailyPdfTitle">هفت گزارش روزانهٔ جداگانه</h2></div><button class="v93-icon-action" id="v93DailyPdfClose" aria-label="بستن">×</button></div><p class="v93-muted-note">هر روز را جداگانه باز کن و در پنجرهٔ چاپ Chrome گزینهٔ «ذخیره به‌صورت PDF» را بزن. بازکردن تک‌به‌تک، از مسدودشدن هفت پنجره توسط مرورگر جلوگیری می‌کند.</p><div class="v93-pdf-day-list">${days.map((d,i)=>`<button class="os-btn subtle" data-pdf-day="${$safe(d)}">${fa(i+1)} · ${$safe(dateFull(d))} · بازکردن گزارش</button>`).join('')}</div></div>`;
+ document.body.appendChild(overlay);overlay.querySelector('#v93DailyPdfClose').onclick=()=>overlay.remove();overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.remove()});
+ overlay.querySelectorAll('[data-pdf-day]').forEach(btn=>btn.addEventListener('click',()=>openDailyPdfV93(btn.dataset.pdfDay)));
+}
+function openDailyPdfV93(day){
+ const w=window.open('','_blank');if(!w){alert('مرورگر اجازهٔ بازکردن پنجره را نداد. برای این سایت Pop-ups را مجاز کن یا از گزارش روزانه همان تاریخ استفاده کن.');return;}
+ const r=getTotals(day,day,'all'),rows=reportRows(r),totals={study:r.sessions.reduce((a,x)=>a+x.duration,0),sessions:r.sessions.length,tests:r.tests.reduce((a,x)=>a+x.count,0),tasks:r.tasks.length,done:r.tasks.filter(x=>x.done).length};
+ const sessionsHtml=r.sessions.length?`<table><thead><tr><th>درس</th><th>نوع فعالیت</th><th>مدت</th><th>شروع</th><th>پایان</th><th>فعالیت مرتبط</th></tr></thead><tbody>${r.sessions.map(x=>`<tr><td>${$safe(x.subject||'—')}</td><td>${$safe(kindLabelV51(x.kind)||'مطالعه')}</td><td>${fmt(x.duration)}</td><td>${$safe(x.startTime||'—')}</td><td>${$safe(x.endTime||'—')}</td><td>${$safe(x.planTitle||'—')}</td></tr>`).join('')}</tbody></table>`:'<p class="empty">جلسه‌ای برای این روز ثبت نشده است.</p>';
+ const planRows=r.plans.length?`<table><thead><tr><th>فعالیت برنامه‌ریزی‌شده</th><th>درس</th><th>زمان</th><th>مدت</th><th>وضعیت</th></tr></thead><tbody>${r.plans.map(x=>`<tr><td>${$safe(x.title)}</td><td>${$safe(x.subject||'—')}</td><td>${x.timeFlexible?'بدون ساعت ثابت':$safe(x.start||'—')}</td><td>${minuteText(x.minutes)}</td><td>${x.done?'انجام‌شده':'انجام‌نشده'}</td></tr>`).join('')}</tbody></table>`:'<p class="empty">برنامه‌ای برای این روز ثبت نشده است.</p>';
+ const taskRows=r.tasks.length?`<table><thead><tr><th>کار</th><th>درس</th><th>وضعیت</th></tr></thead><tbody>${r.tasks.map(x=>`<tr><td>${$safe(x.title)}</td><td>${$safe(x.subject||'—')}</td><td>${x.done?'انجام‌شده':'انجام‌نشده'}</td></tr>`).join('')}</tbody></table>`:'<p class="empty">کاری برای این روز ثبت نشده است.</p>';
+ const testItems=r.tests.flatMap(t=>Object.entries(t.bySubject||{}).map(([subject,total])=>{const st=t.bySubjectStatus?.[subject]||{};return {subject,total,correct:st.correct||0,wrong:st.wrong||0,blank:st.blank||0,answered:st.answered||0,unknown:st.unknown||0}}));
+ const testHtml=testItems.length?`<table><thead><tr><th>درس</th><th>کل</th><th>درست</th><th>غلط</th><th>نزده</th><th>پاسخ‌داده</th><th>نامشخص</th></tr></thead><tbody>${testItems.map(x=>`<tr><td>${$safe(x.subject)}</td><td>${fa(x.total)}</td><td>${fa(x.correct)}</td><td>${fa(x.wrong)}</td><td>${fa(x.blank)}</td><td>${fa(x.answered)}</td><td>${fa(x.unknown)}</td></tr>`).join('')}</tbody></table>`:'<p class="empty">تستی برای این روز ثبت نشده است.</p>';
+ const html=`<!doctype html><html lang="fa" dir="rtl"><meta charset="utf-8"><title>گزارش روزانه ${$safe(day)}</title><style>*{box-sizing:border-box}body{font:12px Vazirmatn,Tahoma,"Segoe UI",Arial,sans-serif;padding:26px;color:#17233c;background:#f6f8fc;direction:rtl;line-height:1.75}header{border-bottom:3px solid #6679c6;padding-bottom:14px;margin-bottom:18px}h1{font-size:23px;margin:0 0 6px}h2{font-size:15px;margin:22px 0 8px;color:#33436c}.sub,.empty{color:#65718a}.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin:16px 0}.metric{padding:11px;border:1px solid #dce2ee;border-radius:10px;background:white}.metric b{display:block;font-size:19px;margin-top:5px;color:#26395f}table{width:100%;border-collapse:collapse;margin-top:8px;background:white;page-break-inside:auto}thead{display:table-header-group}tr{break-inside:avoid;page-break-inside:avoid}td,th{border:1px solid #dce2ee;padding:7px;text-align:right;vertical-align:top}th{background:#edf0f8;color:#27385e}section{break-inside:auto;margin-top:14px}.report-footer{margin-top:26px;padding-top:10px;border-top:1px solid #dce2ee;color:#65718a;font-size:10px}@page{size:A4;margin:12mm}@media print{body{padding:0;background:white;-webkit-print-color-adjust:exact;print-color-adjust:exact}.metric,table{break-inside:avoid}h2{break-after:avoid}}</style><header><h1>گزارش روزانهٔ Study OS</h1><div class="sub">${$safe(dateFull(day))} · تهیه‌شده در ${new Date().toLocaleString('fa-IR')}</div></header><div class="metrics"><div class="metric">زمان مطالعه<b>${fmt(totals.study)}</b></div><div class="metric">جلسه‌ها<b>${fa(totals.sessions)}</b></div><div class="metric">تست‌ها<b>${fa(totals.tests)}</b></div><div class="metric">کارهای انجام‌شده<b>${fa(totals.done)} از ${fa(totals.tasks)}</b></div></div><section><h2>خلاصهٔ عملکرد روز</h2><table><thead><tr><th>تاریخ</th><th>مطالعه</th><th>جلسه‌ها</th><th>تست</th><th>درست</th><th>غلط</th><th>نزده</th></tr></thead><tbody>${rows.map(x=>`<tr><td>${$safe(x.date)}</td><td>${fmt(x.study)}</td><td>${fa(x.sessions)}</td><td>${fa(x.tests)}</td><td>${fa(x.correct)}</td><td>${fa(x.wrong)}</td><td>${fa(x.blank)}</td></tr>`).join('')}</tbody></table></section><section><h2>جزئیات آزمون‌ها به تفکیک درس</h2>${testHtml}</section><section><h2>جلسه‌های ثبت‌شده</h2>${sessionsHtml}</section><section><h2>برنامهٔ روز</h2>${planRows}</section><section><h2>چک‌لیست کارها</h2>${taskRows}</section><footer class="report-footer">گزارش مستقل یک روز · Study OS · داده‌ها فقط از سوابق ثبت‌شدهٔ همین روز استخراج شده‌اند.</footer><script>window.onload=()=>setTimeout(()=>window.print(),450)<\/script></html>`;
+ w.document.open();w.document.write(html);w.document.close();
+}
 function fullBackup(){const examDB=getExamDB();const pack={app:'PasokhBargStudyOS',version:49,exportedAt:new Date().toISOString(),examDB,studyData:data,theme:document.documentElement.classList.contains('dark')?'dark':'light'};downloadFile(JSON.stringify(pack,null,2),'pasokh-barg-full-backup.json','application/json')}
 function restoreBackup(file){const reader=new FileReader();reader.onload=()=>{try{const p=JSON.parse(reader.result);if(!p||typeof p!=='object')throw Error('invalid');let nextStudy=null,nextExam=null;if(p.app==='PasokhBargStudyOS'){nextStudy=p.studyData;nextExam=p.examDB}else if(Array.isArray(p.sessions)&&p.tasks){nextStudy=p}else if(Array.isArray(p.books)){nextExam=p}else throw Error('format');if(nextStudy&&!Array.isArray(nextStudy.sessions))throw Error('study');if(nextExam&&!Array.isArray(nextExam.books))throw Error('exam');if(!nextStudy&&!nextExam)throw Error('empty backup');try{localStorage.setItem(STORAGE+'_before_restore',JSON.stringify(data));localStorage.setItem(EXAM_STORAGE+'_before_restore',localStorage.getItem(EXAM_STORAGE)||'{}')}catch(e){alert('پشتیبان موقت ساخته نشد؛ بازیابی لغو شد تا اطلاعات فعلی امن بماند.');return}if(!confirm('اطلاعات انتخاب‌شده جایگزین اطلاعات فعلی شود؟ قبل از جایگزینی یک پشتیبان موقت ساخته شده است.'))return;if(nextStudy)data=normalizeData(nextStudy);if(nextExam)localStorage.setItem(EXAM_STORAGE,JSON.stringify(nextExam));if(p.theme==='dark'||p.theme==='light')applyTheme(p.theme==='dark');if(p.localSettings&&typeof p.localSettings==='object'){const syncKeys=['pasokhBargDigitalV2','pasokhBargStudyOS_v2','pasokhBargLiveCorrectMode','pasokhBargTheme','pasokhBargSidebarCollapsed','pasokhBargAmbientMotion_v1','pasokhBargPrismModeV60','pasokhBargPrismStrengthV60','pasokhBargPrismSpeedV60','pasokhBargPrismPaletteV61','pasokhBargPrismHoverV61','pasokhBargPrismLiftV61','pasokhBargPrismPaletteV63','pasokhBargPrismCustomV63','pasokhBargPrismThicknessV63','pasokhBargPrismGlowV63','pasokhBargPrismPowerV65'];syncKeys.forEach(k=>{if(Object.prototype.hasOwnProperty.call(p.localSettings,k))localStorage.setItem(k,String(p.localSettings[k]));else localStorage.removeItem(k)})}save();alert('بازیابی انجام شد. صفحه دوباره بارگذاری می‌شود.');location.reload()}catch(e){alert('فایل پشتیبان معتبر یا قابل‌شناسایی نیست.')}finally{$('sRestoreFile').value=''}};reader.readAsText(file,'utf-8')}
-function render(){if(activeTab==='dash')renderDash();else if(activeTab==='planner')renderPlanner();else if(activeTab==='tasks')renderTasks();else if(activeTab==='stopwatch')renderStopwatch();else if(activeTab==='reports')renderReports();else if(activeTab==='review')renderReview()}
+function render(){if(activeTab==='dash')renderDash();else if(activeTab==='planner')renderPlanner();else if(activeTab==='tasks')renderTasks();else if(activeTab==='stopwatch')renderStopwatch();else if(activeTab==='reports')renderReports();else if(activeTab==='review')renderReview();else if(['calendar','manual','assistant','admin'].includes(activeTab))window.StudyOSV93?.renderTab(activeTab)}
 const osRoot=$('studyOS');
 function setNavOpen(open){osRoot.classList.toggle('nav-open',!!open);document.body.classList.toggle('study-nav-open-v67',!!open);$('osNavToggle').setAttribute('aria-expanded',String(!!open));}
 $('osNavToggle').onclick=()=>setNavOpen(!osRoot.classList.contains('nav-open'));
@@ -2204,7 +2344,7 @@ function renderDash(){
   const date=selectedDate, logs=sessionsFor(date), active=data.settings.stopwatch;
   const live=active&&active.firstStartedAt&&dateKey(new Date(active.firstStartedAt))===date?elapsed(active):0;
   const sec=logs.reduce((a,x)=>a+(Number(x.duration)||0),0)+live;
-  const tasks=tasksFor(date),done=tasks.filter(x=>x.done).length,plans=plansFor(date).slice().sort((a,b)=>a.start.localeCompare(b.start));
+  const tasks=tasksFor(date),done=tasks.filter(x=>x.done).length,plans=plansFor(date).slice().sort((a,b)=>(!!a.timeFlexible)-(!!b.timeFlexible)||String(a.start||'23:59').localeCompare(String(b.start||'23:59')));
   const planMin=plans.reduce((a,x)=>a+(Number(x.minutes)||0),0),tests=testsFor(date);
   const week=startOfWeekDates(date),weekSessions=week.flatMap(d=>sessionsFor(d));
   const weekTotal=weekSessions.reduce((a,x)=>a+(Number(x.duration)||0),0);
@@ -2349,20 +2489,21 @@ function renderStopwatch(){
   const t=data.settings.stopwatch,goal=Number(t?.targetSeconds??data.settings.selectedGoal??3600),secs=elapsed(t),subject=t?.subject||getSubjects()[0],kind=t?.kind||data.settings.sessionKind||'study';
   const progress=goal?Math.min(100,secs/goal*100):0;
   const logs=data.sessions.slice().sort((a,b)=>(b.createdAt||b.endAt||'').localeCompare(a.createdAt||a.endAt||'')).slice(0,6);
-  const alarm=goal&&secs>=goal?`<div class="alarm-banner"><span id="swAlarmMessage">${alarmNeedsClick?'برای پخش زنگ، یک بار روی دکمهٔ پخش صدا بزن.':'زمان هدف رسید.'}</span><button class="os-btn subtle ${alarmNeedsClick?'':'hidden'}" id="swPlayAlarm">پخش صدا</button></div>`:'';
+  const goalPrompt=!!(t?.autoPausedForGoal&&Number(t.goalPromptUntil)>Date.now());
+  const alarm=goal&&secs>=goal?`<div class="alarm-banner"><span id="swAlarmMessage">${alarmNeedsClick?'برای پخش زنگ، یک بار روی دکمهٔ پخش صدا بزن.':goalPrompt?'زمان هدف رسید؛ در این ۱۰ ثانیه می‌توانی مکث کنی، ذخیره کنی یا ادامه بدهی.':'زمان هدف رسید.'}</span>${alarmNeedsClick?'<button class="os-btn subtle" id="swPlayAlarm">پخش صدا</button>':''}${goalPrompt?`<div class="v93-goal-actions"><span id="swGoalPromptCountdown">${fa(Math.max(0,Math.ceil((Number(t.goalPromptUntil)-Date.now())/1000)))} ثانیه</span><button class="os-btn primary" id="swGoalResume">ادامه همین حالا</button><button class="os-btn subtle" id="swGoalPause">مکث</button></div>`:''}</div>`:'';
   panel.innerHTML=`<div class="page-head"><div><span class="eyebrow">تمرکز</span><h2>زمان‌سنج</h2><p>زمان واقعی را ثبت کن؛ با رسیدن به هدف، زنگ می‌زند.</p></div><div class="quick-row"><button class="os-icon-btn" id="swSoundTest" title="آزمایش صدا" aria-label="آزمایش صدا">♫</button><button class="os-icon-btn" id="swNotification" title="فعال‌کردن اعلان" aria-label="فعال‌کردن اعلان">♧</button></div></div>
-  <div class="stopwatch-v51-grid"><section class="os-card stopwatch-v51-face"><div class="sw-face-ring" style="--p:${progress}%"><div class="sw-face-inner"><span class="sw-status-dot ${t?.running?'on':''}"></span><strong id="swElapsed">${fmt(secs)}</strong><small>${t?.running?'در حال اندازه‌گیری':t?'متوقف':'آمادهٔ شروع'}</small></div></div><div class="sw-v51-subject">${$safe(subject)}${t?.planTitle?` · ${$safe(t.planTitle)}`:''}</div><div class="sw-target" id="swRemaining">${goal?(secs>=goal?'زمان هدف رسید':`تا هدف ${fmt(goal-secs)}`):'بدون زمان هدف'}</div><div class="sw-controls">${!t?'<button class="os-btn primary" id="swStart">شروع</button>':(t.running?'<button class="os-btn subtle" id="swPause">مکث</button>':'<button class="os-btn primary" id="swResume">ادامه</button>')}<button class="os-btn primary" id="swFinish" ${t?'':'disabled'}>پایان و ذخیره</button><button class="os-btn subtle" id="swReset" ${t?'':'disabled'}>لغو</button></div>${alarm}</section>
+  <div class="stopwatch-v51-grid"><section class="os-card stopwatch-v51-face"><div class="sw-face-ring" style="--p:${progress}%"><div class="sw-face-inner"><span class="sw-status-dot ${t?.running?'on':''}"></span><strong id="swElapsed">${fmt(secs)}</strong><small>${t?.running?'در حال اندازه‌گیری':t?'متوقف':'آمادهٔ شروع'}</small></div></div><div class="sw-v51-subject">${$safe(subject)}${t?.planTitle?` · ${$safe(t.planTitle)}`:''}</div><div class="sw-target" id="swRemaining">${goal?(secs>=goal?'زمان هدف رسید':`تا هدف ${fmt(goal-secs)}`):'بدون زمان هدف'}</div><div class="sw-controls">${!t?'<button class="os-btn primary" id="swStart">شروع</button>':(t.running?'<button class="os-btn subtle" id="swPause">مکث</button>':goalPrompt?'<span class="v93-muted-note">زمان‌سنج موقتاً متوقف است.</span>':'<button class="os-btn primary" id="swResume">ادامه</button>')}<button class="os-btn primary" id="swFinish" ${t?'':'disabled'}>پایان و ذخیره</button><button class="os-btn subtle" id="swReset" ${t?'':'disabled'}>لغو</button></div>${alarm}</section>
   <section class="os-card stopwatch-v51-options"><div class="section-head"><h3>تنظیم سریع</h3><small>بدون تایپ</small></div><div class="control"><label>درس</label>${makeSubjectSelect('swSubject',subject)}</div><div class="sw-choice-block"><label>نوع کار</label><div class="sw-kind-choices">${[['study','مطالعه'],['test','تست'],['review','مرور'],['analysis','تحلیل']].map(([k,l])=>`<button class="quick-chip ${kind===k?'active':''}" data-session-kind="${k}" ${t?'disabled':''}>${l}</button>`).join('')}</div></div><div class="sw-choice-block"><label>زنگ بعد از</label><div class="sw-kind-choices">${[0,25,45,60,90,120].map(m=>`<button class="quick-chip ${goal===m*60?'active':''}" data-goal="${m*60}" ${t?'disabled':''}>${m?fa(m)+' دقیقه':'خاموش'}</button>`).join('')}</div></div><div class="sw-hint">هنگام بسته‌بودن کامل مرورگر، صدای زنگ قابل تضمین نیست؛ با بازگشت به صفحه، زمان دوباره محاسبه می‌شود.</div></section></div>
   <section class="os-card sw-recent"><div class="section-head"><h3>جلسه‌های اخیر</h3><button class="os-btn subtle" data-go="reports">گزارش‌ها</button></div>${logs.length?logs.map(s=>`<div class="session-row"><span>${$safe(s.date)} · ${$safe(s.subject)} · ${kindLabelV51(s.kind)}</span><strong>${fmt(s.duration)}</strong></div>`).join(''):'<div class="empty-state">هنوز جلسه‌ای ثبت نشده.</div>'}</section>`;
   if(!t)$('swStart').onclick=()=>startStopwatch({subject:$('swSubject').value,targetSeconds:Number(data.settings.selectedGoal??3600),kind:data.settings.sessionKind||'study'});
-  if(t?.running)$('swPause').onclick=pauseStopwatch;if(t&&!t.running)$('swResume').onclick=()=>startStopwatch({kind:t.kind});if(t)$('swFinish').onclick=finishStopwatch;if(t)$('swReset').onclick=resetStopwatch;
+  if(t?.running)$('swPause').onclick=pauseStopwatch;if(t&&!t.running&&!goalPrompt)$('swResume').onclick=()=>startStopwatch({kind:t.kind});if(goalPrompt){$('swGoalResume').onclick=()=>resumeAfterGoalPrompt();$('swGoalPause').onclick=keepGoalPaused;}if(t)$('swFinish').onclick=finishStopwatch;if(t)$('swReset').onclick=resetStopwatch;
   $('swSoundTest').onclick=()=>playChime().then(ok=>{if(!ok)alert('مرورگر اجازهٔ پخش صدا نداد. یک بار دیگر آزمایش کن.')});
   if($('swPlayAlarm'))$('swPlayAlarm').onclick=()=>playChime().then(ok=>{alarmNeedsClick=!ok;updateAlarmUI()});
   $('swNotification').onclick=()=>{if(!('Notification'in window)){alert('این مرورگر اعلان را پشتیبانی نمی‌کند.');return}Notification.requestPermission().then(p=>alert(p==='granted'?'اعلان فعال شد.':'اجازهٔ اعلان داده نشد.')).catch(()=>alert('فعال‌سازی اعلان ممکن نشد.'))};
   panel.querySelectorAll('[data-session-kind]').forEach(b=>b.onclick=()=>{if(data.settings.stopwatch)return;data.settings.sessionKind=b.dataset.sessionKind;save();renderStopwatch()});
   panel.querySelectorAll('[data-goal]').forEach(b=>b.onclick=()=>{if(data.settings.stopwatch)return;data.settings.selectedGoal=Number(b.dataset.goal);save();renderStopwatch()});
   if(t&&$('swSubject'))$('swSubject').disabled=true;
-  if(t&&t.running)startClock();else if(!t)clearClock();
+  if(t&&(t.running||t.autoPausedForGoal))startClock();else if(!t||!t.running)clearClock();
   panel.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>setTab(b.dataset.go));
 }
 
@@ -2407,6 +2548,11 @@ function reviewItems(){
       }
     }
   }
+  for(const x of (Array.isArray(data.externalReviewItems)?data.externalReviewItems:[])){
+    const key=String(x.key||`external:${x.id}:${x.question}`),rec=data.reviewSchedule?.[key]||{};
+    const due=/^\d{4}-\d{2}-\d{2}$/.test(String(rec.dueDate||x.dueDate||''))?String(rec.dueDate||x.dueDate):today();
+    const externalSubject=String(x.subject||'سایر');const matchedSubject=subjects.find(s=>String(s.name||'').trim()===externalSubject.trim());items.push({key,examId:null,external:true,source:x.source||'آزمون خارج از سامانه',exam:x.exam||x.source||'آزمون خارجی',question:Number(x.question)||0,subject:externalSubject,subjectId:String(matchedSubject?.id??externalSubject),bookId:`external:${String(x.source||'unknown')}`,book:x.source||'آزمون خارجی',chapter:x.chapter||'بدون فصل',chapterId:String(x.chapter||'none'),tags:Array.isArray(x.tags)?x.tags:['مهم'],isWrong:false,isBlank:false,isImportant:true,isMarked:false,dueDate:due,step:Math.max(0,Number(rec.step)||0),intervalDays:Math.max(0,Number(rec.intervalDays)||0),lastRating:rec.lastRating||'',lastReviewedAt:rec.lastReviewedAt||data.reviewed?.[key]||null});
+  }
   return items.sort((a,b)=>a.dueDate.localeCompare(b.dueDate)||a.subject.localeCompare(b.subject,'fa')||a.book.localeCompare(b.book,'fa')||a.chapter.localeCompare(b.chapter,'fa')||Number(a.question)-Number(b.question));
 }
 function updateReviewNavBadgeV53(){
@@ -2445,7 +2591,7 @@ function reviewItemCardV53(x){
   return `<article class="review-question-v53 ${due?'is-due':''}">
     <div class="review-q-index"><b>${fa(x.question)}</b><small>سؤال</small></div>
     <div class="review-q-info"><div class="review-tag-row-v53">${tags}</div><b>${$safe(x.exam)}</b><small>${$safe(x.book)} · ${$safe(x.chapter)}</small><span class="review-due-v53 ${late?'late':''}">${dueLabel} <i>·</i> ${next}</span></div>
-    <div class="review-q-actions"><button class="os-btn subtle" data-open-review="${$safe(x.examId)}" data-review-question="${$safe(x.question)}" title="باز کردن همین سؤال">بازکردن سؤال ↗</button>
+    <div class="review-q-actions">${x.external?`<span class="review-scheduled-note">منبع: ${$safe(x.source||x.exam)}</span>`:`<button class="os-btn subtle" data-open-review="${$safe(x.examId)}" data-review-question="${$safe(x.question)}" title="باز کردن همین سؤال">بازکردن سؤال ↗</button>`}
     ${due?`<div class="review-ratings-v53"><button class="rate-hard" data-rate-review="hard" data-review-key="${$safe(x.key)}" title="سخت بود؛ فردا دوباره مرور شود">سخت بود</button><button class="rate-good" data-rate-review="good" data-review-key="${$safe(x.key)}" title="یادم بود؛ فاصلهٔ معمولی">یادم بود</button><button class="rate-easy" data-rate-review="easy" data-review-key="${$safe(x.key)}" title="آسان بود؛ فاصلهٔ بیشتر">آسان بود</button></div>`:`<span class="review-scheduled-note">${x.lastReviewedAt?'آخرین مرور ثبت شده':'زمان‌بندی شده'}</span>`}</div>
   </article>`;
 }
@@ -2471,12 +2617,18 @@ function renderReview(){
   const all=reviewItems(),now=today(),due=all.filter(x=>x.dueDate<=now),overdue=all.filter(x=>x.dueDate<now),nextWeek=all.filter(x=>x.dueDate>now&&x.dueDate<=addDays(now,7)),reviewed=all.filter(x=>!!x.lastReviewedAt);
   const db=getExamDB(),subjects=Array.isArray(db.subjects)?db.subjects:[],books=Array.isArray(db.books)?db.books:[];
   const selectedSubject=reviewUIV53.subject,selectedBook=reviewUIV53.book;
-  const subjectOptions=subjects.filter(s=>s&&s.id!=null).map(s=>({id:String(s.id),name:s.name||'درس'}));
-  const bookOptions=books.filter(b=>selectedSubject==='all'||String(b.subject||'')===selectedSubject).map(b=>({id:String(b.id||b.name||''),name:b.name||'منبع'}));
+  const subjectMap=new Map(subjects.filter(s=>s&&s.id!=null).map(s=>[String(s.id),{id:String(s.id),name:s.name||'درس'}]));
+  all.forEach(item=>{if(!subjectMap.has(String(item.subjectId)))subjectMap.set(String(item.subjectId),{id:String(item.subjectId),name:item.subject||'درس'})});
+  const subjectOptions=[...subjectMap.values()].sort((a,b)=>a.name.localeCompare(b.name,'fa'));
+  const bookMap=new Map(books.filter(b=>selectedSubject==='all'||String(b.subject||'')===selectedSubject).map(b=>[String(b.id||b.name||''),{id:String(b.id||b.name||''),name:b.name||'منبع'}]));
+  all.filter(item=>selectedSubject==='all'||String(item.subjectId)===selectedSubject).forEach(item=>{if(!bookMap.has(String(item.bookId)))bookMap.set(String(item.bookId),{id:String(item.bookId),name:item.book||'منبع'})});
+  const bookOptions=[...bookMap.values()].sort((a,b)=>a.name.localeCompare(b.name,'fa'));
   let selectedBookRecord=books.find(b=>String(b.id||b.name||'')===selectedBook);
   if(selectedBook!=='all'&&!bookOptions.some(x=>x.id===selectedBook)){reviewUIV53.book='all';reviewUIV53.chapter='all';}
   selectedBookRecord=books.find(b=>String(b.id||b.name||'')===reviewUIV53.book);
-  const chapterOptions=(selectedBookRecord?.chapters||[]).map(c=>({id:String(c.id||c.name||''),name:c.name||'فصل'}));
+  const chapterMap=new Map((selectedBookRecord?.chapters||[]).map(c=>[String(c.id||c.name||''),{id:String(c.id||c.name||''),name:c.name||'فصل'}]));
+  all.filter(item=>(reviewUIV53.book==='all'||String(item.bookId)===reviewUIV53.book)&&(reviewUIV53.subject==='all'||String(item.subjectId)===reviewUIV53.subject)).forEach(item=>{if(!chapterMap.has(String(item.chapterId)))chapterMap.set(String(item.chapterId),{id:String(item.chapterId),name:item.chapter||'فصل'})});
+  const chapterOptions=[...chapterMap.values()].sort((a,b)=>a.name.localeCompare(b.name,'fa'));
   if(reviewUIV53.chapter!=='all'&&!chapterOptions.some(x=>x.id===reviewUIV53.chapter))reviewUIV53.chapter='all';
   const dueText=fa(due.length);
   panel.innerHTML=`
@@ -2912,14 +3064,19 @@ const checkClockBeforeFocusV68=checkClock;
 checkClock=function(){checkClockBeforeFocusV68();if(activeTab==='dash')updateFocusNumbersV68();};
 // V89 live-cloud bridge: refresh study data in place, preserving the active tab and scroll position.
 let cloudStudyRefreshQueuedV89=false;
+let cloudStudyDataPendingV92=false;
 function refreshStudyAfterCloudV89(){
  if(cloudStudyRefreshQueuedV89)return;
  const active=document.activeElement;
  if(active&&active.matches&&active.matches('input,textarea,select,[contenteditable="true"]')){cloudStudyRefreshQueuedV89=true;return;}
+ if(cloudStudyDataPendingV92){
+  try{const raw=localStorage.getItem(STORAGE);data=normalizeData(raw?JSON.parse(raw):defaultData());cloudStudyDataPendingV92=false;}
+  catch(err){console.warn('Cloud study data could not be parsed:',err);return;}
+ }
  const root=$('studyOS');
  const visible=!!root&&getComputedStyle(root).display!=='none'&&document.body.classList.contains('study-os-active-v63');
  const panelScroll=panel?panel.scrollTop:0;
- if(visible&&activeTab!=='stopwatch'){
+ if(visible){
   render();
   requestAnimationFrame(()=>{if(panel)panel.scrollTop=panelScroll;});
  }
@@ -2927,12 +3084,19 @@ function refreshStudyAfterCloudV89(){
 }
 window.addEventListener('studyos:cloud-data-updated',ev=>{
  const keys=ev.detail?.changedKeys||[];if(!keys.includes(STORAGE))return;
- try{const raw=localStorage.getItem(STORAGE);data=normalizeData(raw?JSON.parse(raw):defaultData());}catch(err){console.warn('Cloud study data could not be parsed:',err);return;}
+ cloudStudyDataPendingV92=true;
  refreshStudyAfterCloudV89();
 });
-document.addEventListener('focusout',()=>{if(cloudStudyRefreshQueuedV89)requestAnimationFrame(refreshStudyAfterCloudV89)},true);
+window.addEventListener('studyos:cloud-exam-updated',()=>refreshStudyAfterCloudV89());
+document.addEventListener('focusout',()=>{if(cloudStudyRefreshQueuedV89)requestAnimationFrame(()=>{cloudStudyRefreshQueuedV89=false;refreshStudyAfterCloudV89()})},true);
 
 
+
+window.StudyOSV93={
+ get data(){return data},save,setTab,render,getExamDB,getSubjects,makeId,fa,fmt,dateFull,today,addDays,plansFor,planFind,startStopwatch,
+ get selectedDate(){return selectedDate},setSelectedDate(value){saveSelectedDate(value)},get reportRange(){return getReportRange()},get testRows(){return testRows()},playChime,
+ renderTab:null
+};
 })();
 </script>
 <style id="study-os-v48-polish">
@@ -5280,11 +5444,8 @@ html.ui-is-scrolling #studyOS .review-chapter-v53:hover,html.ui-is-scrolling #st
 }
 </style>
 
-<script>
-(()=>{if(!('serviceWorker' in navigator)||!/^https?:$/.test(location.protocol))return;window.addEventListener('load',()=>{navigator.serviceWorker.register('./sw.js?v=90',{scope:'./'}).catch(err=>console.warn('Study OS offline setup:',err));});})();
-</script>
-
-<script src="./cloud-sync.js?v=90"></script>
+<!-- v94 release candidate: Service Worker is registered by cloud-sync.js. -->
+<script src="./cloud-sync.js?v=94"></script>
 
 
 <script id="study-os-v84-theme-portal-sync">
@@ -5355,5 +5516,6 @@ html.ui-is-scrolling #studyOS .review-chapter-v53:hover,html.ui-is-scrolling #st
  if(profile&&typeof profile.refresh==='function')profile.refresh();
 })();
 </script>
+<link rel="stylesheet" href="./study-os-v93.css?v=94"><script src="./study-os-v93.js?v=94"></script>
 </body>
 </html>

@@ -1,0 +1,40 @@
+Study OS v94 — Production Release Candidate QA
+
+AUTOMATED REGRESSION: 23/23 PASSED
+- 23 Node regression tests passed (0 failed).
+- cloud-sync.js, study-os-v93.js and sw.js pass JavaScript syntax checks.
+- Both Supabase Edge Function TypeScript files pass Node's TypeScript syntax check (Deno runtime/deployment not executed).
+- All 16 inline script blocks in index.html parse successfully.
+- manifest.webmanifest parses as valid JSON and is labeled Study OS v94 (not Preview).
+- All local shell assets referenced by the manifest and Service Worker exist.
+- Persian timer digits and timer formatter remain byte-identical to stable v91.
+- Existing v79 cloud config/session/meta storage keys and current public Supabase URL/publishable key are retained for account compatibility.
+- Only pasokhBargDigitalV2 and pasokhBargStudyOS_v2 are included in cloud sync payloads; specified device-local settings are stripped before upload and retained locally on remote apply.
+- The migration is additive and does not alter study_os_sync or its existing payload/save function.
+- Invite callback/password setup and server-side admin/AI permission checks are covered by source-level tests, but not tested against a live Supabase project.
+- Music remains YouTube-only. Its control is placed at the end of the navigation rail; no alternate audio library is included.
+- Service Worker shell/cache version is v94 and old Study OS shell caches are retired on activation. LocalStorage and Supabase rows are not deleted by the worker.
+
+MANUAL PREVIEW CHECKS ALREADY REPORTED BY THE USER ON v93.2 LOCAL PREVIEW
+- Persian digits in both timers: passed.
+- New test setup starts without a preselected subject/chapter: passed.
+- Answer cards do not jump/repaint on answer entry: passed.
+- Important question is added to review with source: passed.
+- Manual off-platform test updates daily totals and reports: passed.
+- Alert test tone plays: passed.
+
+NOT VERIFIED / DEPLOYMENT REQUIRED
+- No live Supabase migration, Edge Function deployment, invite email, admin action or OpenAI API request was executed.
+- The invite callback handles Supabase implicit-flow token fragments; confirm the project's actual Auth flow with a test invitation before disabling public signup.
+- AI is fail-closed until guardian consent, per-user server allowlist, approved profile, OPENAI_API_KEY and OPENAI_MODEL are configured. It is not connected to the user's ChatGPT subscription and may incur separate API charges.
+- The YouTube embedded player may continue showing YouTube's own sign-in/bot-verification notice depending on the video, account, browser, network and YouTube policy. No bypass is implemented; external YouTube link remains.
+- Physical tablet and mobile testing of the release candidate is not performed in this environment.
+- Final visual PDF print layout and service-worker update on installed PWA must be checked after release.
+- Sync remains snapshot-based; per-question/per-record event synchronization is not implemented.
+- Browser notifications are not guaranteed after the browser is fully closed.
+
+RELEASE SAFETY
+- This archive has not been uploaded to GitHub or deployed to GitHub Pages.
+- No production Supabase changes were made.
+- Keep the existing JSON backup and stable main branch.
+- Do not change GitHub Pages to v93-beta; v94 uses the current production Supabase project and existing v79 session/config keys.
